@@ -17,7 +17,8 @@ Runtime profiles select interpreters and external data roots through
 simulation libraries; create it with `python3 scripts/setup_workflow_environment.py`.
 The native catalog's `main` profile remains a separate fully pinned installation
 recipe. See [startup validation](docs/startup-validation.md) for no-training
-GPU checks. Existing checkouts and external artifacts retain their own history.
+GPU checks. Original checkouts and Git histories are archived; their old workspace names
+are resource compatibility links. External artifacts retain their original history.
 
 ## Start here
 

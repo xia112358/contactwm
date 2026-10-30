@@ -46,9 +46,19 @@ connection to the downstream SuperMimic workflow is deferred.
 
 The new source checkout is `somaforge-unified`. Its runtime aliases retain the
 existing stores: merging source does not copy, rename or validate experimental
-data. Original SomaForge, Stage 2 and standalone SuperMimic checkouts are
-preserved. An external IsaacLab dependency can be selected explicitly in the
-resource registry; project source must come from this checkout.
+data. The original SomaForge, Stage 2 and standalone SuperMimic source checkouts
+and Git histories were archived and verified before removal. Their workspace
+names now link to resource-only compatibility directories in external runtime;
+they contain no old source checkout or Git metadata. Recorded absolute data and
+asset paths continue to work. Do not put new source files in those aliases.
+
+IsaacLab is an independent dependency at
+`/home/zhouxia/workspace/dependencies/IsaacLab`, selected explicitly in the
+resource registry. The old `supermimic_vibed/IsaacLab` resource alias remains for
+the unchanged base environment's editable installation. Archive and compatibility
+locations are recorded in `configs/consolidation_provenance.json`. Restoring an
+old source checkout requires extracting its verified archive to a separate
+location; repair Git worktree paths with `git worktree repair` if needed.
 
 Use `scripts/run_workflow.py --help` and [the current workflow guide](../docs/current-workflow.md).
 The launcher leaves checkpoint formats intact. Old trajectory editing and

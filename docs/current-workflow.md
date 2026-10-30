@@ -115,3 +115,5 @@ python3 scripts/setup_workflow_environment.py
 `tracking` 和 `initialize` 原生参数支持 `--startup_check`：在真实物理初始化及策略前向后退出，不执行优化器更新、不写训练 checkpoint。contact 的 `--profile_collection --freeze_actor --freeze_wm` 用于冻结采集检查，会验证 actor 和 WM 的 state_dict 完全不变。检查细节见 [启动验证](startup-validation.md)。
 
 历史 `accepted-baseline.json` 和其原 `checkpoint_dagger.pt` 仍缺失。已有其他历史 DAgger/contact 文件只用作兼容性启动样例，不自动成为已接受的新训练基线；正式 contact 训练前仍需明确选定经过验证的 checkpoint。
+
+旧仓库已归档清理。当前源码只在 `somaforge-unified`，独立 IsaacLab 位于 `/home/zhouxia/workspace/dependencies/IsaacLab`；旧项目名仅保留外部资源兼容链接，以支持历史 manifest/checkpoint 的绝对路径。归档位置见 `configs/consolidation_provenance.json`，运行数据与权重未迁移或删除。

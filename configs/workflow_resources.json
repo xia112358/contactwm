@@ -3,13 +3,13 @@
   "supermimic": {
     "runtime_root": "/perception/workspace/zhouxia/supermimic_vibed",
     "python": "runtime/environments/venv/workflow/bin/python",
-    "isaaclab_root": "/home/zhouxia/workspace/supermimic_vibed/IsaacLab",
+    "isaaclab_root": "/home/zhouxia/workspace/dependencies/IsaacLab",
     "base_python": "/home/zhouxia/miniforge3/envs/supermimic/bin/python"
   },
   "ppo": {
     "runtime_root": "/perception/workspace/zhouxia/somaforge/runtime/current",
     "python": "runtime/environments/venv/workflow/bin/python",
-    "isaaclab_root": "/home/zhouxia/workspace/supermimic_vibed/IsaacLab"
+    "isaaclab_root": "/home/zhouxia/workspace/dependencies/IsaacLab"
   },
   "stage2": {
     "runtime_root": "/perception/workspace/zhouxia/somaforge-stage2/runtime/current"

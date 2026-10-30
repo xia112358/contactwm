@@ -60,5 +60,15 @@
       "target": "/perception/workspace/zhouxia/somaforge/runtime/current/motion_edit/data"
     }
   ],
-  "merged_source_snapshot": "ffc22f5c9dfb8a61a8f36450351e9189bb93d948"
+  "merged_source_snapshot": "ffc22f5c9dfb8a61a8f36450351e9189bb93d948",
+  "original_checkouts_storage": "verified archive; workspace names are resource compatibility links only",
+  "retirement_archive_manifest": "/perception/workspace/zhouxia/somaforge/runtime/current/archives/repositories-pre-unified-20261030T053916Z/manifest.json",
+  "retirement_manifest": "/perception/workspace/zhouxia/somaforge/runtime/current/archives/repositories-pre-unified-20261030T053916Z/retirement.json",
+  "compatibility_root_links": {
+    "/home/zhouxia/workspace/somaforge": "/perception/workspace/zhouxia/somaforge/runtime/current/compat/retired-checkouts/somaforge",
+    "/home/zhouxia/workspace/somaforge-stage2": "/perception/workspace/zhouxia/somaforge/runtime/current/compat/retired-checkouts/somaforge-stage2",
+    "/home/zhouxia/workspace/supermimic_vibed": "/perception/workspace/zhouxia/somaforge/runtime/current/compat/retired-checkouts/supermimic_vibed"
+  },
+  "isaaclab_dependency_root": "/home/zhouxia/workspace/dependencies/IsaacLab",
+  "viewer_service_state": "/perception/workspace/zhouxia/somaforge/runtime/current/cache/unified-services/state.json"
 }
