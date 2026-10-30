@@ -1,7 +1,6 @@
-# SomaForge Unified
+# ContactWM
 
-This independent local repository brings the current G1 tracking and contact
-workflow together: **SuperMimic tracking → native contact collection → DAgger
+ContactWM brings the current G1 tracking and contact workflow together: **SuperMimic tracking → native contact collection → DAgger
 initialization → contact training** using imagination or DMO updates.
 
 The original optimized PPO tracking code remains available as an independent
