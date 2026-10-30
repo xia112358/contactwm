@@ -1,0 +1,64 @@
+{
+  "branch": "refactor/unify-contact-workflow",
+  "main_snapshot": "89c8b1462f2032151161a48d416bdb2a9ca59122",
+  "stage2_original_head": "d0a37f2620250e90cb2605a095727e5c89224ae5",
+  "stage2_snapshot": "e1fe9d74b860e111043ed847e0f3522ba8a5aaa4",
+  "scope": "SuperMimic tracking -> native collection -> DAgger -> contact; PPO tracking retained independently; Predictor retained; trajectory editor and Infiller retired",
+  "original_checkouts_preserved": true,
+  "supermimic_provenance": "packages/supermimic/SOURCE_PROVENANCE.json",
+  "runtime_aliases": [
+    {
+      "path": "checkpoints",
+      "target": "/perception/workspace/zhouxia/somaforge/runtime/current/models/checkpoints"
+    },
+    {
+      "path": "tmp",
+      "target": "/perception/workspace/zhouxia/somaforge/runtime/current/holosoma/tmp"
+    },
+    {
+      "path": "data",
+      "target": "/perception/workspace/zhouxia/somaforge/runtime/current/holosoma/data"
+    },
+    {
+      "path": "wandb",
+      "target": "/perception/workspace/zhouxia/somaforge/runtime/current/holosoma/logs/wandb"
+    },
+    {
+      "path": "logs",
+      "target": "/perception/workspace/zhouxia/somaforge/runtime/current/holosoma/logs"
+    },
+    {
+      "path": "outputs",
+      "target": "/perception/workspace/zhouxia/somaforge/runtime/current/generated/outputs"
+    },
+    {
+      "path": "models",
+      "target": "/perception/workspace/zhouxia/somaforge/runtime/current/models"
+    },
+    {
+      "path": "results",
+      "target": "/perception/workspace/zhouxia/somaforge/runtime/current/generated/results"
+    },
+    {
+      "path": "logs_eval",
+      "target": "/perception/workspace/zhouxia/somaforge/runtime/current/holosoma/logs/eval"
+    },
+    {
+      "path": "runtime/supermimic",
+      "target": "/perception/workspace/zhouxia/supermimic_vibed"
+    },
+    {
+      "path": "runtime/stage2",
+      "target": "/perception/workspace/zhouxia/somaforge-stage2/runtime/current"
+    },
+    {
+      "path": "runtime/current",
+      "target": "/perception/workspace/zhouxia/somaforge/runtime/current"
+    },
+    {
+      "path": "packages/motion_edit/data",
+      "target": "/perception/workspace/zhouxia/somaforge/runtime/current/motion_edit/data"
+    }
+  ],
+  "merged_source_snapshot": "ffc22f5c9dfb8a61a8f36450351e9189bb93d948"
+}

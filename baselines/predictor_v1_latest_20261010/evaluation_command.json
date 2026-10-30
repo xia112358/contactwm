@@ -1,0 +1,22 @@
+{
+  "schema": "somaforge_recorded_command_v1",
+  "cwd": "project root",
+  "argv": [
+    "runtime/environments/newton-main-20260914/bin/python",
+    "-m",
+    "generator.evaluate_position_rollout",
+    "--headless",
+    "--checkpoint",
+    "runtime/current/models/generator/v1_shared_interval_scratch1100_20261009/step_1000.pt",
+    "--output",
+    "tmp/predictor_v1_latest_20261010_recursive30",
+    "--motion-id",
+    "4",
+    "--no-require-forward-progress",
+    "--diagnostic-continue",
+    "--total-steps",
+    "30"
+  ],
+  "output_note": "Use a fresh output directory; not executed by registration",
+  "scope": "one training-case static-endpoint diagnostic; not a full recursive test-set or dynamic support assessment"
+}

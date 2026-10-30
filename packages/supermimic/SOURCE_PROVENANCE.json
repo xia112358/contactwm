@@ -1,0 +1,699 @@
+{
+  "source_checkout": "/home/zhouxia/workspace/supermimic_vibed",
+  "files": [
+    {
+      "path": "supermimic/contact_duration.py",
+      "source_sha256": "548769b7d62ad4810f9d2bbaeaa11a18cb12b2571ec510f2acbd4e80e337cbea"
+    },
+    {
+      "path": "supermimic/mdp.py",
+      "source_sha256": "f19186f70e259ee37b2d8dd6b9beb1ae0c2fd875b67902bb5544779b9792d074"
+    },
+    {
+      "path": "supermimic/kinematics.py",
+      "source_sha256": "0a3d416b5456cc768c083198b11b59116fd64c9148ce5c7b738c80a83c986eb5"
+    },
+    {
+      "path": "supermimic/lowstep.py",
+      "source_sha256": "70406770f773ccbe225c0b34b171ca9bd2911fc39bf662cce157495c0a28bb12"
+    },
+    {
+      "path": "supermimic/contact_collect.py",
+      "source_sha256": "62eeaace255fb18f87d4886161ced1efb7f3166c41aeb81edc95c3eb6f5b0ed8"
+    },
+    {
+      "path": "supermimic/contact_sequence.py",
+      "source_sha256": "0c38b85faa242471b9ef4f70782fb1cda88713e0f668b92da13c7ae293910c2b"
+    },
+    {
+      "path": "supermimic/contact_manifold_normals.py",
+      "source_sha256": "3d8ca11dc8aa3721ebea858ff8ac098d985dc7fd8df6958e77bd12d26bab2156"
+    },
+    {
+      "path": "supermimic/lowstep_colliders.py",
+      "source_sha256": "67cd0d8fd9678ec69156fe56993b2978fe89d7c14c754b9defb616927a092a78"
+    },
+    {
+      "path": "supermimic/lowstep_observations.py",
+      "source_sha256": "c81b59e2901b2454da6b74a8f912667031494054b79f73ca0fdafe4d993b07cf"
+    },
+    {
+      "path": "supermimic/physics_failure.py",
+      "source_sha256": "c46f539d07b51ec4a860732cde4960e9389426deb2333e24db6395d33ddc54c4"
+    },
+    {
+      "path": "supermimic/train.py",
+      "source_sha256": "fb6627e005bd30f19a81f1f15097777f384d852638d409b024bbf90341585dc1"
+    },
+    {
+      "path": "supermimic/contact_dagger.py",
+      "source_sha256": "23c8d138cf3494024917fac3846997e17681cd1e399a12f67bd56574930b7019"
+    },
+    {
+      "path": "supermimic/contact_initialize.py",
+      "source_sha256": "ac16a69272424de4a6e379056584242155d23496c1a5da369ed4c0237cce8e2b"
+    },
+    {
+      "path": "supermimic/contact_library.py",
+      "source_sha256": "cdfb15eace4c02f59d6a3604e30a79aa6a531b9324b5b0aa3362240906dfe016"
+    },
+    {
+      "path": "supermimic/contact_control.py",
+      "source_sha256": "4c488f4099c00ec5e7b406a88ebaec5df3f3f86fec6a8a187eabb9ba7f4209f6"
+    },
+    {
+      "path": "supermimic/contact_lr.py",
+      "source_sha256": "266b23e0405d14d249e1ae7231cbf758112e6474e7e0599d7181323e9162489a"
+    },
+    {
+      "path": "supermimic/contact_solver_audit.py",
+      "source_sha256": "71834fe80e0dade113105104ea75b1c521503f3dbb2dfab0a05e8dcba2d145e3"
+    },
+    {
+      "path": "supermimic/rolling_panorama.py",
+      "source_sha256": "7ddff50275e6d664788151c8bb0c09c4add886ca1be647703b867af0a4e5a537"
+    },
+    {
+      "path": "supermimic/contact_task.py",
+      "source_sha256": "fc96786e4bcb7421967a028e3b282ac33d4f7e1c6fe312d03cb7efc65200cc2b"
+    },
+    {
+      "path": "supermimic/contact_dmo.py",
+      "source_sha256": "85d8e1d2062c44d8a52780bae47ed8460479901a0b0f134fa4e4e2a8d81fc43f"
+    },
+    {
+      "path": "supermimic/retry_sampler.py",
+      "source_sha256": "ce90facbe07789ae94e64e95e192f1611d3c36703b880a08328e5ddd7c4a9979"
+    },
+    {
+      "path": "supermimic/contact_probe.py",
+      "source_sha256": "503cd6dc537b311f8a8c35614452634142683e9b9116fe7d29729ad71653d8fc"
+    },
+    {
+      "path": "supermimic/panorama.py",
+      "source_sha256": "605c69da85520cc40597cd7a6542b94be48c18b7036729415500afa600e69113"
+    },
+    {
+      "path": "supermimic/contact_native.py",
+      "source_sha256": "f7dc97902606b01b57ac4e38bb622c2aba70fbe14a88015636edbc99505b5876"
+    },
+    {
+      "path": "supermimic/contact_train.py",
+      "source_sha256": "ddf790c06fc53cd034bc02399ffae3dc0e03478c2a07bdc5a673859e346e5f63"
+    },
+    {
+      "path": "supermimic/contact_surface.py",
+      "source_sha256": "049d516efbc0fa0423d0ba573f19f80f96691f8e8cfbbd8b2e269f6a9e503428"
+    },
+    {
+      "path": "supermimic/robot.py",
+      "source_sha256": "db3c9adfe2ce9975bbf6b114b4c78466bfe4275ee1a4d569f5c947d505782924"
+    },
+    {
+      "path": "supermimic/lowstep_kinematics.py",
+      "source_sha256": "4375512754615474881fe58315e28d798a8ba5e5b83ad45e78aca0e9babc1bdf"
+    },
+    {
+      "path": "supermimic/evaluate.py",
+      "source_sha256": "b992bcca6edf14c2103331370f903ce953aea38eb76d9b9766fbaf4d3dcb3b9a"
+    },
+    {
+      "path": "supermimic/networks.py",
+      "source_sha256": "9e78fe240000772deaf670970ee11cd9ad895fc6d9b87f3e6efc4f03161469e7"
+    },
+    {
+      "path": "supermimic/motion.py",
+      "source_sha256": "41735f8a97e2f7326ea0479935cf368953da20ac47eabd85c18b65a0b6859d81"
+    },
+    {
+      "path": "supermimic/env.py",
+      "source_sha256": "a8f912350e2612d72b7065ed28439c86bd18dc63db0085c001e905cc99ac2645"
+    },
+    {
+      "path": "supermimic/contact_profile.py",
+      "source_sha256": "1e1140b4e62b7e7305d3e431902c6628ad47f28e73c151ef7a3700d4486e4485"
+    },
+    {
+      "path": "supermimic/buffer.py",
+      "source_sha256": "84f9b532c0acdcfac76c7773a6bee234bcae2d8878b5d3bd72bb75416447de56"
+    },
+    {
+      "path": "supermimic/contact_response.py",
+      "source_sha256": "9e55490d7885e2439548024307a789bdfdff5aee6206b7d921f97c0e358105cb"
+    },
+    {
+      "path": "supermimic/fast_mujoco_init.py",
+      "source_sha256": "1c6e73c6e7d2dd24e1fec2a97493070aa9ab403baabc188e832ee53c71a76eb5"
+    },
+    {
+      "path": "supermimic/contact_io.py",
+      "source_sha256": "f9fd6a355092a3c50e79583110ade6873676bca21b814c555929a9af6e81f907"
+    },
+    {
+      "path": "supermimic/contact_body_summary.py",
+      "source_sha256": "f27922ad538b98c7d52442a79a4bd361f689b27d58ae0cedca12259c0cdd7d39"
+    },
+    {
+      "path": "supermimic/rotations.py",
+      "source_sha256": "f0d75dd6d8398220aff7f2910e7ef4a559bf33368fa3324a6d405ee2304be8de"
+    },
+    {
+      "path": "tools/check_contact_completion.py",
+      "source_sha256": "b8349a581a03a7e60e3d82726b2582d5a9276c0aa95e89afa4e325a0d69600cd"
+    },
+    {
+      "path": "tools/check_contact_joint_step.py",
+      "source_sha256": "e8ac6154cf7dd80ca8d8311487166d59f32c55ac35d0465582cbd0fa17cfedb2"
+    },
+    {
+      "path": "tools/check_contact_handoff_efficiency.py",
+      "source_sha256": "e7abc5962e2c369bebe6e42fd8c2ac91ec55520b6ead0d41d0680fceb80f166b"
+    },
+    {
+      "path": "tools/check_fast_mujoco_init.py",
+      "source_sha256": "e137336512f3feb6b49466b4057babc904becb7fbc3ef87ec7ba315cf7e6d66d"
+    },
+    {
+      "path": "tools/rescore_contact_replay.py",
+      "source_sha256": "bcaf29e71bbb18c6e6e767f5deef5bf087bc8c1fc37fb7915a42c4430a69b883"
+    },
+    {
+      "path": "tools/audit_duration_spike.py",
+      "source_sha256": "0d54345d75bdf421e316fe7029b01aadb070640352f907f48a29572e2604b92b"
+    },
+    {
+      "path": "tools/analyze_failure.py",
+      "source_sha256": "e12d97a6661b405555cbfdea2247e95534908d89481943a94b3df51d00370c60"
+    },
+    {
+      "path": "tools/run_php296_tracking.py",
+      "source_sha256": "ee9312adc280443e9c90d99190465262fdf81c7011d5281c0c475b257661cd0d"
+    },
+    {
+      "path": "tools/publish_continuous_failures.py",
+      "source_sha256": "a8f05678c8e81403ec584bae756c2dc033eac4cf8734ec6455770c937ef0904c"
+    },
+    {
+      "path": "tools/run_surface_training_flow.py",
+      "source_sha256": "0e2ec472091c48aeb61652a6dc1bc78145ecb75b103fd8e965088b3f95bb76d3"
+    },
+    {
+      "path": "tools/compare_surface_collision_profiles.py",
+      "source_sha256": "7cc3f83bdf783bb7d960cb35745382335c6efb631c2697c50903c0511491c457"
+    },
+    {
+      "path": "tools/test_env.py",
+      "source_sha256": "ccf7ad408fe407cb5308d3b1302ad62cd15ba1e418c9345cf032d611d19c1d86"
+    },
+    {
+      "path": "tools/diagnose_contact_gradient_sources.py",
+      "source_sha256": "74b0deffedf3ea9099b6f3d622f55edacb6796db163da08034b559d8f481f8cf"
+    },
+    {
+      "path": "tools/record_preview.py",
+      "source_sha256": "fea1cce4b7e98ac86dad0847ac38d94745953b104d523a6a642e4f7a25877992"
+    },
+    {
+      "path": "tools/analyze_contact_segments.py",
+      "source_sha256": "6906f428c014b981dbd0c188628c6ee6d6b4f74212950fe718d6a29985216f06"
+    },
+    {
+      "path": "tools/publish_contact_replay.py",
+      "source_sha256": "9f7fef656ba1a21e1a57219379aa183914e50f859a3aed8eea2163ed7e25a515"
+    },
+    {
+      "path": "tools/plot.py",
+      "source_sha256": "3ff9875a30e85063077f30b029e71ac9959e82f6ce3451a3b5080019197cb429"
+    },
+    {
+      "path": "tools/test_reset.py",
+      "source_sha256": "7b74415c277a28c51d4e724179e55a1cf38752d285e6988bab3823484bcd562c"
+    },
+    {
+      "path": "tools/profile_contact_dmo.py",
+      "source_sha256": "07be752d5766d9e7973d1fe986577db16afb8fffb52fa1a2308b89598ad7268d"
+    },
+    {
+      "path": "tools/check_contact_sequence.py",
+      "source_sha256": "8d4014fff5212f10e97564633621f2d134d29471cfff6568b42b09b0e03a23c2"
+    },
+    {
+      "path": "tools/check_contact_surface.py",
+      "source_sha256": "0c3e28f7ba7321d0b229b8da23bcb42378a07c924051463f446232d1a06296f5"
+    },
+    {
+      "path": "tools/repeat_mixed_eval.py",
+      "source_sha256": "e98d6a808d478bc11a7da6e2ffd4fe154efb9461a0962aa3324e77a805d9a4d4"
+    },
+    {
+      "path": "tools/train_joint_dagger_probe.py",
+      "source_sha256": "82e384c9ecdfc66e9fe903b88f70c0c634d3392da7b50badf065b5b1b266cac3"
+    },
+    {
+      "path": "tools/publish_low_speed_progress.py",
+      "source_sha256": "4c96360fc90a9d81316e1e0577e3cfb69a315067d3ccd7a80baf3b2ba8dd18a4"
+    },
+    {
+      "path": "tools/extend_contact_failure_videos.py",
+      "source_sha256": "fc85e973e4fe6917b913a3792a8ebe85de2efe939698ed02cfbbffb000b778e1"
+    },
+    {
+      "path": "tools/render.py",
+      "source_sha256": "c3db665d23ce684e5751087b81fa0dcf65655069ec8673d76a1510e2cf245e2d"
+    },
+    {
+      "path": "tools/probe_contact_trim.py",
+      "source_sha256": "0c9db4912b2a9d7dc1596a0a5680715e6712fac0e1f88c2e0096f23d8f0f8dc9"
+    },
+    {
+      "path": "tools/build_contact_transfer_library.py",
+      "source_sha256": "0bbf8a30a1ecb72725e5f85beeb79c8dbe5efd2dc1af7edf29314811361583bf"
+    },
+    {
+      "path": "tools/benchmark_surface_objective.py",
+      "source_sha256": "bd1dd0fa002aacf476f8c3553000841e47236c24add3f2d4f56c08b432bbcff2"
+    },
+    {
+      "path": "tools/check_contact_material_derivative.py",
+      "source_sha256": "15d1ee6bc54c7072a44c1386c6f50d8e3ff81e2f7200146e4a429088ec3f4b01"
+    },
+    {
+      "path": "tools/contact_monitor.py",
+      "source_sha256": "ad6a06f247b185c7089b0dac9d42e7dfc6f12347bef385ecf4f82ff200b6efb0"
+    },
+    {
+      "path": "tools/monitor_training.py",
+      "source_sha256": "6ba4b761a777596e2882fd6bbb32d89e3693723b9f931d8af9dc048d1dcd3908"
+    },
+    {
+      "path": "tools/audit_dagger_segment1_fit.py",
+      "source_sha256": "4da5312c784abb247cc9338c6b7ad9ae4b0605b1a63f08bc2fa6f86c34e4aca2"
+    },
+    {
+      "path": "tools/contact_boundary_waits.py",
+      "source_sha256": "221d01621c38044f69c3024fe9f9a474d5d1c4fb20c5fb755fd2021582d2d179"
+    },
+    {
+      "path": "tools/filter_contact_slice_duration.py",
+      "source_sha256": "ef5c5a9f00699c30d765273543b6a9aabd8ceddd220ec5af2e92b6a79a5a805a"
+    },
+    {
+      "path": "tools/contact_monitor.html",
+      "source_sha256": "cb1d25d433c4db9595e8b7101e15ee49f6ced8e389e0faddf93ec65dac613c70"
+    },
+    {
+      "path": "tools/render_terrain_support.py",
+      "source_sha256": "6ecbc9546ee230c693a726a61967b0152b818a6ff09fc42aa89fe0846142490c"
+    },
+    {
+      "path": "tools/training_monitor.html",
+      "source_sha256": "ffe4a6a0333c505965c5ae9577bb63c2cf2a21ec79b9b69c9717672fde5f5f97"
+    },
+    {
+      "path": "tools/run_low_speed_extraction.py",
+      "source_sha256": "9a1d3b0adbd71503c6f4c718b0e9bebdb921a72fd136baf704a0db791a027667"
+    },
+    {
+      "path": "tools/audit_surface_contact.py",
+      "source_sha256": "8f2a6416b72716592f87da4fa0644a62b3b5b7e5ee8edddd1bb36092e0e28958"
+    },
+    {
+      "path": "tools/check_contact_pipeline_efficiency.py",
+      "source_sha256": "bc095df7ab868b26ab227fbe0a6ef475e73885bde2779d92a08a330f84e682ea"
+    },
+    {
+      "path": "tools/test_depth_optimization.py",
+      "source_sha256": "d735b8b3d0b3ffce779f5d9e12a1d590793ef8f2110280f66e000d5879cbbaec"
+    },
+    {
+      "path": "tools/profile_depth_ops.py",
+      "source_sha256": "2dd99f41064df62099427a023900f482c37c6b96016b19ac45483f198542038e"
+    },
+    {
+      "path": "tools/profile_contact_stage_batches.py",
+      "source_sha256": "cc3c4345f5829f212ee64201ca36f5b7ede535d390541cea39f72ad4696687d9"
+    },
+    {
+      "path": "tools/test_rolling_panorama.py",
+      "source_sha256": "3ba268269d50715f8ea019551b61b2c7e5bb6ee443b8f741535917119705c3c0"
+    },
+    {
+      "path": "tools/finalize_contact_slices.py",
+      "source_sha256": "b218a7867def0e80dfd83d09eca29ef1fdbf7d25e77fc5f77f81f1408cd237bc"
+    },
+    {
+      "path": "tools/publish_tracking_continuation.py",
+      "source_sha256": "06e01e9f35e428e6dd3b93ef2a03aee0241c23ecf6d29e8eadae2c043961d253"
+    },
+    {
+      "path": "tools/compare_climb_runs.py",
+      "source_sha256": "fad44e4e95b41292f016bfa269993ad6099d8f4dbea586acf2187711d938c099"
+    },
+    {
+      "path": "tools/export_surface_flow_monitor.py",
+      "source_sha256": "efaa85dd50de21893286209275b5515e9dd9d7f8bfa150b9094408ef4bacfa92"
+    },
+    {
+      "path": "tools/check_contact_tracking_labels.py",
+      "source_sha256": "3df42fb0eeeda23b1cbc052ff200c40d75ef6047dc76a53a3b6bfc7626a64da7"
+    },
+    {
+      "path": "tools/check_contact_learning.py",
+      "source_sha256": "be9feb0d267003f3334525cbb89073c6f7d3910c1568c30fac603ed295d451af"
+    },
+    {
+      "path": "tools/test_panorama.py",
+      "source_sha256": "0b3cd031e47e4a79f5919dbb65f9483582044ecfd6af5371c4784198a650e5c3"
+    },
+    {
+      "path": "tools/audit_contact_response_results.py",
+      "source_sha256": "942317b1bb36a6f242d5cd694d067f9dccb6d259c064589a0b377473a3f7a868"
+    },
+    {
+      "path": "tools/check_contact_dmo.py",
+      "source_sha256": "558459477a924d74ebc8a7cdca932819cc785beb1b433c01bb8093baa640b9d9"
+    },
+    {
+      "path": "tools/test_heightcontact.py",
+      "source_sha256": "c72d8f93764a636265c12d6ee8081c0b510974256c8130299c81700d714b0f9f"
+    },
+    {
+      "path": "tools/audit_contact_cold_start.py",
+      "source_sha256": "38870ad09edf3c325d9438a0887437eb8471247a64dce8e413d00ed0f15a3f52"
+    },
+    {
+      "path": "tools/check_contact_sequence_handoff.py",
+      "source_sha256": "da5e996f057996aef07eed47bd43ce0ffa0f6fd7d1eb9102e44c18c1256fdb00"
+    },
+    {
+      "path": "tools/audit_terminal_contact_sources.py",
+      "source_sha256": "1563831b981a58e2d25931b9b46e5dfa5951532de8f73b12233a6e1988a6a22b"
+    },
+    {
+      "path": "tools/audit_long_contact_slices.py",
+      "source_sha256": "eb5d829677bf7d9de3d73732fbed0344e5211dfa44f4c8e17e1275449051bcb4"
+    },
+    {
+      "path": "tools/audit_contact_loss.py",
+      "source_sha256": "67139f2c3881b644d8203130e64cc1753b1e7e41ea29f592b7093e2649271f2f"
+    },
+    {
+      "path": "tools/surface_flow_monitor.html",
+      "source_sha256": "0562348942e235c52dc3955d306df50fdafba5ee036bc4adf121b4994fece65e"
+    },
+    {
+      "path": "tools/train_isolated_contact_failures.py",
+      "source_sha256": "f1c0354c6eb24ea2dc1967ee2745349a11f44fe5cecb3bd728dc9465b47f8841"
+    },
+    {
+      "path": "tools/diagnose_dmo_loss_components.py",
+      "source_sha256": "3aec95186f94866358aadc96540bc1c6702dd7c2692b1d56d3548131f922a2fd"
+    },
+    {
+      "path": "tools/check_contact_collection_efficiency.py",
+      "source_sha256": "6fad3c6e1d9e196732c2ed308548c242ebd9350fd10c3ffc325ed7ec0c2bce4d"
+    },
+    {
+      "path": "tools/repeat_probe5000_eval.py",
+      "source_sha256": "5fe85eb747ee7be5e1f7e974b9daf5e13df313014149733d660662be4a28460f"
+    },
+    {
+      "path": "tools/prepare_lowstep.py",
+      "source_sha256": "d02ee33d37df7f513a949e479b8bd652752553e3d20d66d122fab879fd36b81c"
+    },
+    {
+      "path": "tools/diagnose_contact_response.py",
+      "source_sha256": "1e7e1b698f6f3f8047687d5e7756afedefd937c70433caddd5f12134c9827df6"
+    },
+    {
+      "path": "tools/test_oracle_policy.py",
+      "source_sha256": "ca42e886fd445d690adb5579148c9f16e3343b4ee1baed552af5b6784cb8ac9d"
+    },
+    {
+      "path": "tools/check_dagger_transition_budget.py",
+      "source_sha256": "9a5daab4c631a9a4770a9995aa6b6f6a3d1d8c55c23b07036dafb6423e500fef"
+    },
+    {
+      "path": "tools/prepare_php_low_speed.py",
+      "source_sha256": "7868bae14addbf56444f8320ba06e760ac33b1d2dd6b9f16a967f7806e965276"
+    },
+    {
+      "path": "tools/check_contact_duration.py",
+      "source_sha256": "3f20cef0401216556375046fe35d43b92855e87f2a836d67b3aea30d309213aa"
+    },
+    {
+      "path": "tools/mjcf_to_usd.py",
+      "source_sha256": "70a2eeede58bd9ca09909c3d4831ce39e6f0cdce2304ea711ccdc380c9dd0cd2"
+    },
+    {
+      "path": "tools/test_panorama_shared_heads.py",
+      "source_sha256": "4d742e3e6375146398ff2b2e9bbb450a8bc4a4b54fc1160959c6b68d6e819036"
+    },
+    {
+      "path": "tools/publish_contact_failure.py",
+      "source_sha256": "8d7289b06154f4fa968a3197fd2cb905f35d495a998fbc6fcf4ac3bc16b83340"
+    },
+    {
+      "path": "tools/check_contact_continuous.py",
+      "source_sha256": "f025e5e2d56165ae06566915b881719a620b41d8033d2d78cf6c16d646ddf9f9"
+    },
+    {
+      "path": "tools/prepare_php296.py",
+      "source_sha256": "c50621526f7e21bf21623b044c9b0ec65ed510b325badf28da8d28676fed7ea6"
+    },
+    {
+      "path": "tools/check_contact_solver_sweep.py",
+      "source_sha256": "ad522c983b6bb92691212ba80e2f508b3e6afa43b74f68f177a47c009482a531"
+    },
+    {
+      "path": "tools/check_contact_report_efficiency.py",
+      "source_sha256": "7064dcee121b95952b957cc71652f44300feb422915fd312861eb2a154d120dd"
+    },
+    {
+      "path": "tools/extract_low_speed_contacts.py",
+      "source_sha256": "e1926837a40dd4a9510ce8c6be215978f92fc769600ffbe09cc39ebe0be0a36d"
+    },
+    {
+      "path": "tools/test_spawn.py",
+      "source_sha256": "11e68e3356b5f93eea073e692a589a3f0574530a43386463b66f28805e133c21"
+    },
+    {
+      "path": "tools/audit_continuous_learning.py",
+      "source_sha256": "6b29dd2966a87a66d225467b4bb10bbe07748b6a8b302d51de84a06a5d019f2a"
+    },
+    {
+      "path": "tools/audit_continuous_durations.py",
+      "source_sha256": "ecce0c9a8ef9a82e2fd7ef6dfd7bd7f80711b5d7cd0aab8d2b8c79ed34492814"
+    },
+    {
+      "path": "tools/check_contact_dagger.py",
+      "source_sha256": "2f47aa997579cd5d459f0cd0934d3b0856eacbab70426213a81ef9157270db69"
+    },
+    {
+      "path": "tools/bench.py",
+      "source_sha256": "28e0ea74fe2446f48000f55bd442f489de95af0463570fcbcfaacfc511815527"
+    },
+    {
+      "path": "tools/test_retry_sampler.py",
+      "source_sha256": "259387dcdf36b4f516c062595c1e9a7642826fc6b6c8c9350431b0a705092ff4"
+    },
+    {
+      "path": "tools/check_original_baseline.py",
+      "source_sha256": "cd61fc89ecde9b8f62ed94e950f540bc9081c4f8794e561aa02a7026cca8d47b"
+    },
+    {
+      "path": "tools/profile_contact_pipeline.py",
+      "source_sha256": "c44862052507eb6d4e88522f665e80ede5a66ca31c69c27b73a23c5e2b186fd0"
+    },
+    {
+      "path": "tools/check_contact_io_efficiency.py",
+      "source_sha256": "6a8993a355c57d51577f0caa37237c2f19c6f2f16350263d44df68ccff840f30"
+    },
+    {
+      "path": "tools/check_contact_pairs.py",
+      "source_sha256": "1a957835d41dee15731e2f212414144305a0ab5cdb8ef4cd4c3f32a829296dee"
+    },
+    {
+      "path": "tools/render_unexplained_contacts.py",
+      "source_sha256": "ec0de30bc99d1e9b98b7878a2b00083235ad1e9c7e5382c026e5e23f8ba62b9f"
+    },
+    {
+      "path": "tools/profile_contact_initialization.py",
+      "source_sha256": "4575f39efb67bb0e21894329b9b491ad5f8f1544c862a00a488e2014ace6ab85"
+    },
+    {
+      "path": "tools/replay_invalid_transition.py",
+      "source_sha256": "d8a77c6d9f416a5e60ddf493a99b7ea3ff9348052e8cec3718a70f27b380dac3"
+    },
+    {
+      "path": "tools/check_continuous_efficiency.py",
+      "source_sha256": "ce2306034891213d8bed71937e481f1a30014997bc76f04f545c82619ccb41ee"
+    },
+    {
+      "path": "tools/run_input_ablation_queue.py",
+      "source_sha256": "5284bcbe3a120e6bbfc9eeda3ba3b093e1a98cd54890ec68be77e924db5ad06b"
+    },
+    {
+      "path": "tools/audit_native_surface_comparison.py",
+      "source_sha256": "31b35fc267b5bedddebcc2e2007eee4ccd227a9994fbdcef8d34ef92f9642a87"
+    },
+    {
+      "path": "tools/publish_contact_validation.py",
+      "source_sha256": "0b465a369d6c693d957d61d9344882bc6a6d7ecc5aa70e3327833a5ea6a36b2c"
+    },
+    {
+      "path": "tools/launch_depth_band.py",
+      "source_sha256": "0ec21bdd7dade78f89ef4f17cbf7cf63767677a009621dd2fd6147fddf903957"
+    },
+    {
+      "path": "tools/audit_contact_student_warmup.py",
+      "source_sha256": "90f48df72e1c624b0ee2da3ea2ac4affeb1f57442bf22c2ca77dca9593931fe6"
+    },
+    {
+      "path": "tools/check_terrain_support.py",
+      "source_sha256": "be5b160de2e980497abb167b14f31f0dbe1ef25ebd35199847180202e7c92fc6"
+    },
+    {
+      "path": "tools/check_lowstep.py",
+      "source_sha256": "678c14da4631bcbe8dbf8dcb98e5f979a45e101eec176defc6218e4236fe852b"
+    },
+    {
+      "path": "tools/check_surface_contact_system.py",
+      "source_sha256": "35107d75a41c66c5e60547af558b6923a28550240f14dfffa4cdd0a1628c0eb3"
+    },
+    {
+      "path": "tools/summarize_contact_durations.py",
+      "source_sha256": "71668a33b43b013daa08f348092215577332421fe6260642181fe71325b12e8c"
+    },
+    {
+      "path": "tools/publish_contact_trim.py",
+      "source_sha256": "14462ef50e902d389dcb2ec2211d10d9dcd69d1d75497e4cf8018e7716e569ac"
+    },
+    {
+      "path": "tools/check_contact_dmo_efficiency.py",
+      "source_sha256": "2f7365dc0207777af1595bc8c7f9930b6a2e24b56ebeed13d999b747dd1074fb"
+    },
+    {
+      "path": "tools/contact_wm_monitor.html",
+      "source_sha256": "fa20f3a36a2a46fef17ad92afccdd9982a769ac7bf9057cc1d6880041ba46328"
+    },
+    {
+      "path": "tools/profile_contact_continuous_efficiency.py",
+      "source_sha256": "58f8409df52f8cfb544426e418f9876c6993d6ef02d708e2950bf42131975212"
+    },
+    {
+      "path": "tools/check_collision_profile_contract.py",
+      "source_sha256": "fe282db22fa74716957fcb8d8b9692b2847e3362e9542d42af4043420113df6d"
+    },
+    {
+      "path": "tools/diagnose_contact_truncation.py",
+      "source_sha256": "a6d912b0ee8be628d0990d975051b3996592f34eff3a458d216aa977819f8351"
+    },
+    {
+      "path": "tools/prepare_contact_direction_probe.py",
+      "source_sha256": "54d2a9f47f1d85ef2b4c8c23940bfd414b1ca55ee92876443311d2c429ae5b07"
+    },
+    {
+      "path": "tools/check_physics_failure_capture.py",
+      "source_sha256": "98ff855b05b5ebddd0a04202ae38b5faa465e002fa3ae313f2db3c56d1ead5f9"
+    },
+    {
+      "path": "tools/prepare_mixed_tasks.py",
+      "source_sha256": "35b66e54326c7fc0e500ec3883279dbb2c6f34d43a1a3f06babb8cd41cd97126"
+    },
+    {
+      "path": "tools/publish_contact_sequence.py",
+      "source_sha256": "bf4a269c62b594481c8edd7b08c55cf8300797cf4a420733acf95b1de35927a3"
+    },
+    {
+      "path": "tools/urdf_to_mjcf.py",
+      "source_sha256": "caf29c98337fea0c123db89b2ee3a9c08d125e9efb86c0d619f13f1f7594f013"
+    },
+    {
+      "path": "tools/diagnose_dagger_segment1.py",
+      "source_sha256": "57aba63ffeddbb687ce846af62eff423d1afdefd6418f3445f5d339d07901881"
+    },
+    {
+      "path": "tools/validate_contact_slices.py",
+      "source_sha256": "574f972ca548bd99f28243cf6db7f97a3f7865c37fe4f056016d51b1079cfd9f"
+    },
+    {
+      "path": "tools/download_data_native.py",
+      "source_sha256": "0d925bdbd4527f7d72c5643e7d3e8b81eb3063752b22724716826e689b6b6a66"
+    },
+    {
+      "path": "tools/diagnose_contact_gradient_repeat.py",
+      "source_sha256": "35936b13be9547a044f48ac9a7a041c4ee2517c34ac7e78b893e6a6f72659c29"
+    },
+    {
+      "path": "tools/render_full_lowclimb_recording.py",
+      "source_sha256": "b1d3e512f821dc9f7e6bde6be0468cd164cd81e860f56d2e8e1fc9c7c260dc3a"
+    },
+    {
+      "path": "tools/repeat_tracking_checkpoint.py",
+      "source_sha256": "e5dd5abc927793deab60bdba330a942f25bac5d1f1b83571975c0ad8be39638c"
+    },
+    {
+      "path": "tools/check_contact_transfer_library.py",
+      "source_sha256": "ef8b345bb49be279d1af570f2efbca0bd9ec7955002c6b5498a777d01b5511cb"
+    },
+    {
+      "path": "tests/test_contact_reader_regression.py",
+      "source_sha256": "574a221fb9a0b6fa39a641efaf35a674a9990e3135e8531c91fadc978a25e276"
+    },
+    {
+      "path": "tests/test_contact_response.py",
+      "source_sha256": "47ae098ac76464cf8cf947812499308a1e2364b4c4548144811c33efd776ad38"
+    },
+    {
+      "path": "tests/test_contact_solver_audit.py",
+      "source_sha256": "66eeeb412c72e7fabeee1dc96c54bcb9a00ffe7d9687fd185a526059ad70e78f"
+    },
+    {
+      "path": "tests/test_contact_observation_scope.py",
+      "source_sha256": "e155a02e1babfa262acdd2a9d8e20402251188d9bac0a1a4c37c65b4d6bb5cbf"
+    },
+    {
+      "path": "tests/test_contact_manifold_normals.py",
+      "source_sha256": "c5083074775f5005cfe08c342c2a6900b15c204afa0df5bfbab0cc2e9fd2ea14"
+    },
+    {
+      "path": "tests/test_contact_body_summary.py",
+      "source_sha256": "9db2dc758cc234d2f51c14dee796042747ff6a79c0cfb3e497ba44ecbe96646b"
+    },
+    {
+      "path": "experiments/contact_completion.json",
+      "source_sha256": "706b7be673461977e79d4429f04fc8f93cd3319008b33a95f33c897c49d28f97"
+    },
+    {
+      "path": "experiments/depth_short_runs_cleanup.json",
+      "source_sha256": "3530fda275dd97113ffd44ce010701df8d9055dff62121b6014594e0fff1075b"
+    },
+    {
+      "path": "experiments/mixed_input_ablation.json",
+      "source_sha256": "2c3fab83fe1b7f0b289adb89eba0dbf9f79b9325c2775b34af0657f850059787"
+    },
+    {
+      "path": "experiments/oracle_depth_preoptimization.json",
+      "source_sha256": "647524be235b1eee35f1e156ca0adc7382fe3d8465423ba7f1a81330a838953b"
+    },
+    {
+      "path": "experiments/contact_trim_demo0.json",
+      "source_sha256": "9e104cc44e4aa1c5b2a16dde7e12c34895a60c6f2d81395d05ae42bfd5c62019"
+    },
+    {
+      "path": "docker/10_nvidia.json",
+      "source_sha256": "3ad5604ed47bfbf3d7300630467bee769e13da298deeb586fc772b11ea46c5ab"
+    }
+  ],
+  "purpose": "Source migration preserving module names and research/checkpoint semantics. Runtime artifacts remain external.",
+  "snapshot_captured_at_utc": "2026-10-29T17:51:00.033192+00:00",
+  "snapshot_manifest_sha256": "b537fe0ab97a48309a9f2fb08db728a871ed1b4ed31b896d1fafc338b9a83c93",
+  "snapshot_verified_unchanged_after_capture": true,
+  "archived_launchers": [
+    "history/tools/launch_depth_band.py",
+    "history/tools/run_input_ablation_queue.py",
+    "history/experiments/*.sh"
+  ],
+  "runtime_contract": "supermimic.runtime_root in configs/workflow_resources.json or SOMAFORGE_SUPERMIMIC_RUNTIME"
+}

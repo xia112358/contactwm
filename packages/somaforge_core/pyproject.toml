@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "somaforge-core"
+version = "0.1.0"
+description = "Shared asset and data-contract utilities for SomaForge."
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.23.5"]
+
+[project.optional-dependencies]
+contact = ["torch>=2.0"]
+solid = ["numpy", "scipy", "trimesh", "coal>=3.0,<4"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["somaforge_core*"]
+
+[tool.setuptools.package-data]
+somaforge_core = ["coal_batch.cpp"]

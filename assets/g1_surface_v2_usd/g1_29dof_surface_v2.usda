@@ -1,0 +1,656 @@
+#usda 1.0
+(
+    customLayerData = {
+        string base_usd_bundle_sha256 = "2df7b7c6ea4a906c81f5bbee91ea49f7df77622089b676516856fb0cea2c010a"
+        string collision_profile = "surface_v2"
+        string collision_profile_sha256 = "bbfc6dcf245a3ee2fafd4bf5292156d9a38f909827fcea9dfaee4ef7cb1d10f1"
+    }
+    defaultPrim = "g1_29dof"
+    subLayers = [
+        @../../src/holosoma/holosoma/data/robots/converted_rank0/g1_29dof_spherehand/g1_29dof_spherehand.usda@
+    ]
+)
+
+over "g1_29dof"
+{
+    over "Geometry"
+    {
+        over "pelvis"
+        {
+            over "left_hip_pitch_link"
+            {
+                over "left_hip_roll_link"
+                {
+                    over "left_hip_yaw_link"
+                    {
+                        over "left_knee_link"
+                        {
+                            over "left_ankle_pitch_link"
+                            {
+                                over "left_ankle_roll_link"
+                                {
+                                    over "left_ankle_roll_link" (
+                                        instanceable = false
+                                    )
+                                    {
+                                        over "left_ankle_roll_link" (
+                                            active = false
+                                        )
+                                        {
+                                        }
+                                    }
+
+                                    over "left_ankle_roll_sphere_3_link"
+                                    {
+                                        over "sphere" (
+                                            active = false
+                                        )
+                                        {
+                                        }
+
+                                        over "left_ankle_roll_sphere_3" (
+                                            active = false
+                                        )
+                                        {
+                                        }
+                                    }
+
+                                    over "left_ankle_roll_sphere_4_link"
+                                    {
+                                        over "sphere" (
+                                            active = false
+                                        )
+                                        {
+                                        }
+
+                                        over "left_ankle_roll_sphere_4" (
+                                            active = false
+                                        )
+                                        {
+                                        }
+                                    }
+
+                                    over "left_ankle_roll_sphere_5_link"
+                                    {
+                                        over "sphere" (
+                                            active = false
+                                        )
+                                        {
+                                        }
+
+                                        over "left_ankle_roll_sphere_5" (
+                                            active = false
+                                        )
+                                        {
+                                        }
+                                    }
+
+                                    over "left_ankle_roll_sphere_1_link"
+                                    {
+                                        over "sphere" (
+                                            active = false
+                                        )
+                                        {
+                                        }
+
+                                        over "left_ankle_roll_sphere_1" (
+                                            active = false
+                                        )
+                                        {
+                                        }
+                                    }
+
+                                    over "left_ankle_roll_sphere_2_link"
+                                    {
+                                        over "sphere" (
+                                            active = false
+                                        )
+                                        {
+                                        }
+
+                                        over "left_ankle_roll_sphere_2" (
+                                            active = false
+                                        )
+                                        {
+                                        }
+                                    }
+                                }
+
+                                over "left_ankle_pitch_link" (
+                                    instanceable = false
+                                )
+                                {
+                                    over "left_ankle_pitch_link" (
+                                        active = false
+                                    )
+                                    {
+                                    }
+                                }
+                            }
+
+                            over "left_knee_link" (
+                                instanceable = false
+                            )
+                            {
+                                over "left_knee_link" (
+                                    active = false
+                                )
+                                {
+                                }
+                            }
+
+                            over "left_ankle_intermediate_1_link"
+                            {
+                                over "sphere" (
+                                    active = false
+                                )
+                                {
+                                }
+
+                                over "left_ankle_intermediate_1" (
+                                    active = false
+                                )
+                                {
+                                }
+                            }
+                        }
+
+                        over "left_hip_yaw_link" (
+                            instanceable = false
+                        )
+                        {
+                            over "left_hip_yaw_link" (
+                                active = false
+                            )
+                            {
+                            }
+                        }
+                    }
+
+                    over "left_hip_roll_link" (
+                        instanceable = false
+                    )
+                    {
+                        over "left_hip_roll_link" (
+                            active = false
+                        )
+                        {
+                        }
+                    }
+                }
+
+                over "left_hip_pitch_link" (
+                    instanceable = false
+                )
+                {
+                    over "left_hip_pitch_link" (
+                        active = false
+                    )
+                    {
+                    }
+                }
+            }
+
+            over "right_hip_pitch_link"
+            {
+                over "right_hip_roll_link"
+                {
+                    over "right_hip_yaw_link"
+                    {
+                        over "right_knee_link"
+                        {
+                            over "right_ankle_pitch_link"
+                            {
+                                over "right_ankle_roll_link"
+                                {
+                                    over "right_ankle_roll_link" (
+                                        instanceable = false
+                                    )
+                                    {
+                                        over "right_ankle_roll_link" (
+                                            active = false
+                                        )
+                                        {
+                                        }
+                                    }
+
+                                    over "right_ankle_roll_sphere_3_link"
+                                    {
+                                        over "sphere" (
+                                            active = false
+                                        )
+                                        {
+                                        }
+
+                                        over "right_ankle_roll_sphere_3" (
+                                            active = false
+                                        )
+                                        {
+                                        }
+                                    }
+
+                                    over "right_ankle_roll_sphere_4_link"
+                                    {
+                                        over "sphere" (
+                                            active = false
+                                        )
+                                        {
+                                        }
+
+                                        over "right_ankle_roll_sphere_4" (
+                                            active = false
+                                        )
+                                        {
+                                        }
+                                    }
+
+                                    over "right_ankle_roll_sphere_5_link"
+                                    {
+                                        over "sphere" (
+                                            active = false
+                                        )
+                                        {
+                                        }
+
+                                        over "right_ankle_roll_sphere_5" (
+                                            active = false
+                                        )
+                                        {
+                                        }
+                                    }
+
+                                    over "right_ankle_roll_sphere_1_link"
+                                    {
+                                        over "sphere" (
+                                            active = false
+                                        )
+                                        {
+                                        }
+
+                                        over "right_ankle_roll_sphere_1" (
+                                            active = false
+                                        )
+                                        {
+                                        }
+                                    }
+
+                                    over "right_ankle_roll_sphere_2_link"
+                                    {
+                                        over "sphere" (
+                                            active = false
+                                        )
+                                        {
+                                        }
+
+                                        over "right_ankle_roll_sphere_2" (
+                                            active = false
+                                        )
+                                        {
+                                        }
+                                    }
+                                }
+
+                                over "right_ankle_pitch_link" (
+                                    instanceable = false
+                                )
+                                {
+                                    over "right_ankle_pitch_link" (
+                                        active = false
+                                    )
+                                    {
+                                    }
+                                }
+                            }
+
+                            over "right_knee_link" (
+                                instanceable = false
+                            )
+                            {
+                                over "right_knee_link" (
+                                    active = false
+                                )
+                                {
+                                }
+                            }
+
+                            over "right_ankle_intermediate_1_link"
+                            {
+                                over "sphere" (
+                                    active = false
+                                )
+                                {
+                                }
+
+                                over "right_ankle_intermediate_1" (
+                                    active = false
+                                )
+                                {
+                                }
+                            }
+                        }
+
+                        over "right_hip_yaw_link" (
+                            instanceable = false
+                        )
+                        {
+                            over "right_hip_yaw_link" (
+                                active = false
+                            )
+                            {
+                            }
+                        }
+                    }
+
+                    over "right_hip_roll_link" (
+                        instanceable = false
+                    )
+                    {
+                        over "right_hip_roll_link" (
+                            active = false
+                        )
+                        {
+                        }
+                    }
+                }
+
+                over "right_hip_pitch_link" (
+                    instanceable = false
+                )
+                {
+                    over "right_hip_pitch_link" (
+                        active = false
+                    )
+                    {
+                    }
+                }
+            }
+
+            over "waist_yaw_link"
+            {
+                over "waist_roll_link"
+                {
+                    over "torso_link"
+                    {
+                        over "left_shoulder_pitch_link"
+                        {
+                            over "left_shoulder_roll_link"
+                            {
+                                over "left_shoulder_yaw_link"
+                                {
+                                    over "left_elbow_link"
+                                    {
+                                        over "left_wrist_roll_link"
+                                        {
+                                            over "left_wrist_pitch_link"
+                                            {
+                                                over "left_wrist_yaw_link"
+                                                {
+                                                    over "left_sphere_hand_link"
+                                                    {
+                                                        over "half_sphere" (
+                                                            instanceable = false
+                                                        )
+                                                        {
+                                                            over "half_sphere" (
+                                                                active = false
+                                                            )
+                                                            {
+                                                            }
+                                                        }
+
+                                                        over "left_sphere_hand_tip_link"
+                                                        {
+                                                            over "sphere" (
+                                                                active = false
+                                                            )
+                                                            {
+                                                            }
+
+                                                            over "left_sphere_hand_tip" (
+                                                                active = false
+                                                            )
+                                                            {
+                                                            }
+                                                        }
+                                                    }
+
+                                                    over "left_wrist_yaw_link" (
+                                                        instanceable = false
+                                                    )
+                                                    {
+                                                        over "left_wrist_yaw_link" (
+                                                            active = false
+                                                        )
+                                                        {
+                                                        }
+                                                    }
+                                                }
+
+                                                over "left_wrist_pitch_link" (
+                                                    instanceable = false
+                                                )
+                                                {
+                                                    over "left_wrist_pitch_link" (
+                                                        active = false
+                                                    )
+                                                    {
+                                                    }
+                                                }
+                                            }
+
+                                            over "left_wrist_roll_link" (
+                                                instanceable = false
+                                            )
+                                            {
+                                                over "left_wrist_roll_link" (
+                                                    active = false
+                                                )
+                                                {
+                                                }
+                                            }
+                                        }
+
+                                        over "left_elbow_link" (
+                                            instanceable = false
+                                        )
+                                        {
+                                            over "left_elbow_link" (
+                                                active = false
+                                            )
+                                            {
+                                            }
+                                        }
+                                    }
+
+                                    over "left_shoulder_yaw_link" (
+                                        instanceable = false
+                                    )
+                                    {
+                                        over "left_shoulder_yaw_link" (
+                                            active = false
+                                        )
+                                        {
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        over "right_shoulder_pitch_link"
+                        {
+                            over "right_shoulder_roll_link"
+                            {
+                                over "right_shoulder_yaw_link"
+                                {
+                                    over "right_elbow_link"
+                                    {
+                                        over "right_wrist_roll_link"
+                                        {
+                                            over "right_wrist_pitch_link"
+                                            {
+                                                over "right_wrist_yaw_link"
+                                                {
+                                                    over "right_sphere_hand_link"
+                                                    {
+                                                        over "half_sphere" (
+                                                            instanceable = false
+                                                        )
+                                                        {
+                                                            over "half_sphere" (
+                                                                active = false
+                                                            )
+                                                            {
+                                                            }
+                                                        }
+
+                                                        over "right_sphere_hand_tip_link"
+                                                        {
+                                                            over "sphere" (
+                                                                active = false
+                                                            )
+                                                            {
+                                                            }
+
+                                                            over "right_sphere_hand_tip" (
+                                                                active = false
+                                                            )
+                                                            {
+                                                            }
+                                                        }
+                                                    }
+
+                                                    over "right_wrist_yaw_link" (
+                                                        instanceable = false
+                                                    )
+                                                    {
+                                                        over "right_wrist_yaw_link" (
+                                                            active = false
+                                                        )
+                                                        {
+                                                        }
+                                                    }
+                                                }
+
+                                                over "right_wrist_pitch_link" (
+                                                    instanceable = false
+                                                )
+                                                {
+                                                    over "right_wrist_pitch_link" (
+                                                        active = false
+                                                    )
+                                                    {
+                                                    }
+                                                }
+                                            }
+
+                                            over "right_wrist_roll_link" (
+                                                instanceable = false
+                                            )
+                                            {
+                                                over "right_wrist_roll_link" (
+                                                    active = false
+                                                )
+                                                {
+                                                }
+                                            }
+                                        }
+
+                                        over "right_elbow_link" (
+                                            instanceable = false
+                                        )
+                                        {
+                                            over "right_elbow_link" (
+                                                active = false
+                                            )
+                                            {
+                                            }
+                                        }
+                                    }
+
+                                    over "right_shoulder_yaw_link" (
+                                        instanceable = false
+                                    )
+                                    {
+                                        over "right_shoulder_yaw_link" (
+                                            active = false
+                                        )
+                                        {
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        over "logo_link"
+                        {
+                            over "logo_link" (
+                                instanceable = false
+                            )
+                            {
+                                over "logo_link" (
+                                    active = false
+                                )
+                                {
+                                }
+                            }
+                        }
+
+                        over "head_link"
+                        {
+                            over "head_link" (
+                                instanceable = false
+                            )
+                            {
+                                over "head_link" (
+                                    active = false
+                                )
+                                {
+                                }
+                            }
+                        }
+
+                        over "waist_support_link"
+                        {
+                            over "waist_support_link" (
+                                instanceable = false
+                            )
+                            {
+                                over "waist_support_link" (
+                                    active = false
+                                )
+                                {
+                                }
+                            }
+                        }
+
+                        over "torso_link" (
+                            instanceable = false
+                        )
+                        {
+                            over "torso_link" (
+                                active = false
+                            )
+                            {
+                            }
+                        }
+                    }
+                }
+            }
+
+            over "pelvis_contour_link"
+            {
+                over "pelvis_contour_link" (
+                    instanceable = false
+                )
+                {
+                    over "pelvis_contour_link" (
+                        active = false
+                    )
+                    {
+                    }
+                }
+            }
+        }
+    }
+}
+

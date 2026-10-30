@@ -1,0 +1,17 @@
+{
+  "schema": "somaforge_trajectory_refinement_v1",
+  "input": {
+    "kind": "native_edit_collection",
+    "path": "runtime/current/motions/climb00_contact_dataset/versions/loaded_material_rebuild_20261003/edits207_joint_v12/index.json"
+  },
+  "base_checkpoint": "runtime/current/holosoma/logs/WholeBodyTracking/20260727_085520-g1_29dof_wbt_single_climb00_completionema_horizon50_ncon160_from4k_to10k-locomotion/model_06000.pt",
+  "output_dir": "runtime/current/rollout/trajectory_refinement/climb00_joint_v12",
+  "train": {"num_envs": 4096, "iterations": 3000, "save_interval": 100},
+  "evaluation": {"attempts": 3, "min_success_rate": 1.0, "seed": 4100, "initial_pose_noise": 0.0},
+  "collection": {"attempts": 10, "seed": 5100, "initial_pose_noise": 0.0},
+  "task": {
+    "kind": "contact_events",
+    "contract": "runtime/current/motions/climb00_contact_dataset/versions/loaded_material_rebuild_20261003/edits207_joint_v12/source/event_contract.json",
+    "max_abnormal_contacts": 0
+  }
+}

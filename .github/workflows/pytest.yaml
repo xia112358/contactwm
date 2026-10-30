@@ -1,0 +1,114 @@
+name: Lightweight checks
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    paths:
+      - 'src/holosoma/**'
+      - 'packages/**'
+      - 'tests/**'
+      - 'apps/**'
+      - 'baselines/**'
+      - 'scripts/**'
+      - 'configs/**'
+      - 'docs/**'
+      - '.github/workflows/**'
+      - 'README.md'
+      - 'pyproject.toml'
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+jobs:
+  static-checks:
+    name: Static repository checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify active setup entrypoints
+        shell: bash
+        run: |
+          test -f scripts/setup_isaaclab3_newton.sh
+          test -f scripts/source_isaaclab3_newton_setup.sh
+          test -f apps/holosoma.isaaclab3_newton.kit
+          test -f apps/holosoma.isaaclab3_newton.headless.kit
+
+      - name: Audit maintained source and configuration
+        shell: bash
+        run: |
+          python scripts/check_repository.py
+
+      - name: Check cleanup scope
+        shell: bash
+        run: |
+          ! test -d src/holosoma_retargeting
+          ! test -f scripts/setup_isaacgym.sh
+          ! test -f scripts/setup_mujoco.sh
+          ! test -d docs/vendor/isaaclab3_newton_refs
+
+  cpu-contracts:
+    name: CPU package and contract checks
+    runs-on: ubuntu-latest
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONNOUSERSITE: '1'
+      OMP_NUM_THREADS: '1'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install lightweight test dependencies and workspace packages
+        run: |
+          python -m pip install numpy scipy pytest
+          python -m pip install --no-deps -e packages/somaforge_core -e packages/contact_solver -e packages/generator -e packages/motion_edit
+
+      - name: Verify package imports without simulator or training dependencies
+        run: |
+          python - <<'PY'
+          import sys
+          import somaforge_core, contact_solver, generator, motion_edit
+          assert not {'torch', 'newton', 'isaaclab', 'mujoco_warp'} & sys.modules.keys()
+          PY
+
+      - name: Check shared CPU contracts
+        run: |
+          test_tmp="tmp/cpu-contracts-$(python -c 'import uuid; print(uuid.uuid4().hex)')"
+          test ! -e "$test_tmp"
+          mkdir -p tmp
+          python -m pytest -q -p no:cacheprovider --confcutdir=packages/somaforge_core/tests \
+            --basetemp="$test_tmp" -o tmp_path_retention_policy=all \
+            packages/somaforge_core/tests/test_asset_registry.py \
+            packages/somaforge_core/tests/test_robot_assets.py::test_legacy_metadata_is_rejected \
+            packages/somaforge_core/tests/test_robot_assets.py::test_motion_asset_metadata_requires_only_authoritative_urdf \
+            packages/somaforge_core/tests/test_robot_assets.py::test_wrong_fingerprint_is_rejected \
+            packages/somaforge_core/tests/test_motion_schema.py \
+            packages/somaforge_core/tests/test_contact_schema.py \
+            packages/somaforge_core/tests/test_native_model_binding.py \
+            packages/somaforge_core/tests/test_runtime_paths.py \
+            packages/somaforge_core/tests/test_published_data.py
+
+      - name: Check repository and contact selection contracts
+        run: |
+          test_tmp="tmp/cpu-extra-$(python -c 'import uuid; print(uuid.uuid4().hex)')"
+          python -m pytest -q -p no:cacheprovider --confcutdir=tests \
+            --basetemp="$test_tmp" -o tmp_path_retention_policy=all \
+            tests/test_bootstrap_runtime.py \
+            tests/test_data_release.py \
+            tests/test_repository_temporary_inputs.py \
+            tests/test_contact_face_selection.py \
+            tests/test_contact_order_acceptance.py

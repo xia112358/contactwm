@@ -1,0 +1,8 @@
+# Newton 1.7.0 release (7e75abe28b8d69522bc0b34837aaed2c303dff5a).
+# Install in the project release environment; preserve the old environment.
+newton[sim]==1.7.0
+warp-lang==1.18.0
+mujoco==3.15.0
+mujoco-warp==3.15.0
+# Retain the validated project NumPy pin during component retirement.
+numpy==2.3.5

@@ -1,0 +1,25 @@
+{
+  "schema": "predictor_baseline_archives_v1",
+  "current_baseline": "predictor.v1_latest.20261010",
+  "method": "in_place; no data, weights or source snapshots deleted",
+  "records": [
+    {
+      "id": "predictor.scratch_recipe.20261002",
+      "record": "baselines/predictor_scratch_recipe_20261002/baseline.json",
+      "status": "archived"
+    },
+    {
+      "id": "predictor.native_interval_source550.20261007",
+      "run": "runtime/current/models/generator/native_interval_scratch1100_20261007_r4",
+      "last_saved_step": 550,
+      "status": "archived_comparison",
+      "note": "Not a completed1100 run or post550 comparison"
+    },
+    {
+      "id": "predictor.control500.20261009",
+      "record": "baselines/predictor_control500_20261009/baseline.json",
+      "status": "archived",
+      "note": "source550 plus500 low-LR minibatch updates"
+    }
+  ]
+}

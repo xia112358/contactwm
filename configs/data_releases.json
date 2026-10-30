@@ -1,0 +1,2112 @@
+{
+  "schema": "somaforge_data_release_catalog_v1",
+  "repository": "xia112358/somaforge",
+  "tag": "data-20261022-v1",
+  "source_roots_aliases": [
+    {
+      "source": "/home/xiaz/somaforge",
+      "target": "."
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current",
+      "target": "runtime/current"
+    }
+  ],
+  "repository_files": [
+    {
+      "path": "baselines/predictor_v1_latest_20261010/README.md",
+      "size": 5989,
+      "sha256": "cb736d131e80fcd1cc17b95cef1c96c1a40ed5cd5f01188afd5ba90c177b9883",
+      "sources": [
+        "/home/xiaz/somaforge/baselines/predictor_v1_latest_20261010/README.md"
+      ]
+    },
+    {
+      "path": "baselines/predictor_v1_latest_20261010/baseline.json",
+      "size": 9373,
+      "sha256": "92580fef62a8a12d3a46922f7132bbcdd20d1e6cda8393b9667accf9f22f5dac",
+      "sources": [
+        "/home/xiaz/somaforge/baselines/predictor_v1_latest_20261010/baseline.json"
+      ]
+    },
+    {
+      "path": "baselines/predictor_v1_latest_20261010/dataset_contract.json",
+      "size": 40111,
+      "sha256": "6efbdd7cb3e9b80fc64b13219172e9411301e943bda1dee94e2a5a40af5e299c",
+      "sources": [
+        "/home/xiaz/somaforge/baselines/predictor_v1_latest_20261010/dataset_contract.json"
+      ]
+    },
+    {
+      "path": "baselines/predictor_v1_latest_20261010/evaluation_command.json",
+      "size": 725,
+      "sha256": "5cb706beedc1a5f27450606b4f4ecab9442a8e7ec95c9bd522c577519d71c42e",
+      "sources": [
+        "/home/xiaz/somaforge/baselines/predictor_v1_latest_20261010/evaluation_command.json"
+      ]
+    },
+    {
+      "path": "baselines/predictor_v1_latest_20261010/initialization.json",
+      "size": 7518,
+      "sha256": "985183ad90efb34a18b5bbcb059bf9d8faba0c681692e7ea057f638d0dc2c0f1",
+      "sources": [
+        "/home/xiaz/somaforge/baselines/predictor_v1_latest_20261010/initialization.json"
+      ]
+    },
+    {
+      "path": "baselines/predictor_v1_latest_20261010/reproduction_command.json",
+      "size": 7567,
+      "sha256": "5fc7ebdee9f9b292f67c54addb5cf6de6d9c2d9b2e45e987af4ffe717dd1b744",
+      "sources": [
+        "/home/xiaz/somaforge/baselines/predictor_v1_latest_20261010/reproduction_command.json"
+      ]
+    },
+    {
+      "path": "baselines/predictor_v1_latest_20261010/sha256.json",
+      "size": 1458,
+      "sha256": "0bc56494d2de62510f8f7559ebf77182ec818ea226148b94e728878d17b7d14b",
+      "sources": [
+        "/home/xiaz/somaforge/baselines/predictor_v1_latest_20261010/sha256.json"
+      ]
+    },
+    {
+      "path": "baselines/predictor_v1_latest_20261010/source_provenance.json",
+      "size": 5348,
+      "sha256": "53872851c138017aa4160be65154b1d5db6cdf04640e3abba1d5be1d30864c48",
+      "sources": [
+        "/home/xiaz/somaforge/baselines/predictor_v1_latest_20261010/source_provenance.json"
+      ]
+    },
+    {
+      "path": "baselines/predictor_v1_latest_20261010/training_config.json",
+      "size": 3243,
+      "sha256": "589d303ef2598caf94f975c8b1e2e46136f9dffdb7a6dd7ad813492f5ae96b4b",
+      "sources": [
+        "/home/xiaz/somaforge/baselines/predictor_v1_latest_20261010/training_config.json"
+      ]
+    },
+    {
+      "path": "baselines/predictor_v1_latest_20261010/training_run_config.json",
+      "size": 3403,
+      "sha256": "4e54ad5734025c1add60d06253f6b617ba94f6bda579edf9d798c6e019ce03d3",
+      "sources": [
+        "/home/xiaz/somaforge/baselines/predictor_v1_latest_20261010/training_run_config.json"
+      ]
+    },
+    {
+      "path": "baselines/predictor_v1_latest_20261010/training_summary.json",
+      "size": 14359,
+      "sha256": "9964bd2827748121231ea7625bb375818d051b9486b2ee8d38744e5afbea3681",
+      "sources": [
+        "/home/xiaz/somaforge/baselines/predictor_v1_latest_20261010/training_summary.json"
+      ]
+    },
+    {
+      "path": "baselines/predictor_v1_latest_20261010/validation.json",
+      "size": 1069,
+      "sha256": "900b54969273eb65489b892c494839695dc9c8c4c5003d8da8b1134388f0d9e0",
+      "sources": [
+        "/home/xiaz/somaforge/baselines/predictor_v1_latest_20261010/validation.json"
+      ]
+    },
+    {
+      "path": "docs/history/configs/direct_infiller_v1.json",
+      "size": 1573,
+      "sha256": "11eaacc158f2046baf84f14277c1298edc484fab3d3eea7d9d0b608638e93670",
+      "sources": [
+        "/home/xiaz/somaforge/configs/climb00/direct_infiller_v1.json"
+      ]
+    },
+    {
+      "path": "docs/history/configs/climb00_source_prefix_v1.json",
+      "size": 202,
+      "sha256": "cbb61ec0cd74cccedb79e05655441c917a2215b626be84405042967c7f485b39",
+      "sources": [
+        "/home/xiaz/somaforge/configs/motion_edit/climb00_source_prefix_v1.json"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_00/multi_boxes_z_scale_1.0.obj",
+      "size": 447,
+      "sha256": "0e21fa0c89cb673d9f0e911926b78a58c56a27f83a711d9180abf839544beef9",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_00/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_00/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_01/multi_boxes_z_scale_1.0.obj",
+      "size": 1295,
+      "sha256": "a30c976e1a7096097a23d52dca62639310fb8fd74f80805e585d9e3c65e56feb",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_01/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_01/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_02/multi_boxes_z_scale_1.0.obj",
+      "size": 1291,
+      "sha256": "73546b805790a2b58a7457b6ddd795992c4ade9c6385c72b201f7e29fca30b3d",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_02/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_02/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_03/multi_boxes_z_scale_1.0.obj",
+      "size": 871,
+      "sha256": "a3b538d2c09fc876ec70df870fe76f3d152363ae64253587f595ba95b9939238",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_03/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_03/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_04/multi_boxes_z_scale_1.0.obj",
+      "size": 867,
+      "sha256": "6adeae742b6465cd83a7de0be3207ecf12091e184dfac071ffb03ba126e91741",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_04/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_04/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_05/multi_boxes_z_scale_1.0.obj",
+      "size": 869,
+      "sha256": "0db4aaa1695a9ad804b6570442e96b9b3f65578ae7b9f9112500c330ece7d47a",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_05/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_05/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_06/multi_boxes_z_scale_1.0.obj",
+      "size": 867,
+      "sha256": "c3b36a605888b5a5abacedbf6ef53dbbfe64e0b0cb60b7817f04d59cb0681e2b",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_06/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_06/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_07/multi_boxes_z_scale_1.0.obj",
+      "size": 867,
+      "sha256": "070c5cd40f6283ada4c2324b380c6d7e568fce0b2ac3fcd04db4aebfde4763ef",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_07/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_07/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_08/multi_boxes_z_scale_1.0.obj",
+      "size": 451,
+      "sha256": "9dc34408f4d419e51b9b1f16aef0d4b9d8ee5a70231420a3a4095250ee3e1036",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_08/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_08/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_09/multi_boxes_z_scale_1.0.obj",
+      "size": 451,
+      "sha256": "9dc34408f4d419e51b9b1f16aef0d4b9d8ee5a70231420a3a4095250ee3e1036",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_09/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_09/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_10/multi_boxes_z_scale_1.0.obj",
+      "size": 863,
+      "sha256": "6d546dd230acb022884ca97e6537dcf9b30c1807bf5e06c4a96e93803b288763",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_10/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_10/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_11/multi_boxes_z_scale_1.0.obj",
+      "size": 451,
+      "sha256": "9dc34408f4d419e51b9b1f16aef0d4b9d8ee5a70231420a3a4095250ee3e1036",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_11/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_11/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_12/multi_boxes_z_scale_1.0.obj",
+      "size": 447,
+      "sha256": "105955822f08923b452ede5d335a88271ac7e1655f76f210d7696f0a7ee26b59",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_12/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_12/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_13/multi_boxes_z_scale_1.0.obj",
+      "size": 451,
+      "sha256": "9dc34408f4d419e51b9b1f16aef0d4b9d8ee5a70231420a3a4095250ee3e1036",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_13/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_13/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_14/multi_boxes_z_scale_1.0.obj",
+      "size": 863,
+      "sha256": "b3a0146fb6986593406ab2c928fea1deeed2f6a1ce97db8cbc999363f3d8fb76",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_14/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_14/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_15/multi_boxes_z_scale_1.0.obj",
+      "size": 863,
+      "sha256": "09b43742182827c499ff05d8b15fab3a0d1ef2737d8bf9df3b1782349db3433e",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_15/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_15/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_16/multi_boxes_z_scale_1.0.obj",
+      "size": 863,
+      "sha256": "09b43742182827c499ff05d8b15fab3a0d1ef2737d8bf9df3b1782349db3433e",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_16/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_16/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_17/multi_boxes_z_scale_1.0.obj",
+      "size": 863,
+      "sha256": "98fdb82902c815506b230fbcf150cd7b0cb139e82568fc3f12be1623c72b586f",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_17/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_17/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_18/multi_boxes_z_scale_1.0.obj",
+      "size": 863,
+      "sha256": "09b43742182827c499ff05d8b15fab3a0d1ef2737d8bf9df3b1782349db3433e",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_18/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_18/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_19/multi_boxes_z_scale_1.0.obj",
+      "size": 861,
+      "sha256": "df542820e01a2c363861ae555a60ae05ed2efc3a08bd0920558161572cfc4f29",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_19/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_19/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_20/multi_boxes_z_scale_1.0.obj",
+      "size": 861,
+      "sha256": "9f962ba748c59dbd1c39bd08df748f50fefac813a5b622c093ea725bd908039e",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_20/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_20/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_21/multi_boxes_z_scale_1.0.obj",
+      "size": 861,
+      "sha256": "9f962ba748c59dbd1c39bd08df748f50fefac813a5b622c093ea725bd908039e",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_21/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_21/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_22/multi_boxes_z_scale_1.0.obj",
+      "size": 861,
+      "sha256": "56bb2d3af9f58ce2f84e0c4d1d1103cc38c80b34bf2ad7c3dd7618ed6bca1bba",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_22/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_22/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_23/multi_boxes_z_scale_1.0.obj",
+      "size": 861,
+      "sha256": "56bb2d3af9f58ce2f84e0c4d1d1103cc38c80b34bf2ad7c3dd7618ed6bca1bba",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_23/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_23/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_24/multi_boxes_z_scale_1.0.obj",
+      "size": 861,
+      "sha256": "56bb2d3af9f58ce2f84e0c4d1d1103cc38c80b34bf2ad7c3dd7618ed6bca1bba",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_24/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_24/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_25/multi_boxes_z_scale_1.0.obj",
+      "size": 861,
+      "sha256": "3c753096d27ef852f5e459f77180d1bf3be1a5c1925ab60bbcd7159c6542f02d",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_25/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_25/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_26/multi_boxes_z_scale_1.0.obj",
+      "size": 861,
+      "sha256": "3c753096d27ef852f5e459f77180d1bf3be1a5c1925ab60bbcd7159c6542f02d",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_26/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_26/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_27/multi_boxes_z_scale_1.0.obj",
+      "size": 861,
+      "sha256": "3c753096d27ef852f5e459f77180d1bf3be1a5c1925ab60bbcd7159c6542f02d",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_27/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_27/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "configs/motion_matched/terrain_obj_cache/climb_28/multi_boxes_z_scale_1.0.obj",
+      "size": 861,
+      "sha256": "7c878d2a64a650a0bd2595100e99f9cf14b2611553b8f5b0e91e2dcda8fac30c",
+      "sources": [
+        "/home/xiaz/configs/motion_matched/terrain_obj_cache/climb_28/multi_boxes_z_scale_1.0.obj",
+        "/home/xiaz/somaforge/configs/motion_matched/terrain_obj_cache/climb_28/multi_boxes_z_scale_1.0.obj"
+      ]
+    },
+    {
+      "path": "src/holosoma/holosoma/data/robots/g1/g1_29dof_spherehand.urdf",
+      "size": 48521,
+      "sha256": "f869ea6547fd18f40558d91dfc5ad76347f73ba88351c5e7c81e98868ab60937",
+      "sources": [
+        "/home/xiaz/somaforge/src/holosoma/holosoma/data/robots/g1/g1_29dof_spherehand.urdf"
+      ]
+    }
+  ],
+  "components": {
+    "php-wbt-296-data": {
+      "purpose": "296 canonical G1 Newton-FK motions, paired raw PHP inputs and terrains; no observed contact/force labels",
+      "status": "existing_canonical_kinematics",
+      "dependencies": [],
+      "file_count": 1199,
+      "bytes": 1076958479,
+      "index": {
+        "name": "php-wbt-296-data.files.json",
+        "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/php-wbt-296-data.files.json",
+        "size": 495411,
+        "sha256": "19436da835789900b09f11014af8cb18ca1e518c82f41d03e906f73fede8d4a2"
+      },
+      "archives": [
+        {
+          "name": "php-wbt-296-data.part-001.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/php-wbt-296-data.part-001.tar.gz",
+          "size": 668515909,
+          "sha256": "c0beaa77815af10b5707d121160a631a1dad4271f0d6850e8e5ddc71313f45a4"
+        },
+        {
+          "name": "php-wbt-296-data.part-002.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/php-wbt-296-data.part-002.tar.gz",
+          "size": 1593593,
+          "sha256": "49411ae9c247a3e1e5710d8fe51fffff83b0f5855e0751a465f648aaf8c26bf7"
+        }
+      ],
+      "provenance_notes": []
+    },
+    "php-wbt-teacher-locomotion": {
+      "purpose": "Existing dense WBT expert checkpoint with its native training configuration: motions-locomotion",
+      "status": "explicit_existing_checkpoint",
+      "dependencies": [
+        "php-wbt-296-data"
+      ],
+      "file_count": 2,
+      "bytes": 8349511,
+      "index": {
+        "name": "php-wbt-teacher-locomotion.files.json",
+        "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/php-wbt-teacher-locomotion.files.json",
+        "size": 1056,
+        "sha256": "c385061cfcb5d51bf0394b98fd30eafb87aec5c37f08b3291fffaa767f639167"
+      },
+      "archives": [
+        {
+          "name": "php-wbt-teacher-locomotion.part-001.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/php-wbt-teacher-locomotion.part-001.tar.gz",
+          "size": 7582339,
+          "sha256": "a6e7e2807cdb4db3bba639c8b4251f80b14eaba8dbaa6da1eb0a1dbfb27bed17"
+        }
+      ],
+      "provenance_notes": []
+    },
+    "php-wbt-teacher-low-step": {
+      "purpose": "Existing dense WBT expert checkpoint with its native training configuration: motions-low-step",
+      "status": "explicit_existing_checkpoint",
+      "dependencies": [
+        "php-wbt-296-data"
+      ],
+      "file_count": 2,
+      "bytes": 8344875,
+      "index": {
+        "name": "php-wbt-teacher-low-step.files.json",
+        "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/php-wbt-teacher-low-step.files.json",
+        "size": 1038,
+        "sha256": "c1cf29ebf7e0e8b96caadc37c0f458ab13a5099c3bd3c6239f5de45762c43a20"
+      },
+      "archives": [
+        {
+          "name": "php-wbt-teacher-low-step.part-001.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/php-wbt-teacher-low-step.part-001.tar.gz",
+          "size": 7585615,
+          "sha256": "956025f841535dfc8fddaba0531893e1639b592f06d005d4baad04875574da60"
+        }
+      ],
+      "provenance_notes": []
+    },
+    "php-wbt-teacher-high-step": {
+      "purpose": "Existing dense WBT expert checkpoint with its native training configuration: motions-high-step",
+      "status": "explicit_existing_checkpoint",
+      "dependencies": [
+        "php-wbt-296-data"
+      ],
+      "file_count": 2,
+      "bytes": 8347953,
+      "index": {
+        "name": "php-wbt-teacher-high-step.files.json",
+        "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/php-wbt-teacher-high-step.files.json",
+        "size": 1047,
+        "sha256": "35abbfa6a0ffc9643789035229931d04b2c7320b5ed0254db8b44ed53ca53404"
+      },
+      "archives": [
+        {
+          "name": "php-wbt-teacher-high-step.part-001.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/php-wbt-teacher-high-step.part-001.tar.gz",
+          "size": 7591213,
+          "sha256": "80922d4e5da8215edcf0cfe3d813f5c3341a3547a565c6e279829f3f36eed9a6"
+        }
+      ],
+      "provenance_notes": []
+    },
+    "php-wbt-teacher-low-climb-76": {
+      "purpose": "Existing dense WBT expert checkpoint with its native training configuration: motions-low-climb-76",
+      "status": "explicit_existing_checkpoint",
+      "dependencies": [
+        "php-wbt-296-data"
+      ],
+      "file_count": 2,
+      "bytes": 8333116,
+      "index": {
+        "name": "php-wbt-teacher-low-climb-76.files.json",
+        "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/php-wbt-teacher-low-climb-76.files.json",
+        "size": 1074,
+        "sha256": "c189757dc13bd586e1191d42d4a3cca9453ebaf8695774e0f4fa86c380efbfe0"
+      },
+      "archives": [
+        {
+          "name": "php-wbt-teacher-low-climb-76.part-001.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/php-wbt-teacher-low-climb-76.part-001.tar.gz",
+          "size": 7578615,
+          "sha256": "b61fd2ce3d177c47ed520aab1060ee6cca57fd3416fb47b96ff722bdbd3e44b0"
+        }
+      ],
+      "provenance_notes": []
+    },
+    "php-wbt-teacher-high-climb-76": {
+      "purpose": "Existing dense WBT expert checkpoint with its native training configuration: motions-high-climb-76",
+      "status": "explicit_existing_checkpoint",
+      "dependencies": [
+        "php-wbt-296-data"
+      ],
+      "file_count": 2,
+      "bytes": 8331840,
+      "index": {
+        "name": "php-wbt-teacher-high-climb-76.files.json",
+        "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/php-wbt-teacher-high-climb-76.files.json",
+        "size": 1083,
+        "sha256": "aad8d36211108892af177609eae6aac9fa3992a4e56fd7242b1abcb1ecaf1297"
+      },
+      "archives": [
+        {
+          "name": "php-wbt-teacher-high-climb-76.part-001.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/php-wbt-teacher-high-climb-76.part-001.tar.gz",
+          "size": 7569913,
+          "sha256": "8c5b13f24c9b675b5019b7e6f20eca05e34cdcc46299aba86df43c651e7277ea"
+        }
+      ],
+      "provenance_notes": []
+    },
+    "wbt_baseline29": {
+      "purpose": "Canonical 29-motion WBT baseline and original source evidence",
+      "status": "canonical_kinematics_no_new_contact_certification",
+      "dependencies": [],
+      "file_count": 59,
+      "bytes": 43954053,
+      "index": {
+        "name": "wbt_baseline29.files.json",
+        "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/wbt_baseline29.files.json",
+        "size": 23609,
+        "sha256": "4090d06c4a59dce5e4755899cfd72868cc737bb86a310bcf7ae1b0373ab5e573"
+      },
+      "archives": [
+        {
+          "name": "wbt_baseline29.part-001.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/wbt_baseline29.part-001.tar.gz",
+          "size": 43771111,
+          "sha256": "eb7831b92c930d7ae8832c9ac6d8d9fce976bba8673dce0bdaa4e1832d55890e"
+        }
+      ],
+      "provenance_notes": []
+    },
+    "wbt_legacy8part_full_demonstrations": {
+      "purpose": "Legacy eight-part references and complete original rollout recordings",
+      "status": "historical_force_threshold_masks_not_native_contact_truth",
+      "dependencies": [
+        "wbt_baseline29"
+      ],
+      "file_count": 94,
+      "bytes": 1308988653,
+      "index": {
+        "name": "wbt_legacy8part_full_demonstrations.files.json",
+        "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/wbt_legacy8part_full_demonstrations.files.json",
+        "size": 45280,
+        "sha256": "0a5036cb0c002265157b3ebb28c45ea3991b02b47e7b53006507cba5817ec6d6"
+      },
+      "archives": [
+        {
+          "name": "wbt_legacy8part_full_demonstrations.part-001.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/wbt_legacy8part_full_demonstrations.part-001.tar.gz",
+          "size": 1042595904,
+          "sha256": "9784cdb8a869edfba240f44649c9bea629b4bfdc26db57a21d5d08f587945e6e"
+        },
+        {
+          "name": "wbt_legacy8part_full_demonstrations.part-002.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/wbt_legacy8part_full_demonstrations.part-002.tar.gz",
+          "size": 237854079,
+          "sha256": "9cbded77a7cb1ad2bf47165844f82cfcbedb1d059039d262980b7a63a05f7ab4"
+        }
+      ],
+      "provenance_notes": []
+    },
+    "predictor_current_training_data": {
+      "purpose": "Registered current Predictor demonstration/cache/query-scene input closure",
+      "status": "registered_historical_runtime_training_ready_unchanged",
+      "dependencies": [],
+      "file_count": 1461,
+      "bytes": 965033105,
+      "index": {
+        "name": "predictor_current_training_data.files.json",
+        "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/predictor_current_training_data.files.json",
+        "size": 1071670,
+        "sha256": "eba787bb056845abd5bdc95e975c3fbe8cac79768222abed2cb3a412da1ab5c3"
+      },
+      "archives": [
+        {
+          "name": "predictor_current_training_data.part-001.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/predictor_current_training_data.part-001.tar.gz",
+          "size": 869108391,
+          "sha256": "270ea448e43690c3d3d46e3a9a0d830348a3877118d1153ee131822f3b7fc23f"
+        }
+      ],
+      "provenance_notes": [
+        "Original manifest says training_ready=false and retains its recorded Newton dev runtime.",
+        "No label, event, fingerprint or training-admission field is changed."
+      ]
+    },
+    "predictor_current_reference": {
+      "purpose": "Current saved analysis checkpoint and recorded material geometry",
+      "status": "current_training_and_analysis_baseline",
+      "dependencies": [
+        "predictor_current_training_data"
+      ],
+      "file_count": 4,
+      "bytes": 22180039,
+      "index": {
+        "name": "predictor_current_reference.files.json",
+        "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/predictor_current_reference.files.json",
+        "size": 2129,
+        "sha256": "c3d3babb1632b9dd2d3a1ba1e82ffef1d9895f4214812e5968eadf1d0db95f30"
+      },
+      "archives": [
+        {
+          "name": "predictor_current_reference.part-001.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/predictor_current_reference.part-001.tar.gz",
+          "size": 13704479,
+          "sha256": "2c94da015d461dc565a2c80bf1f98474d2d584cfd0b692be4a768571258ef831"
+        }
+      ],
+      "provenance_notes": []
+    },
+    "motion_edit_height110": {
+      "purpose": "Retained height110 editing source, plan, layers, terrain and result",
+      "status": "reference_example_not_new_contact_admission",
+      "dependencies": [
+        "predictor_current_training_data"
+      ],
+      "file_count": 16,
+      "bytes": 6583245,
+      "index": {
+        "name": "motion_edit_height110.files.json",
+        "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/motion_edit_height110.files.json",
+        "size": 8312,
+        "sha256": "de0270eb30f9a3b27b6b8baa0a58b10cf3817e0ad756b373971be5c3ecefe14e"
+      },
+      "archives": [
+        {
+          "name": "motion_edit_height110.part-001.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/motion_edit_height110.part-001.tar.gz",
+          "size": 4996486,
+          "sha256": "a0e6ba0c7c6ac8cb599c7ad1dc37c5b1b2f079bc47eeb5ff854af5dffd130ba7"
+        }
+      ],
+      "provenance_notes": []
+    },
+    "infiller_demo_latest": {
+      "purpose": "Prepared full Infiller demonstration corpus and embedded input references",
+      "status": "prepared_corpus_preserve_original_acceptance",
+      "dependencies": [
+        "predictor_current_reference",
+        "predictor_current_training_data"
+      ],
+      "file_count": 1,
+      "bytes": 163291233,
+      "index": {
+        "name": "infiller_demo_latest.files.json",
+        "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/infiller_demo_latest.files.json",
+        "size": 541,
+        "sha256": "36cab6a6bff2a09122352a86006e482cc7fe557cf6c2b0701a668875322a8f9f"
+      },
+      "archives": [
+        {
+          "name": "infiller_demo_latest.part-001.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/infiller_demo_latest.part-001.tar.gz",
+          "size": 62407817,
+          "sha256": "566437757ea583fcac427e19e8ff95fb98d3c61dce368a73687a40dcdb920984"
+        }
+      ],
+      "provenance_notes": [
+        {
+          "historical_or_unavailable_embedded_references": []
+        }
+      ]
+    },
+    "infiller_demo_recursive": {
+      "purpose": "Prepared full Infiller demonstration corpus and embedded input references",
+      "status": "prepared_corpus_preserve_original_acceptance",
+      "dependencies": [
+        "infiller_demo_latest",
+        "predictor_current_reference",
+        "predictor_current_training_data"
+      ],
+      "file_count": 1,
+      "bytes": 264094113,
+      "index": {
+        "name": "infiller_demo_recursive.files.json",
+        "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/infiller_demo_recursive.files.json",
+        "size": 532,
+        "sha256": "a9e6705b0440569d0b4390f80d79c90fe426ca2c5693e12c0f926eefcb008058"
+      },
+      "archives": [
+        {
+          "name": "infiller_demo_recursive.part-001.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/infiller_demo_recursive.part-001.tar.gz",
+          "size": 97858034,
+          "sha256": "0614bcaf0183d542b48e167b41cba951d2541f7201035a343c6b228896852b16"
+        }
+      ],
+      "provenance_notes": [
+        {
+          "historical_or_unavailable_embedded_references": []
+        }
+      ]
+    },
+    "infiller_historical_shared_demo": {
+      "purpose": "Retained complete 207-motion/4761-segment historical Infiller corpus",
+      "status": "historical_recipe_not_current_training_admission",
+      "dependencies": [],
+      "file_count": 208,
+      "bytes": 924544461,
+      "index": {
+        "name": "infiller_historical_shared_demo.files.json",
+        "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/infiller_historical_shared_demo.files.json",
+        "size": 142078,
+        "sha256": "600578dcfaa585d88a08a4b77e079e907b0b066729f043768c65ee3decd1eb1b"
+      },
+      "archives": [
+        {
+          "name": "infiller_historical_shared_demo.part-001.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/infiller_historical_shared_demo.part-001.tar.gz",
+          "size": 586115045,
+          "sha256": "7fc342f6e83f3e7f4b4b6f9ca4c6ad957c8f14fabda9374c7d7963cccd6a542c"
+        }
+      ],
+      "provenance_notes": [
+        "Embedded historical tmp inputs resolve only to retained migration/archive counterparts.",
+        {
+          "historical_or_unavailable_embedded_references": [
+            "tmp/contact_pipeline_migrated_v1/infiller.pt",
+            "tmp/contact_pipeline_migrated_v1/predictor.pt",
+            "tmp/contact_shared_full_v1/rollouts/sequence_000.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_001.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_002.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_003.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_004.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_005.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_006.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_007.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_008.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_009.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_010.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_011.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_012.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_013.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_014.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_015.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_016.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_017.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_018.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_019.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_020.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_021.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_022.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_023.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_024.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_025.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_026.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_027.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_028.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_029.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_030.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_031.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_032.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_033.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_034.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_035.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_036.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_037.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_038.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_039.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_040.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_041.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_042.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_043.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_044.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_045.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_046.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_047.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_048.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_049.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_050.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_051.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_052.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_053.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_054.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_055.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_056.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_057.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_058.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_059.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_060.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_061.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_062.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_063.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_064.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_065.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_066.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_067.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_068.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_069.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_070.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_071.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_072.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_073.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_074.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_075.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_076.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_077.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_078.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_079.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_080.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_081.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_082.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_083.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_084.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_085.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_086.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_087.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_088.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_089.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_090.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_091.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_092.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_093.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_094.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_095.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_096.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_097.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_098.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_099.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_100.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_101.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_102.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_103.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_104.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_105.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_106.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_107.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_108.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_109.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_110.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_111.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_112.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_113.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_114.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_115.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_116.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_117.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_118.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_119.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_120.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_121.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_122.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_123.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_124.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_125.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_126.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_127.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_128.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_129.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_130.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_131.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_132.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_133.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_134.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_135.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_136.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_137.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_138.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_139.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_140.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_141.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_142.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_143.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_144.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_145.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_146.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_147.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_148.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_149.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_150.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_151.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_152.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_153.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_154.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_155.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_156.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_157.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_158.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_159.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_160.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_161.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_162.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_163.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_164.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_165.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_166.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_167.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_168.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_169.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_170.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_171.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_172.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_173.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_174.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_175.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_176.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_177.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_178.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_179.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_180.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_181.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_182.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_183.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_184.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_185.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_186.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_187.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_188.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_189.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_190.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_191.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_192.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_193.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_194.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_195.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_196.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_197.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_198.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_199.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_200.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_201.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_202.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_203.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_204.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_205.npz",
+            "tmp/contact_shared_full_v1/rollouts/sequence_206.npz"
+          ]
+        }
+      ]
+    },
+    "demonstrations_temporal207_training_v2_ready": {
+      "purpose": "Registered extracted demonstration variant and referenced content-addressed objects",
+      "status": "archived_preserve_original_approval_and_semantics",
+      "dependencies": [
+        "predictor_current_training_data"
+      ],
+      "file_count": 1889,
+      "bytes": 2182201135,
+      "index": {
+        "name": "demonstrations_temporal207_training_v2_ready.files.json",
+        "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/demonstrations_temporal207_training_v2_ready.files.json",
+        "size": 2055801,
+        "sha256": "2250c073c193d667ae74e2816a06eeea456d17686a0ccb9993a13d95951a89bb"
+      },
+      "archives": [
+        {
+          "name": "demonstrations_temporal207_training_v2_ready.part-001.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/demonstrations_temporal207_training_v2_ready.part-001.tar.gz",
+          "size": 1052335881,
+          "sha256": "c8438993f1df01d3bbd31675003541eccc415927cafd3b7f0b4a4388fd482eb2"
+        },
+        {
+          "name": "demonstrations_temporal207_training_v2_ready.part-002.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/demonstrations_temporal207_training_v2_ready.part-002.tar.gz",
+          "size": 978161436,
+          "sha256": "65b6e00a804eea8a9b3b50176e8ce053cead173ed2a17f8e1038db712573eb95"
+        },
+        {
+          "name": "demonstrations_temporal207_training_v2_ready.part-003.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/demonstrations_temporal207_training_v2_ready.part-003.tar.gz",
+          "size": 34448905,
+          "sha256": "d4abec8f6c2f60b2b08052fbbc54fcd0621ed0c24d43c3ed4a1c7832d7f6ae84"
+        }
+      ],
+      "provenance_notes": [
+        "Only this index's object references are included; source_record paths remain historical metadata.",
+        {
+          "kind": "historical_surface_mesh_address_unrecoverable",
+          "references": [
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/archives/preserved_inputs_20261010/climb00_guard15/surfaces/guard10_h100_dp25p000_ap20_ru_m025.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/archives/preserved_inputs_20261010/climb00_guard15/surfaces/guard14_h100_dp25p000_am10_lu_p020.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_06_h100_dp0p000_am10_lv_m050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_12_h100_dm50p000_ap0_lu_p040.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_16_h100_dp50p000_ap10_ru_m050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_32_h100_dp0p000_ap20_center.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_36_h100_dp0p000_ap20_lv_m015.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_38_h100_dm50p000_am10_lu_m050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_39_h100_dp50p000_am10_rv_m050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_44_h100_dp0p000_ap10_rv_p025.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_45_h100_dp50p000_ap20_ru_p050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_48_h100_dm50p000_ap10_center.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            }
+          ],
+          "evidence": "Surface JSONL records top-face polygons/bounds but no source mesh SHA. The retained h100.obj and tracked climb00 OBJ have the same SHA; this does not establish the missing original file's byte identity.",
+          "available_h100_sha256": "0e21fa0c89cb673d9f0e911926b78a58c56a27f83a711d9180abf839544beef9",
+          "tracked_climb00_sha256": "0e21fa0c89cb673d9f0e911926b78a58c56a27f83a711d9180abf839544beef9",
+          "runtime_boundary": "Prepared demonstration arrays, surface catalogs and each index's actual query terrains are present. Predictor contact-cache validation hashes the catalog; query geometry comes from explicit scene/terrain manifests. Historical LTE regeneration samples metadata.mesh_path and is not declared complete.",
+          "replacement_created": false
+        }
+      ]
+    },
+    "demonstrations_temporal207_newton_main_v1": {
+      "purpose": "Registered extracted demonstration variant and referenced content-addressed objects",
+      "status": "archived_preserve_original_approval_and_semantics",
+      "dependencies": [
+        "demonstrations_temporal207_training_v2_ready",
+        "predictor_current_training_data"
+      ],
+      "file_count": 833,
+      "bytes": 905846641,
+      "index": {
+        "name": "demonstrations_temporal207_newton_main_v1.files.json",
+        "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/demonstrations_temporal207_newton_main_v1.files.json",
+        "size": 798921,
+        "sha256": "854751d55b25b43c10f7b8a9bb1f87f4e84b3ebbd7b2aded9a7a8ca1156a89df"
+      },
+      "archives": [
+        {
+          "name": "demonstrations_temporal207_newton_main_v1.part-001.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/demonstrations_temporal207_newton_main_v1.part-001.tar.gz",
+          "size": 794355324,
+          "sha256": "d11de9794c63bfd791ba795f5bddcd1743731fbabf40d6b2cc55247debf0a052"
+        }
+      ],
+      "provenance_notes": [
+        "Only this index's object references are included; source_record paths remain historical metadata.",
+        {
+          "kind": "historical_surface_mesh_address_unrecoverable",
+          "references": [
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/archives/preserved_inputs_20261010/climb00_guard15/surfaces/guard10_h100_dp25p000_ap20_ru_m025.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/archives/preserved_inputs_20261010/climb00_guard15/surfaces/guard14_h100_dp25p000_am10_lu_p020.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_06_h100_dp0p000_am10_lv_m050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_12_h100_dm50p000_ap0_lu_p040.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_16_h100_dp50p000_ap10_ru_m050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_32_h100_dp0p000_ap20_center.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_36_h100_dp0p000_ap20_lv_m015.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_38_h100_dm50p000_am10_lu_m050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_39_h100_dp50p000_am10_rv_m050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_44_h100_dp0p000_ap10_rv_p025.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_45_h100_dp50p000_ap20_ru_p050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_48_h100_dm50p000_ap10_center.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            }
+          ],
+          "evidence": "Surface JSONL records top-face polygons/bounds but no source mesh SHA. The retained h100.obj and tracked climb00 OBJ have the same SHA; this does not establish the missing original file's byte identity.",
+          "available_h100_sha256": "0e21fa0c89cb673d9f0e911926b78a58c56a27f83a711d9180abf839544beef9",
+          "tracked_climb00_sha256": "0e21fa0c89cb673d9f0e911926b78a58c56a27f83a711d9180abf839544beef9",
+          "runtime_boundary": "Prepared demonstration arrays, surface catalogs and each index's actual query terrains are present. Predictor contact-cache validation hashes the catalog; query geometry comes from explicit scene/terrain manifests. Historical LTE regeneration samples metadata.mesh_path and is not declared complete.",
+          "replacement_created": false
+        }
+      ]
+    },
+    "demonstrations_temporal207_newton_main_eventclean_v1": {
+      "purpose": "Registered extracted demonstration variant and referenced content-addressed objects",
+      "status": "archived_preserve_original_approval_and_semantics",
+      "dependencies": [
+        "demonstrations_temporal207_newton_main_v1",
+        "demonstrations_temporal207_training_v2_ready",
+        "predictor_current_training_data"
+      ],
+      "file_count": 211,
+      "bytes": 33133323,
+      "index": {
+        "name": "demonstrations_temporal207_newton_main_eventclean_v1.files.json",
+        "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/demonstrations_temporal207_newton_main_eventclean_v1.files.json",
+        "size": 202277,
+        "sha256": "93bda47fd84c61a7226786dec2c69213aa4875eb833c9c7f7b1047aeea49cd1a"
+      },
+      "archives": [
+        {
+          "name": "demonstrations_temporal207_newton_main_eventclean_v1.part-001.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/demonstrations_temporal207_newton_main_eventclean_v1.part-001.tar.gz",
+          "size": 26188121,
+          "sha256": "dba14dee9ec189696af409dd40e78b24e4bff7295f8bff61383adcb62e4e1cb1"
+        }
+      ],
+      "provenance_notes": [
+        "Only this index's object references are included; source_record paths remain historical metadata.",
+        {
+          "kind": "historical_surface_mesh_address_unrecoverable",
+          "references": [
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/archives/preserved_inputs_20261010/climb00_guard15/surfaces/guard10_h100_dp25p000_ap20_ru_m025.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/archives/preserved_inputs_20261010/climb00_guard15/surfaces/guard14_h100_dp25p000_am10_lu_p020.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_06_h100_dp0p000_am10_lv_m050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_12_h100_dm50p000_ap0_lu_p040.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_16_h100_dp50p000_ap10_ru_m050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_32_h100_dp0p000_ap20_center.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_36_h100_dp0p000_ap20_lv_m015.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_38_h100_dm50p000_am10_lu_m050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_39_h100_dp50p000_am10_rv_m050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_44_h100_dp0p000_ap10_rv_p025.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_45_h100_dp50p000_ap20_ru_p050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_48_h100_dm50p000_ap10_center.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            }
+          ],
+          "evidence": "Surface JSONL records top-face polygons/bounds but no source mesh SHA. The retained h100.obj and tracked climb00 OBJ have the same SHA; this does not establish the missing original file's byte identity.",
+          "available_h100_sha256": "0e21fa0c89cb673d9f0e911926b78a58c56a27f83a711d9180abf839544beef9",
+          "tracked_climb00_sha256": "0e21fa0c89cb673d9f0e911926b78a58c56a27f83a711d9180abf839544beef9",
+          "runtime_boundary": "Prepared demonstration arrays, surface catalogs and each index's actual query terrains are present. Predictor contact-cache validation hashes the catalog; query geometry comes from explicit scene/terrain manifests. Historical LTE regeneration samples metadata.mesh_path and is not declared complete.",
+          "replacement_created": false
+        }
+      ]
+    },
+    "demonstrations_temporal207_hold_compact_v4": {
+      "purpose": "Registered extracted demonstration variant and referenced content-addressed objects",
+      "status": "archived_preserve_original_approval_and_semantics",
+      "dependencies": [
+        "demonstrations_temporal207_newton_main_v1",
+        "demonstrations_temporal207_training_v2_ready",
+        "predictor_current_training_data"
+      ],
+      "file_count": 626,
+      "bytes": 602241567,
+      "index": {
+        "name": "demonstrations_temporal207_hold_compact_v4.files.json",
+        "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/demonstrations_temporal207_hold_compact_v4.files.json",
+        "size": 583393,
+        "sha256": "5e715be96a95489838b0bf09c6a9241a6d1fb1d5566730ad5c9865d40930e348"
+      },
+      "archives": [
+        {
+          "name": "demonstrations_temporal207_hold_compact_v4.part-001.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/demonstrations_temporal207_hold_compact_v4.part-001.tar.gz",
+          "size": 590111390,
+          "sha256": "6d3d9fc7fb988a5ec4dc9b2e0e930538b3986c1a53fb38608ede50dc3f027567"
+        }
+      ],
+      "provenance_notes": [
+        "Only this index's object references are included; source_record paths remain historical metadata.",
+        {
+          "kind": "historical_surface_mesh_address_unrecoverable",
+          "references": [
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/archives/preserved_inputs_20261010/climb00_guard15/surfaces/guard10_h100_dp25p000_ap20_ru_m025.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/archives/preserved_inputs_20261010/climb00_guard15/surfaces/guard14_h100_dp25p000_am10_lu_p020.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_06_h100_dp0p000_am10_lv_m050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_12_h100_dm50p000_ap0_lu_p040.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_16_h100_dp50p000_ap10_ru_m050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_32_h100_dp0p000_ap20_center.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_36_h100_dp0p000_ap20_lv_m015.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_38_h100_dm50p000_am10_lu_m050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_39_h100_dp50p000_am10_rv_m050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_44_h100_dp0p000_ap10_rv_p025.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_45_h100_dp50p000_ap20_ru_p050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_48_h100_dm50p000_ap10_center.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            }
+          ],
+          "evidence": "Surface JSONL records top-face polygons/bounds but no source mesh SHA. The retained h100.obj and tracked climb00 OBJ have the same SHA; this does not establish the missing original file's byte identity.",
+          "available_h100_sha256": "0e21fa0c89cb673d9f0e911926b78a58c56a27f83a711d9180abf839544beef9",
+          "tracked_climb00_sha256": "0e21fa0c89cb673d9f0e911926b78a58c56a27f83a711d9180abf839544beef9",
+          "runtime_boundary": "Prepared demonstration arrays, surface catalogs and each index's actual query terrains are present. Predictor contact-cache validation hashes the catalog; query geometry comes from explicit scene/terrain manifests. Historical LTE regeneration samples metadata.mesh_path and is not declared complete.",
+          "replacement_created": false
+        }
+      ]
+    },
+    "demonstrations_temporal207_newton_main_hold_compact_eventclean_v1": {
+      "purpose": "Registered extracted demonstration variant and referenced content-addressed objects",
+      "status": "archived_preserve_original_approval_and_semantics",
+      "dependencies": [
+        "demonstrations_temporal207_newton_main_v1",
+        "demonstrations_temporal207_training_v2_ready",
+        "predictor_current_training_data"
+      ],
+      "file_count": 625,
+      "bytes": 681227193,
+      "index": {
+        "name": "demonstrations_temporal207_newton_main_hold_compact_eventclean_v1.files.json",
+        "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/demonstrations_temporal207_newton_main_hold_compact_eventclean_v1.files.json",
+        "size": 611560,
+        "sha256": "027995217aa556ef0ac9b7e94f37d52fa27e30d92c297c28673b5eb6f09a480c"
+      },
+      "archives": [
+        {
+          "name": "demonstrations_temporal207_newton_main_hold_compact_eventclean_v1.part-001.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/demonstrations_temporal207_newton_main_hold_compact_eventclean_v1.part-001.tar.gz",
+          "size": 666364643,
+          "sha256": "81f298f0b056149e6f6cdd88b9b4eedfb2f411cb0cee3958056a1a8fe47f9e34"
+        }
+      ],
+      "provenance_notes": [
+        "Only this index's object references are included; source_record paths remain historical metadata.",
+        {
+          "kind": "historical_surface_mesh_address_unrecoverable",
+          "references": [
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/archives/preserved_inputs_20261010/climb00_guard15/surfaces/guard10_h100_dp25p000_ap20_ru_m025.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/archives/preserved_inputs_20261010/climb00_guard15/surfaces/guard14_h100_dp25p000_am10_lu_p020.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_06_h100_dp0p000_am10_lv_m050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_12_h100_dm50p000_ap0_lu_p040.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_16_h100_dp50p000_ap10_ru_m050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_32_h100_dp0p000_ap20_center.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_36_h100_dp0p000_ap20_lv_m015.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_38_h100_dm50p000_am10_lu_m050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_39_h100_dp50p000_am10_rv_m050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_44_h100_dp0p000_ap10_rv_p025.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_45_h100_dp50p000_ap20_ru_p050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_48_h100_dm50p000_ap10_center.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            }
+          ],
+          "evidence": "Surface JSONL records top-face polygons/bounds but no source mesh SHA. The retained h100.obj and tracked climb00 OBJ have the same SHA; this does not establish the missing original file's byte identity.",
+          "available_h100_sha256": "0e21fa0c89cb673d9f0e911926b78a58c56a27f83a711d9180abf839544beef9",
+          "tracked_climb00_sha256": "0e21fa0c89cb673d9f0e911926b78a58c56a27f83a711d9180abf839544beef9",
+          "runtime_boundary": "Prepared demonstration arrays, surface catalogs and each index's actual query terrains are present. Predictor contact-cache validation hashes the catalog; query geometry comes from explicit scene/terrain manifests. Historical LTE regeneration samples metadata.mesh_path and is not declared complete.",
+          "replacement_created": false
+        }
+      ]
+    },
+    "demonstrations_full1000_fixed_timeline_newton_20260922_v3": {
+      "purpose": "Registered extracted demonstration variant and referenced content-addressed objects",
+      "status": "archived_preserve_original_approval_and_semantics",
+      "dependencies": [
+        "demonstrations_temporal207_newton_main_v1",
+        "demonstrations_temporal207_training_v2_ready",
+        "predictor_current_training_data"
+      ],
+      "file_count": 124,
+      "bytes": 121125823,
+      "index": {
+        "name": "demonstrations_full1000_fixed_timeline_newton_20260922_v3.files.json",
+        "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/demonstrations_full1000_fixed_timeline_newton_20260922_v3.files.json",
+        "size": 176464,
+        "sha256": "b8ad96bfb57b15e17d02d149eb5aa84d575a2b6d885abe62fa3e19bd0d59e676"
+      },
+      "archives": [
+        {
+          "name": "demonstrations_full1000_fixed_timeline_newton_20260922_v3.part-001.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/demonstrations_full1000_fixed_timeline_newton_20260922_v3.part-001.tar.gz",
+          "size": 89378804,
+          "sha256": "2fdff3d7aed26d528de9cd6899e2fe1f88f395ca40d35a608e015451c78826fe"
+        }
+      ],
+      "provenance_notes": [
+        "Only this index's object references are included; source_record paths remain historical metadata.",
+        {
+          "kind": "historical_surface_mesh_address_unrecoverable",
+          "references": [
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/archives/preserved_inputs_20261010/climb00_guard15/surfaces/guard10_h100_dp25p000_ap20_ru_m025.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/archives/preserved_inputs_20261010/climb00_guard15/surfaces/guard14_h100_dp25p000_am10_lu_p020.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_06_h100_dp0p000_am10_lv_m050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_12_h100_dm50p000_ap0_lu_p040.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_16_h100_dp50p000_ap10_ru_m050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_32_h100_dp0p000_ap20_center.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_36_h100_dp0p000_ap20_lv_m015.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_38_h100_dm50p000_am10_lu_m050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_39_h100_dp50p000_am10_rv_m050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_44_h100_dp0p000_ap10_rv_p025.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_45_h100_dp50p000_ap20_ru_p050.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motion_edit/surfaces/climb00_pairwise48/pair48_48_h100_dm50p000_ap10_center.jsonl",
+              "field": "mesh_path",
+              "value": "/home/xiaz/somaforge/runtime/current/terrains/climb00_pairwise48/multi_boxes_z_scale_1.0.obj",
+              "reason": "missing_or_external",
+              "classification": "historical_surface_extraction_provenance",
+              "required_for_prepared_training_or_query": false,
+              "historical_lte_regeneration_complete": false
+            }
+          ],
+          "evidence": "Surface JSONL records top-face polygons/bounds but no source mesh SHA. The retained h100.obj and tracked climb00 OBJ have the same SHA; this does not establish the missing original file's byte identity.",
+          "available_h100_sha256": "0e21fa0c89cb673d9f0e911926b78a58c56a27f83a711d9180abf839544beef9",
+          "tracked_climb00_sha256": "0e21fa0c89cb673d9f0e911926b78a58c56a27f83a711d9180abf839544beef9",
+          "runtime_boundary": "Prepared demonstration arrays, surface catalogs and each index's actual query terrains are present. Predictor contact-cache validation hashes the catalog; query geometry comes from explicit scene/terrain manifests. Historical LTE regeneration samples metadata.mesh_path and is not declared complete.",
+          "replacement_created": false
+        }
+      ]
+    },
+    "demonstrations_climb00_joint_consensus_retention_v5": {
+      "purpose": "Registered extracted demonstration variant and referenced content-addressed objects",
+      "status": "archived_preserve_original_approval_and_semantics",
+      "dependencies": [
+        "demonstrations_temporal207_training_v2_ready"
+      ],
+      "file_count": 11,
+      "bytes": 6669866,
+      "index": {
+        "name": "demonstrations_climb00_joint_consensus_retention_v5.files.json",
+        "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/demonstrations_climb00_joint_consensus_retention_v5.files.json",
+        "size": 8659,
+        "sha256": "be157ac9702c5aeac009111366f532aee89d2e584831902f43395932d6e862f9"
+      },
+      "archives": [
+        {
+          "name": "demonstrations_climb00_joint_consensus_retention_v5.part-001.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/demonstrations_climb00_joint_consensus_retention_v5.part-001.tar.gz",
+          "size": 6475189,
+          "sha256": "1c9f7f0473a3293fbf941de77a912c372efba9a35d99bfdec88bd90c29d23f19"
+        }
+      ],
+      "provenance_notes": [
+        "Only this index's object references are included; source_record paths remain historical metadata."
+      ]
+    },
+    "demonstrations_support_preserving_regeneration_20260926": {
+      "purpose": "Registered extracted demonstration variant and referenced content-addressed objects",
+      "status": "archived_preserve_original_approval_and_semantics",
+      "dependencies": [
+        "demonstrations_temporal207_training_v2_ready",
+        "predictor_current_training_data"
+      ],
+      "file_count": 61,
+      "bytes": 42827895,
+      "index": {
+        "name": "demonstrations_support_preserving_regeneration_20260926.files.json",
+        "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/demonstrations_support_preserving_regeneration_20260926.files.json",
+        "size": 48856,
+        "sha256": "6728e958de3dfce95edd5723b9fa18f219522b33ac779f55dacb520b457ce7e9"
+      },
+      "archives": [
+        {
+          "name": "demonstrations_support_preserving_regeneration_20260926.part-001.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/demonstrations_support_preserving_regeneration_20260926.part-001.tar.gz",
+          "size": 41433797,
+          "sha256": "18d2d99d746a4e3db52b58cf1d7c597bf664cea1c9b8208eab91f35bfaf3e8d6"
+        }
+      ],
+      "provenance_notes": [
+        "Only this index's object references are included; source_record paths remain historical metadata."
+      ]
+    },
+    "source_prefix_standard207": {
+      "purpose": "207 source-prefix-standard kinematic references, plans and completion evidence",
+      "status": "kinematic_training_input_not_accepted_demonstration",
+      "dependencies": [
+        "demonstrations_temporal207_training_v2_ready",
+        "predictor_current_training_data"
+      ],
+      "file_count": 1466,
+      "bytes": 1145318287,
+      "index": {
+        "name": "source_prefix_standard207.files.json",
+        "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/source_prefix_standard207.files.json",
+        "size": 1062928,
+        "sha256": "67fc31fe97ecdbc0a7f32ba9c6c80a24dcc6e12535848b559af8dea977c46a46"
+      },
+      "archives": [
+        {
+          "name": "source_prefix_standard207.part-001.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/source_prefix_standard207.part-001.tar.gz",
+          "size": 900144174,
+          "sha256": "c0104c9025522db37dcfb1abad202bbbef751039b1e9894721c537cd6b9307b7"
+        },
+        {
+          "name": "source_prefix_standard207.part-002.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/source_prefix_standard207.part-002.tar.gz",
+          "size": 38437080,
+          "sha256": "34ff20142c2de7a42661eaa9ed408fe9e33ee054c0b01ee10d9e7177c6ab0d73"
+        }
+      ],
+      "provenance_notes": [
+        "Failed generation directories and unreferenced PyRoki/taskspace/semantic-proxy work caches are excluded.",
+        "Generation reports are retained as evidence, not treated as an instruction to package every intermediate."
+      ]
+    },
+    "dynamics_corrected207": {
+      "purpose": "207 full dynamics-corrected demonstrations, native labels, 3149 events and provenance",
+      "status": "all_accepted_training_ready_false_unchanged",
+      "dependencies": [
+        "demonstrations_full1000_fixed_timeline_newton_20260922_v3",
+        "demonstrations_temporal207_newton_main_v1",
+        "demonstrations_temporal207_training_v2_ready"
+      ],
+      "file_count": 1663,
+      "bytes": 5615483104,
+      "index": {
+        "name": "dynamics_corrected207.files.json",
+        "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/dynamics_corrected207.files.json",
+        "size": 1159350,
+        "sha256": "b67f5a49275f4a94eae5ea8cf9e115d698e8c670c0dabeb6bd450b9e1b7d3139"
+      },
+      "archives": [
+        {
+          "name": "dynamics_corrected207.part-001.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/dynamics_corrected207.part-001.tar.gz",
+          "size": 1007170269,
+          "sha256": "c3632c65eda2e745f371e49c7f9af73a43d378304926155dc333f971f5999da8"
+        },
+        {
+          "name": "dynamics_corrected207.part-002.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/dynamics_corrected207.part-002.tar.gz",
+          "size": 563258588,
+          "sha256": "f37b1fc9c8de72030700e36be1e2d2db677c55b386cd435876d1ddca35e6b8c5"
+        },
+        {
+          "name": "dynamics_corrected207.part-003.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/dynamics_corrected207.part-003.tar.gz",
+          "size": 67775708,
+          "sha256": "03530bc739860f0f4e2bea3eb4f40d36d5c3bf9f8cd5bdffb8415cf144638b2c"
+        },
+        {
+          "name": "dynamics_corrected207.part-004.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/dynamics_corrected207.part-004.tar.gz",
+          "size": 68007874,
+          "sha256": "86e7b5e3d69910ad00a1cb61376cf5d5e13c8b95fd08af3c71e06d7aa87421c9"
+        },
+        {
+          "name": "dynamics_corrected207.part-005.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/dynamics_corrected207.part-005.tar.gz",
+          "size": 809947785,
+          "sha256": "3e2c43e021831d21f02a92b2800e3e81e76906dcf01f43e3bcd3f78a225adc2e"
+        },
+        {
+          "name": "dynamics_corrected207.part-006.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/dynamics_corrected207.part-006.tar.gz",
+          "size": 264687194,
+          "sha256": "614e663e6c0fa2846c7515a2b0bd83ecc75924c2441b9deb20d16b022b50b52f"
+        }
+      ],
+      "provenance_notes": [
+        "206 automatically accepted and 1 accepted by explicit user review; no training-start/admission field is changed.",
+        {
+          "kind": "unrecoverable_original_contact_source_files",
+          "count": 9,
+          "references": [
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motions/climb00_contact_dataset/versions/dynamics_corrected_207_20261017/provenance/cover144_03_h110_dp50p000_ap20_center/release.json",
+              "field": "path",
+              "value": "/home/xiaz/somaforge-data/current/holosoma/tmp/joint_continuous_consensus_v10_pilot_r3_20261017/aggregated/motion_000002/contacts.npz",
+              "reason": "historical_tmp_not_read",
+              "classification": "unrecoverable_original_source_contact_provenance",
+              "required_for_prepared_training_or_query": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motions/climb00_contact_dataset/versions/dynamics_corrected_207_20261017/provenance/cover144_105_h110_dm12p737_ap10_rxy_104/release.json",
+              "field": "path",
+              "value": "/home/xiaz/somaforge-data/current/holosoma/tmp/joint_continuous_consensus_v10_pilot_r3_20261017/aggregated/motion_000014/contacts.npz",
+              "reason": "historical_tmp_not_read",
+              "classification": "unrecoverable_original_source_contact_provenance",
+              "required_for_prepared_training_or_query": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motions/climb00_contact_dataset/versions/dynamics_corrected_207_20261017/provenance/cover144_112_h110_dm49p628_ap20_rxy_111/release.json",
+              "field": "path",
+              "value": "/home/xiaz/somaforge-data/current/holosoma/tmp/joint_continuous_consensus_v10_pilot_r3_20261017/aggregated/motion_000022/contacts.npz",
+              "reason": "historical_tmp_not_read",
+              "classification": "unrecoverable_original_source_contact_provenance",
+              "required_for_prepared_training_or_query": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motions/climb00_contact_dataset/versions/dynamics_corrected_207_20261017/provenance/cover144_43_h110_dm47p637_ap0_lxy_042/release.json",
+              "field": "path",
+              "value": "/home/xiaz/somaforge-data/current/holosoma/tmp/joint_continuous_consensus_v10_pilot_r3_20261017/aggregated/motion_000087/contacts.npz",
+              "reason": "historical_tmp_not_read",
+              "classification": "unrecoverable_original_source_contact_provenance",
+              "required_for_prepared_training_or_query": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motions/climb00_contact_dataset/versions/dynamics_corrected_207_20261017/provenance/pair48_09_h110_dm50p000_ap10_rv_m050/release.json",
+              "field": "path",
+              "value": "/home/xiaz/somaforge-data/current/holosoma/tmp/parallel_continuous_consensus_v12_pilot_r3_20261017/aggregated/motion_000167/contacts.npz",
+              "reason": "historical_tmp_not_read",
+              "classification": "unrecoverable_original_source_contact_provenance",
+              "required_for_prepared_training_or_query": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motions/climb00_contact_dataset/versions/dynamics_corrected_207_20261017/provenance/pair48_10_h110_dp0p000_ap20_ru_m050/release.json",
+              "field": "path",
+              "value": "/home/xiaz/somaforge-data/current/holosoma/tmp/parallel_continuous_consensus_v12_pilot_r3_20261017/aggregated/motion_000168/contacts.npz",
+              "reason": "historical_tmp_not_read",
+              "classification": "unrecoverable_original_source_contact_provenance",
+              "required_for_prepared_training_or_query": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motions/climb00_contact_dataset/versions/dynamics_corrected_207_20261017/provenance/pair48_19_h110_dp50p000_ap20_ru_p050/release.json",
+              "field": "path",
+              "value": "/home/xiaz/somaforge-data/current/holosoma/tmp/parallel_continuous_consensus_v12_pilot_r3_20261017/aggregated/motion_000177/contacts.npz",
+              "reason": "historical_tmp_not_read",
+              "classification": "unrecoverable_original_source_contact_provenance",
+              "required_for_prepared_training_or_query": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motions/climb00_contact_dataset/versions/dynamics_corrected_207_20261017/provenance/pair48_22_h110_dp50p000_am10_center/release.json",
+              "field": "path",
+              "value": "/home/xiaz/somaforge-data/current/holosoma/tmp/parallel_continuous_consensus_v12_pilot_r3_20261017/aggregated/motion_000180/contacts.npz",
+              "reason": "historical_tmp_not_read",
+              "classification": "unrecoverable_original_source_contact_provenance",
+              "required_for_prepared_training_or_query": false
+            },
+            {
+              "declaration": "/home/xiaz/somaforge-data/current/motions/climb00_contact_dataset/versions/dynamics_corrected_207_20261017/provenance/pair48_24_h105_dm50p000_ap20_rv_p025/release.json",
+              "field": "path",
+              "value": "/home/xiaz/somaforge-data/current/holosoma/tmp/adaptive_continuous_consensus_v11_pilot_20261017/aggregated/motion_000182/contacts.npz",
+              "reason": "historical_tmp_not_read",
+              "classification": "unrecoverable_original_source_contact_provenance",
+              "required_for_prepared_training_or_query": false
+            }
+          ],
+          "evidence": "release.json retains hashes of nine original tmp contacts.npz sources. Their hashes differ from the published rematerialized labels and no exact-hash object copy was found. The old files are not read, replaced or aliased to changed data.",
+          "runtime_boundary": "All 207 published motions, rematerialized contact labels, 3149 own events, scene catalogs and terrain inputs are included. The provenance gap concerns the original source files, not the complete prepared dynamics-corrected dataset. training_ready=false remains unchanged.",
+          "replacement_created": false
+        }
+      ]
+    },
+    "demonstration_catalog": {
+      "purpose": "Source archive catalog and retained path-migration ledger",
+      "status": "inventory_only_not_training_admission",
+      "dependencies": [
+        "demonstrations_climb00_joint_consensus_retention_v5",
+        "demonstrations_full1000_fixed_timeline_newton_20260922_v3",
+        "demonstrations_support_preserving_regeneration_20260926",
+        "demonstrations_temporal207_hold_compact_v4",
+        "demonstrations_temporal207_newton_main_eventclean_v1",
+        "demonstrations_temporal207_newton_main_hold_compact_eventclean_v1",
+        "demonstrations_temporal207_newton_main_v1",
+        "demonstrations_temporal207_training_v2_ready",
+        "dynamics_corrected207"
+      ],
+      "file_count": 2,
+      "bytes": 1832439,
+      "index": {
+        "name": "demonstration_catalog.files.json",
+        "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/demonstration_catalog.files.json",
+        "size": 935,
+        "sha256": "be86a446515b79cc52b64c9ccf36ee0cd6f5cbc0d4077fa607b766d5a33257da"
+      },
+      "archives": [
+        {
+          "name": "demonstration_catalog.part-001.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/data-20261022-v1/demonstration_catalog.part-001.tar.gz",
+          "size": 253981,
+          "sha256": "e7c6c27e5381a8d737417692cb83d45937f746e356a80bf97bfb7508f552a00c"
+        }
+      ],
+      "provenance_notes": []
+    }
+  }
+}

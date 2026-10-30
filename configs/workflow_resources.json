@@ -1,0 +1,26 @@
+{
+  "schema": "somaforge_workflow_resources_v1",
+  "supermimic": {
+    "runtime_root": "/perception/workspace/zhouxia/supermimic_vibed",
+    "python": "/home/zhouxia/miniforge3/envs/supermimic/bin/python",
+    "isaaclab_root": "/home/zhouxia/workspace/supermimic_vibed/IsaacLab"
+  },
+  "ppo": {
+    "runtime_root": "/perception/workspace/zhouxia/somaforge/runtime/current",
+    "python": "runtime/environments/conda/somaforge/bin/python"
+  },
+  "stage2": {
+    "runtime_root": "/perception/workspace/zhouxia/somaforge-stage2/runtime/current"
+  },
+  "artifacts": {
+    "force6_source_wm": {
+      "path": "/perception/workspace/zhouxia/supermimic_vibed/logs/climb_low_force6_resume1000/ckpt_006000.pt",
+      "role": "legacy force6 WM initialization; not an interchangeable PPO checkpoint"
+    },
+    "accepted_contact_baseline": {
+      "path": "/perception/workspace/zhouxia/supermimic_vibed/tmp/contact-tracker-20261027-v1/accepted-baseline.json",
+      "status": "not_present_in_current_filesystem",
+      "role": "historical README pointer; require an explicit available actor checkpoint"
+    }
+  }
+}

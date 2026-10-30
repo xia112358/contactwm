@@ -1,0 +1,13 @@
+{
+  "default_tolerance_m": 0.05,
+  "overrides": [
+    {
+      "task_manifest_sha256": "9067ea1978100558d14bd99325919a9207495dd8a436cba25c2c5e2abf598008",
+      "motion": 0,
+      "segment_bounds": [478, 513],
+      "new_parts": ["left_foot", "right_foot"],
+      "tolerance_m": 0.08,
+      "reason": "Demo 0 segment 12: two-foot landing from the box; user-approved placement relaxation. Loss remains continuous with the original scale."
+    }
+  ]
+}

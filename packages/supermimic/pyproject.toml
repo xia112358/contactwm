@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "somaforge-supermimic"
+version = "0.1.0"
+description = "SuperMimic tracking and contact-control research in the SomaForge workspace"
+readme = "README_UNIFIED.md"
+requires-python = ">=3.12"
+license = {file = "LICENSE"}
+dependencies = ["numpy", "scipy", "torch", "somaforge-core"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["supermimic*"]
+
+[tool.setuptools.package-data]
+supermimic = ["resources/experiments/*.json"]

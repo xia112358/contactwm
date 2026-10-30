@@ -1,0 +1,78 @@
+{
+  "schema": "somaforge_training_pipeline_v2",
+  "asset_manifest": "configs/assets_manifest.json",
+  "robot_asset_id": "robot.g1.spherehand",
+  "stages": {
+    "wbt_baseline": {
+      "inputs": [
+        "Newton-canonicalized retargeted motion manifest",
+        "robot.g1.spherehand",
+        "terrain.*"
+      ],
+      "outputs": [
+        "baseline WBT checkpoint",
+        "Newton rollout/contact-force manifest"
+      ],
+      "required_fields": [
+        "motion_id",
+        "robot_asset_id",
+        "terrain_asset_id",
+        "source_sha256",
+        "kinematics_provenance_json"
+      ],
+      "storage": "runtime/current/models"
+    },
+    "predictor": {
+      "baseline_asset_id": "predictor.v1_latest.20261010",
+      "baseline_record": "baselines/predictor_v1_latest_20261010/baseline.json",
+      "baseline_initialization": "scratch",
+      "inputs": [
+        "Newton-validated contact-event dataset",
+        "current canonical robot pose and actual contact observation",
+        "observed terrain",
+        "robot.g1.spherehand"
+      ],
+      "outputs": [
+        "next-contact plan and endpoint predictor checkpoint"
+      ],
+      "required_fields": [
+        "robot_asset_json",
+        "contact semantics and sampling provenance",
+        "event boundaries"
+      ],
+      "storage": "runtime/current/models",
+      "architecture_schema": "full1000_position_predictor_v1",
+      "training_entrypoint": "generator.train_full1000_position",
+      "evaluation_entrypoint": "generator.evaluate_position_rollout",
+      "baseline_role": "Current user-designated v1 scratch recipe and latest saved step1000 analysis checkpoint; old recipes archived",
+      "architecture_contract": "shared v1 observation encoder; detached hard contact intent; legacy root+part mean readout",
+      "training_config": "baselines/predictor_v1_latest_20261010/training_config.json",
+      "dataset_asset_id": "dataset.climb00.main_20261022",
+      "shape_target_interval_schema": "coherent_shape_target_material_query_interval_v2",
+      "keep_patch_weight": 1.0,
+      "baseline_pointer": "baselines/current.json",
+      "archived_baselines": "baselines/archives.json",
+      "runtime_inputs": "configs/generator/main_runtime.json"
+    },
+    "holosoma_wbt": {
+      "inputs": [
+        "Canonical motion reference validated by Newton",
+        "Newton 8-part force manifest",
+        "robot.g1.spherehand",
+        "terrain.*"
+      ],
+      "outputs": [
+        "refined holosoma policy checkpoint",
+        "evaluation manifest"
+      ],
+      "required_fields": [
+        "robot_asset_id",
+        "terrain_asset_id",
+        "motion_id",
+        "source_model_sha256",
+        "contact_force_provenance_json"
+      ],
+      "storage": "runtime/current/models"
+    }
+  }
+}

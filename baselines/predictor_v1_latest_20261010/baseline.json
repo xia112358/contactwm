@@ -1,0 +1,179 @@
+{
+  "schema": "somaforge_predictor_baseline_v2",
+  "id": "predictor.v1_latest.20261010",
+  "status": "current_training_and_analysis_baseline",
+  "designated_by_user": true,
+  "designation_date": "2026-10-10",
+  "definition": "User-designated v1 shared-observation coherent-interval scratch recipe and latest saved step1000 reference; not selected by single-checkpoint validation score",
+  "checkpoint": {
+    "path": "runtime/current/models/generator/v1_shared_interval_scratch1100_20261009/step_1000.pt",
+    "sha256": "b50df5dc0271717dc592875289fd54c93b0502073f5b61781a21ccc860ff1a8b",
+    "schema": "full1000_position_predictor_v1",
+    "step": 1000,
+    "selection": "latest saved immutable checkpoint",
+    "optimizer_in_checkpoint": false
+  },
+  "architecture": {
+    "schema": "full1000_position_predictor_v1",
+    "width": 192,
+    "layers": 3,
+    "location_width": 32,
+    "shared_observation_encoder": true,
+    "execution_observation_gradients": true,
+    "execution_plan_gradients": false,
+    "readout": "legacy root+part mean",
+    "v2_adopted": false
+  },
+  "robot_asset_id": "robot.g1.spherehand",
+  "robot_asset_json": "{\"asset_bundle_sha256\": \"30cb9ed0b83795ed8861a92e2b800357fdd1067b0986aa997e078de720233f20\", \"asset_id\": \"g1_29dof_spherehand_v1\", \"urdf_path\": \"/home/xiaz/somaforge/src/holosoma/holosoma/data/robots/g1/g1_29dof_spherehand.urdf\", \"urdf_sha256\": \"f869ea6547fd18f40558d91dfc5ad76347f73ba88351c5e7c81e98868ab60937\"}",
+  "configuration": "baselines/predictor_v1_latest_20261010/training_config.json",
+  "training_run_configuration": "baselines/predictor_v1_latest_20261010/training_run_config.json",
+  "reproduction_command": "baselines/predictor_v1_latest_20261010/reproduction_command.json",
+  "evaluation_command": "baselines/predictor_v1_latest_20261010/evaluation_command.json",
+  "training_entrypoint": "generator.train_full1000_position",
+  "evaluation_entrypoint": "generator.evaluate_position_rollout",
+  "initialization": {
+    "mode": "scratch",
+    "predictor_checkpoints_loaded": [],
+    "optimizer_resumed": false,
+    "analysis_checkpoint_is_not_scratch_initialization": true
+  },
+  "training_course": {
+    "teacher_intervals": 100,
+    "feedback_intervals": 1000,
+    "planned_total_intervals": 1100,
+    "continuous_demonstration_training": true,
+    "demonstration_rows_per_interval": 1470,
+    "pool_size": 128,
+    "pool_updates_per_feedback_interval": 10,
+    "pool_predictions_per_feedback_interval": 1280,
+    "feedback_optimizer_updates_per_interval": 22,
+    "parallel_allow_post_demo": true,
+    "failed_output": "trains; input and target rolled back",
+    "keep_patch_weight": 1.0
+  },
+  "loss": {
+    "shared_shape_target_interval": {
+      "schema": "coherent_shape_target_material_query_interval_v2",
+      "scene_fingerprints": {
+        "0": "da2f9a68d9783febcb314a080519de4b40bc2ad6509fb6290197beeeaa91a714",
+        "1": "735c80bbf009e662f8b305e1035772a4eb8d138fb7a07e8d1c137f9af02e4781",
+        "2": "a8528a92852e3804b00fe203e066592155a03d5c51d12d1e571638833385e727",
+        "3": "498db26e19ecc8df479c123d5f7e99d767ec74e4b40e895a6cee934b66a3a537"
+      },
+      "geometry_adapter": "contact_solver.material_surface_interval.material_surface_interval",
+      "shared_constraint": "same selected unique interior FK material, static component, link/local point/normal/signed gap",
+      "query_reduction": "complete native/material interval scalars; no cross-query bound mixing",
+      "independent_constraints": "other physical witnesses, self collision and release retained",
+      "contact_truth": "unchanged actual Newton activation/allocation and primary-face selection",
+      "newton_assets_margin_weights_architecture_changed": false
+    },
+    "contact_band": "zero to actual configured includemargin; no point or midpoint attraction",
+    "physical_clearance": "complete terrain/self solids with initialized native filtering; ordinary material FK derivatives",
+    "penalty": "log1p squared dimensionless residual; anatomical fixed mean+max aggregation",
+    "position": {
+      "schema": "native_part_surface_to_normal_interval_rms_v1",
+      "tolerance_m": 0.04,
+      "zero_gradient_inside_accepted_range": true,
+      "spatial_metric_changed": true,
+      "newton_contact_rule_changed": false
+    },
+    "keep_patch": "actual eligible allocated current material region; minimum tangent motion permits interior pivot; demonstration/fallback allowance",
+    "teacher_qp_or_projection": false,
+    "query_refactor_incremental_gain": "not established; matched50 production model, Adam and3105 endpoints are identical"
+  },
+  "acceptance": {
+    "schema": "newton_task_acceptance_v1",
+    "shallow_penetration_m": 0.005,
+    "extra_activation_margin_fraction": 0.05,
+    "contact_truth": "unchanged Newton active+allocated primary-face pairs",
+    "intended_contacts": "all required limb/surface pairs must exist",
+    "regional_distribution": "audit only; region-filtered position completeness retained",
+    "persistent_role": "keep requires currently observed actual contact",
+    "executed_support": "unknown without independent trajectory/load evidence"
+  },
+  "dependencies": {
+    "query_checkpoint": {
+      "path": "runtime/current/holosoma/logs/WholeBodyTracking/20260727_085520-g1_29dof_wbt_single_climb00_completionema_horizon50_ncon160_from4k_to10k-locomotion/model_06000.pt",
+      "sha256": "9d8470b07859ecc5d4f53f4ce2b741beb9cb6c3ec258a9e094a3d67213491824"
+    },
+    "query_source_manifest": {
+      "path": "runtime/current/motions/climb00_contact_dataset/versions/loaded_material_rebuild_20261003/edits207_joint_v12/scenes/0e21fa0c89cb673d/manifest.json",
+      "sha256": "48e33b3e5cfd41e768150764c1099a84de2f1dd1e165c76bc8aa0f29fa4de64f"
+    },
+    "query_source_model": {
+      "path": "runtime/current/motions/climb00_contact_dataset/versions/loaded_material_rebuild_20261003/edits207_joint_v12/scenes/0e21fa0c89cb673d/model.json",
+      "sha256": "e3285f25b2ccb753c7e22af6b628b4882abd4a6eb6b4383c7233441491eafa3f"
+    },
+    "manifest": {
+      "path": "runtime/current/motions/climb00_contact_dataset/training/predictor_loaded_material207_joint_v12_20261004/manifest.json",
+      "sha256": "c58a8ba027458a95d5b5385eac44fd80128cc0990e0a5c16ff0efe7b6eed0339"
+    },
+    "data_cache": {
+      "path": "runtime/current/motions/climb00_contact_dataset/training/predictor_loaded_material207_joint_v12_20261004/data.pt",
+      "sha256": "aac4bd5106462c8275936c4d099d448cf23c479619fc319dfcf0ad139edc4233"
+    },
+    "q_cache": {
+      "path": "runtime/current/motions/climb00_contact_dataset/training/predictor_loaded_material207_joint_v12_20261004/q_cache_64.npz",
+      "sha256": "95553c106bacf8eb4e0a7ca25ba345d3483da9a19a1cd5a922cd29b739f9912b"
+    }
+  },
+  "training_geometry_materials": {
+    "contact_material_skin.pt": {
+      "path": "runtime/current/models/generator/v1_shared_interval_scratch1100_20261009/contact_material_skin.pt",
+      "sha256": "d56152750a3c693f06a7293fe5ad31bb882e13acc8464ee1712bc3ec4dd8b96f"
+    },
+    "keep_patch_calibration.pt": {
+      "path": "runtime/current/models/generator/v1_shared_interval_scratch1100_20261009/keep_patch_calibration.pt",
+      "sha256": "0a73bfa81a7f08090013f179fdf60ccc496a515b783ab2e112b44b0534d6573b"
+    },
+    "region_labels.pt": {
+      "path": "runtime/current/models/generator/v1_shared_interval_scratch1100_20261009/region_labels.pt",
+      "sha256": "acbe8b6d59330c89b6710755a984c3f778c465cbf130f53c3b832bd35d0778cc"
+    }
+  },
+  "data": {
+    "train_rows": 1470,
+    "validation_rows": 780,
+    "test_rows": 855,
+    "train_height_factors": [
+      0.95,
+      1.0,
+      1.05
+    ],
+    "validation_height_factor": 0.9,
+    "test_height_factor": 1.1,
+    "scope": "207 augmentations of one original source; independent-source generalization not established"
+  },
+  "training_result": {
+    "run": "runtime/current/models/generator/v1_shared_interval_scratch1100_20261009",
+    "last_recorded_interval": 1002,
+    "last_saved_checkpoint_interval": 1000,
+    "planned_total_intervals": 1100,
+    "status": "incomplete",
+    "termination_reason": "unknown",
+    "progress": {
+      "path": "runtime/current/models/generator/v1_shared_interval_scratch1100_20261009/progress.json",
+      "sha256": "34617fc8a3f90945cc74ad68265d2cb53581826a0a4cd29a1584c6230bca7c97"
+    },
+    "performance": {
+      "path": "runtime/current/models/generator/v1_shared_interval_scratch1100_20261009/performance.json",
+      "sha256": "61061c65691d55408242d8b591fdca878ac29795c3001d2873ae4a9735905a9c"
+    },
+    "parallel_training_state": {
+      "path": "runtime/current/models/generator/v1_shared_interval_scratch1100_20261009/parallel_training_state.pt",
+      "sha256": "bf516e1b8ec38b8245b2dfa496e8f28877bacccdb4869e229921ec2d6f3aa4e6"
+    },
+    "training_summary": "baselines/predictor_v1_latest_20261010/training_summary.json"
+  },
+  "evidence_scope": {
+    "selection_uses_stage_trends": true,
+    "latest_saved_checkpoint_recursion_evaluated": false,
+    "known_motion4_recursion_checkpoint_step": 950,
+    "heldout_recursive_generalization_established": false,
+    "dynamic_support_or_slip_established": false,
+    "sole_loss_causal_improvement_established": false
+  },
+  "archives": "baselines/archives.json",
+  "source_provenance": "baselines/predictor_v1_latest_20261010/source_provenance.json"
+}

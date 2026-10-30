@@ -1,0 +1,92 @@
+{
+  "schema": "predeclared_checkpoint_comparison_v1",
+  "motion_id": 4,
+  "continuous_group": 1,
+  "rankings": [
+    {
+      "checkpoint": "runtime/current/archives/preserved_inputs_20261010/predictor_scratch1k_20261002/training/best_historical_score.pt",
+      "step": 725,
+      "report": "runtime/current/archives/preserved_inputs_20261010/predictor_scratch1k_20261002/recursive_candidates/training_best_historical_score/report.json",
+      "schema": "newton_recursive_checkpoint_selection_v3",
+      "ordering": "lexicographic, larger is better; preserve earlier checkpoint on exact ties",
+      "fields": [
+        "task_and_own_safe_prefix",
+        "own_plan_safe_prefix",
+        "task_and_own_safe_steps",
+        "own_plan_safe_steps",
+        "safe_steps",
+        "negative_safe_endpoint_position_rms_cm",
+        "negative_max_penetration_cm"
+      ],
+      "key": [
+        2,
+        3,
+        2,
+        3,
+        3,
+        -2.1526389450048713,
+        -0.0
+      ],
+      "metrics": {
+        "task_and_own_safe_prefix": 2,
+        "own_plan_safe_prefix": 3,
+        "task_and_own_safe_steps": 2,
+        "own_plan_safe_steps": 3,
+        "safe_steps": 3,
+        "negative_safe_endpoint_position_rms_cm": -2.1526389450048713,
+        "negative_max_penetration_cm": -0.0
+      },
+      "steps": 3,
+      "initial_perturbations_used": false,
+      "absolute_pose_and_cell_errors_used": false,
+      "relative_layout_accuracy_used": false,
+      "endpoint_position_accuracy_used": true,
+      "relative_layout_minimum_parts": 1,
+      "training_retry_history_used": false,
+      "task_progress": "required task contacts accepted at each successive evaluation stage"
+    },
+    {
+      "checkpoint": "runtime/current/archives/preserved_inputs_20261010/predictor_scratch1k_20261002/training/step_0925.pt",
+      "step": 925,
+      "report": "runtime/current/archives/preserved_inputs_20261010/predictor_scratch1k_20261002/recursive_candidates/training_step_0925/report.json",
+      "schema": "newton_recursive_checkpoint_selection_v3",
+      "ordering": "lexicographic, larger is better; preserve earlier checkpoint on exact ties",
+      "fields": [
+        "task_and_own_safe_prefix",
+        "own_plan_safe_prefix",
+        "task_and_own_safe_steps",
+        "own_plan_safe_steps",
+        "safe_steps",
+        "negative_safe_endpoint_position_rms_cm",
+        "negative_max_penetration_cm"
+      ],
+      "key": [
+        5,
+        6,
+        5,
+        6,
+        6,
+        -0.8980060643995454,
+        -0.0
+      ],
+      "metrics": {
+        "task_and_own_safe_prefix": 5,
+        "own_plan_safe_prefix": 6,
+        "task_and_own_safe_steps": 5,
+        "own_plan_safe_steps": 6,
+        "safe_steps": 6,
+        "negative_safe_endpoint_position_rms_cm": -0.8980060643995454,
+        "negative_max_penetration_cm": -0.0
+      },
+      "steps": 6,
+      "initial_perturbations_used": false,
+      "absolute_pose_and_cell_errors_used": false,
+      "relative_layout_accuracy_used": false,
+      "endpoint_position_accuracy_used": true,
+      "relative_layout_minimum_parts": 1,
+      "training_retry_history_used": false,
+      "task_progress": "required task contacts accepted at each successive evaluation stage"
+    }
+  ],
+  "selected_checkpoint": null
+}

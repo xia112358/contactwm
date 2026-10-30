@@ -1,0 +1,83 @@
+{
+  "prepared_at": "2026-10-26 18:12:52",
+  "physical_gpu": 3,
+  "num_envs": 4096,
+  "physical_envs": 4531,
+  "statistics_only_probes": 435,
+  "iterations": 6000,
+  "seed": 0,
+  "contact_model": "force6",
+  "reset_sampler": "completion_recent30_failure_window",
+  "capture_physics_failure": true,
+  "group_counts": {
+    "lowstep": 56,
+    "lowclimb": 40,
+    "highclimb": 40,
+    "flatwalk": 9
+  },
+  "group_training_envs": {
+    "lowstep": 1024,
+    "lowclimb": 1024,
+    "highclimb": 1024,
+    "flatwalk": 1024
+  },
+  "comparison_label": "策略真值深度无力＋WM真值深度带力",
+  "comparison_run": "mixed_terrain_walk_force6_main",
+  "task_manifest_sha256": "2bfd07a792f0dc3d895a7efc16ef3a4c7163888d0854b4f905237f3bf8298a63",
+  "current_state": "running",
+  "processes": {
+    "evaluation": 3771762,
+    "training": 3770898
+  },
+  "sampler_source": {
+    "commit": "0b3eba84d9df1a4d549419e0c65cdc6d994093b7",
+    "file": "/home/zhouxia/workspace/somaforge/src/holosoma/holosoma/managers/command/terms/wbt.py",
+    "sha256": "ccf31240866c7e98b78830372bceb4cf9b88e67a73a8a945d27a2940e3654f4d"
+  },
+  "probe_training_data": false,
+  "probe_normalizer_updates": false,
+  "probe_reset_policy": "All three probes per clip start at first frame and end at tracking failure or clip end; no training 10-second cap",
+  "adaptation": "Fixed motion/terrain allocation and four-group proportions retained. Failure signal uses unchanged SuperMimic tracking termination. Only the reset-time sampler changes.",
+  "probe_mode": "all_long",
+  "long_probes": 435,
+  "short_probes": 0,
+  "completion_semantics": "Latest 30 from-start probe completion fractions only",
+  "sampler_variant": "recent30 failure retry with all-from-start statistics-only probes",
+  "reference_run": "mixed_terrain_walk_start_probe_noforce_main",
+  "started_at": "2026-10-26 18:12:52",
+  "policy_force_observation": "none",
+  "world_model_input_dim": 214,
+  "critic_force_observation": true,
+  "perception": "panorama_oracle",
+  "policy_network_vector_per_frame": 99,
+  "policy_non_network_routing_fields": 5,
+  "policy_image_resolution": [
+    64,
+    128
+  ],
+  "policy_image_encoder_features": 63,
+  "world_model_image_resolution": [
+    64,
+    128
+  ],
+  "world_model_image_encoder_features": 63,
+  "world_model_oracle_depth": true,
+  "policy_history_fusion": false,
+  "wm_batches": 10,
+  "wm_batch": 2048,
+  "pi_batch": 4096,
+  "buffer_steps": 1000,
+  "source_sha256": {
+    "supermimic/train.py": "437187816298f4d53155d6daefb3b252e40d289d3564caa7f20f7bff4afee95b",
+    "supermimic/lowstep.py": "046becc4fc6d92c133f7f5e73782f23e061bdb5cf005583a53fcf1dfd88a8b5c",
+    "supermimic/networks.py": "9e78fe240000772deaf670970ee11cd9ad895fc6d9b87f3e6efc4f03161469e7",
+    "supermimic/panorama.py": "c240a93dbe4d6203bc5f045fb9ec86fe72cd4bc432d2b04c6c798f833b9edffd",
+    "supermimic/evaluate.py": "9aaf6b31c45f5b2bfe21bc60a16c25008b38a2c62bd9eef7f47247cdb268decb",
+    "experiments/run_oracle_depth_frozen.sh": "af11261e9dea05b4e1a09162993c4eab3fa8a88c6d831f0d3f1348548aa51121"
+  },
+  "perception_reset": "No perception state or image cache",
+  "perception_imagination": "Actor and WM independently encode current-pose scene truth depth at every imagined step; parallel motion/force heads share WM encoding",
+  "policy_oracle_depth": true,
+  "history_map_bytes": 0,
+  "image_replay_bytes": 0
+}

@@ -1,0 +1,13 @@
+{
+  "baselines/predictor_v1_latest_20261010/README.md": "cb736d131e80fcd1cc17b95cef1c96c1a40ed5cd5f01188afd5ba90c177b9883",
+  "baselines/predictor_v1_latest_20261010/source_provenance.json": "53872851c138017aa4160be65154b1d5db6cdf04640e3abba1d5be1d30864c48",
+  "baselines/predictor_v1_latest_20261010/training_summary.json": "9964bd2827748121231ea7625bb375818d051b9486b2ee8d38744e5afbea3681",
+  "baselines/predictor_v1_latest_20261010/training_config.json": "589d303ef2598caf94f975c8b1e2e46136f9dffdb7a6dd7ad813492f5ae96b4b",
+  "baselines/predictor_v1_latest_20261010/training_run_config.json": "4e54ad5734025c1add60d06253f6b617ba94f6bda579edf9d798c6e019ce03d3",
+  "baselines/predictor_v1_latest_20261010/baseline.json": "92580fef62a8a12d3a46922f7132bbcdd20d1e6cda8393b9667accf9f22f5dac",
+  "baselines/predictor_v1_latest_20261010/dataset_contract.json": "6efbdd7cb3e9b80fc64b13219172e9411301e943bda1dee94e2a5a40af5e299c",
+  "baselines/predictor_v1_latest_20261010/initialization.json": "985183ad90efb34a18b5bbcb059bf9d8faba0c681692e7ea057f638d0dc2c0f1",
+  "baselines/predictor_v1_latest_20261010/validation.json": "900b54969273eb65489b892c494839695dc9c8c4c5003d8da8b1134388f0d9e0",
+  "baselines/predictor_v1_latest_20261010/evaluation_command.json": "5cb706beedc1a5f27450606b4f4ecab9442a8e7ec95c9bd522c577519d71c42e",
+  "baselines/predictor_v1_latest_20261010/reproduction_command.json": "5fc7ebdee9f9b292f67c54addb5cf6de6d9c2d9b2e45e987af4ffe717dd1b744"
+}

@@ -1,0 +1,102 @@
+{
+  "purpose": "2x2 heightmap/contact-force input and prediction ablation across policy, world model and critic",
+  "status": "queued_on_gpu3",
+  "task_manifest": "/home/zhouxia/workspace/supermimic_vibed/data/mixed_terrain_walk/task.json",
+  "task_manifest_sha256": "2bfd07a792f0dc3d895a7efc16ef3a4c7163888d0854b4f905237f3bf8298a63",
+  "common": {
+    "iterations": 6000,
+    "num_envs": 4096,
+    "seed": 0,
+    "reset_sampler": "return_bins",
+    "policy_force_observation": "measured",
+    "probe_envs": 0,
+    "group_training_envs": {
+      "lowstep": 1024,
+      "lowclimb": 1024,
+      "highclimb": 1024,
+      "flatwalk": 1024
+    }
+  },
+  "existing": {
+    "neither": "mixed_terrain_walk_original_main",
+    "both": "mixed_terrain_walk_force6_main"
+  },
+  "new": {
+    "height_only": {
+      "run": "mixed_terrain_walk_height_only_main",
+      "policy_observation_dim": 220,
+      "world_model_input_dim": 254,
+      "contact_prediction_head": false,
+      "launch_argv": [
+        "bash",
+        "run_lowstep_native.sh",
+        "mixed_terrain_walk_height_only_main",
+        "6000",
+        "data/mixed_terrain_walk/task.json",
+        "height_only",
+        "",
+        "return_bins",
+        "all_long",
+        "measured"
+      ],
+      "evaluation_argv": [
+        "tools/run_native.sh",
+        "supermimic/evaluate.py",
+        "--run_dir",
+        "logs/mixed_terrain_walk_height_only_main",
+        "--watch",
+        "--iteration_interval",
+        "1000",
+        "--stop_after",
+        "5000"
+      ],
+      "validation": {
+        "smoke_training_updates": 4,
+        "independent_eval_clips": 145,
+        "status": "passed",
+        "log": "validation/mixed_height_only_smoke.log",
+        "eval_log": "validation/mixed_height_only_smoke_eval.log"
+      }
+    },
+    "force_only": {
+      "run": "mixed_terrain_walk_force_only_main",
+      "policy_observation_dim": 117,
+      "world_model_input_dim": 151,
+      "contact_prediction_head": true,
+      "launch_argv": [
+        "bash",
+        "run_lowstep_native.sh",
+        "mixed_terrain_walk_force_only_main",
+        "6000",
+        "data/mixed_terrain_walk/task.json",
+        "force_only",
+        "",
+        "return_bins",
+        "all_long",
+        "measured"
+      ],
+      "evaluation_argv": [
+        "tools/run_native.sh",
+        "supermimic/evaluate.py",
+        "--run_dir",
+        "logs/mixed_terrain_walk_force_only_main",
+        "--watch",
+        "--iteration_interval",
+        "1000",
+        "--stop_after",
+        "5000"
+      ],
+      "validation": {
+        "smoke_training_updates": 4,
+        "independent_eval_clips": 145,
+        "status": "passed",
+        "log": "validation/mixed_force_only_smoke.log",
+        "eval_log": "validation/mixed_force_only_smoke_eval.log"
+      }
+    }
+  },
+  "order": [
+    "height_only",
+    "force_only"
+  ]
+}

@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "climb00-pipeline"
+version = "0.1.0"
+description = "Compatibility imports for the SomaForge generator and contact solver."
+requires-python = ">=3.10"
+dependencies = ["somaforge-generator", "contact-solver", "somaforge-core"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["climb00_pipeline*"]

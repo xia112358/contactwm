@@ -1,0 +1,35 @@
+{
+  "schema": "predictor_recipe_source_cleanup_v1",
+  "date": "2026-10-02",
+  "reason": "Retire pretrained initialization and make the scratch recipe the sole training configuration",
+  "snapshot_status": "updated_recipe_sources_not_original_training_launch_source",
+  "snapshot_files": [
+    {
+      "source": "packages/generator/generator/predictor_initialization.py",
+      "snapshot": "baselines/predictor_scratch_recipe_20261002/source_snapshot/predictor_initialization.py",
+      "original_snapshot_sha256": "e9ac596ac50b4c2657960362c1516a75e7e9b13c1acb813af9fbb9591d052946",
+      "cleaned_sha256": "9354349411e2fff1d3204fe53dd2c958955e9bb71faf0d72f746274607584c0d"
+    },
+    {
+      "source": "packages/generator/generator/train_full1000_position.py",
+      "snapshot": "baselines/predictor_scratch_recipe_20261002/source_snapshot/train_full1000_position.py",
+      "original_snapshot_sha256": "2e1366fcbb55cd1c231f78f9948172db06d30911a1161f3237882ebea29196a9",
+      "cleaned_sha256": "a57868d19af740489ce57223c967413550aa7838bc99e8435b78229907ae70e6"
+    },
+    {
+      "source": "packages/generator/generator/full1000_position_predictor.py",
+      "snapshot": "baselines/predictor_scratch_recipe_20261002/source_snapshot/full1000_position_predictor.py",
+      "original_snapshot_sha256": "dac620429ed6759b0a4f348eefe69e3dfa6f592f6038cfc5726910e45a0f8093",
+      "cleaned_sha256": "9847b8b80606f902d322f2574d4324880d0cba234af8719c0a37509f4466ef96"
+    }
+  ],
+  "recorded_metrics_modified": false,
+  "recorded_launch_modified": false,
+  "historical_configuration": "training_run_config.json and launch.json preserve their original null fields; reproduction uses training_config.json",
+  "trash_targets": [
+    "baselines/corrected1000",
+    "runtime/current/holosoma/tmp/conditioned_pose_stage_a_full_v1"
+  ],
+  "trash_operation": "gio trash",
+  "training_restarted": false
+}

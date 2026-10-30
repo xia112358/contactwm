@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SuperMimic · 训练监测</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#101722;color:#e6edf6}body{max-width:1200px;margin:32px auto;padding:0 20px}h1{font-size:26px;margin-bottom:8px}h2{font-size:17px;margin:0 0 18px}.muted,small{color:#a9b8cb}#status{font-size:18px;margin:22px 0 10px}.cards,.charts{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.charts{grid-template-columns:repeat(2,1fr);margin:18px 0}.card,section{background:#182333;border:1px solid #2c3b50;border-radius:12px;padding:20px}.value{font-size:27px;margin-top:8px;font-variant-numeric:tabular-nums}progress{width:100%;height:10px;accent-color:#56d5b4;margin:8px 0 24px}svg{width:100%;display:block;overflow:visible}svg text{fill:#a9b8cb;font-size:11px}.chart-note{font-size:12px;color:#a9b8cb}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;text-align:left}th,td{padding:12px 10px;border-bottom:1px solid #2c3b50;white-space:nowrap}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.6;max-height:300px;overflow:auto}details{margin-top:16px}summary{cursor:pointer}#error{color:#ff9696}section{margin-bottom:18px}.charts section{margin:0}@media(max-width:760px){.cards,.charts{grid-template-columns:repeat(2,1fr)}.charts{grid-template-columns:1fr}body{margin-top:20px}.value{font-size:23px}}
+</style>
+<h1>SuperMimic · 训练监测</h1>
+<p><label for="chooseRun">实验：</label><select id="chooseRun" style="padding:8px;max-width:100%"></select></p>
+<section><h2>混合任务对照 · 同训练次数</h2><p class="muted" id="compareNote">加载对照结果…</p><div class="table-wrap"><table><thead id="compareHead"></thead><tbody id="compareBody"></tbody></table></div></section>
+<div class="muted" id="run">连接中…</div><div id="status"></div><div id="error" role="alert"></div>
+<p class="muted" id="samplerNote"></p>
+<p class="muted" id="perceptionNote"></p>
+<progress id="progress" max="6000" value="0"></progress>
+<div class="cards">
+ <div class="card"><small>训练进度</small><div class="value" id="iteration">—</div></div>
+ <div class="card"><small>最近训练速度</small><div class="value" id="speed">—</div></div>
+ <div class="card"><small>预计剩余训练时间</small><div class="value" id="eta">—</div></div>
+ <div class="card"><small>训练片段平均长度</small><div class="value" id="length">—</div></div>
+</div>
+<div class="charts">
+ <section><h2>世界模型损失</h2><div id="wm"></div></section>
+ <section><h2>真实仿真单步奖励</h2><div id="reward"></div></section>
+ <section><h2>训练片段长度（秒）</h2><div id="episode"></div><div class="chart-note">随机起始帧的训练片段；不等于从头完成任务的评估时长。</div></section>
+ <section><h2>想象轨迹存活比例</h2><div id="survival"></div></section>
+</div>
+<section><h2>完整任务评估</h2><p class="muted" id="evalStatus"></p>
+<div class="table-wrap"><table><thead><tr><th>迭代</th><th>来源</th><th>完整通过</th><th>平均归一化回报</th><th>评估时间</th></tr></thead><tbody id="evals"></tbody></table></div>
+<p class="chart-note">每 1000 次训练更新评估；“恢复前基线”仅属于续训组。最终检查点由训练结束流程评估。</p></section>
+<section id="groupSection" hidden><h2>混合任务分组评估</h2><p class="muted" id="groupNote"></p><div class="table-wrap"><table><thead><tr><th>任务组</th><th>完整通过</th><th>归一化回报</th><th>平均执行 / 参考时长</th><th>平均长度比率</th></tr></thead><tbody id="groupEvals"></tbody></table></div></section>
+<section><h2>运行日志</h2><details><summary>最近训练日志</summary><pre id="pipeline"></pre></details><details><summary>最近评估日志</summary><pre id="evalLog"></pre></details></section>
+<p class="muted" id="updated"></p>
+<script>
+const el=id=>document.getElementById(id);
+const selected=new URLSearchParams(location.search).get('run');
+el('chooseRun').onchange=()=>{location.search='?run='+encodeURIComponent(el('chooseRun').value);};
+async function loadRuns(){
+ const response=await fetch('/api/runs');if(!response.ok)throw Error('HTTP '+response.status);
+ const runs=await response.json();el('chooseRun').replaceChildren();
+ for(const name of runs){const option=document.createElement('option');option.value=name;option.textContent=name;option.selected=selected===name;el('chooseRun').append(option);}
+}
+async function refreshComparison(){
+ try{
+  const response=await fetch('/api/comparison',{cache:'no-store',signal:AbortSignal.timeout(8000)});
+  if(!response.ok)throw Error('HTTP '+response.status);
+  const d=await response.json();el('compareHead').replaceChildren();el('compareBody').replaceChildren();
+  el('compareNote').textContent=d.iteration?`共同检查点 ${d.iteration} · 每格为完整通过数和平均归一化回报`:'等待三组都完成首次 1000 次评估；不会把不同训练次数混作对比。';
+  const head=document.createElement('tr');for(const label of ['任务组',...d.members.map(m=>m.label)]){const th=document.createElement('th');th.textContent=label;head.append(th);}el('compareHead').append(head);
+  for(const [key,label] of Object.entries({lowstep:'低台阶',lowclimb:'低攀爬',highclimb:'高攀爬',flatwalk:'平地步行／转向'})){
+   const row=document.createElement('tr'),name=document.createElement('td');name.textContent=label;row.append(name);
+   for(const m of d.members){const td=document.createElement('td'),g=m.groups[key];td.textContent=g?`${g.n_clips-g.n_failed}/${g.n_clips} · ${g.norm_return.toFixed(4)}`:'待评估';row.append(td);}el('compareBody').append(row);
+  }
+ }catch(e){el('compareNote').textContent='对照接口暂不可用：'+e.message;}
+}
+const fixed=(v,n=3)=>typeof v==='number'&&Number.isFinite(v)?v.toFixed(n):'—';
+function chart(id,rows,key,color,scale=1){
+ const points=rows.filter(r=>Number.isFinite(r.iteration)&&Number.isFinite(r[key])).map(r=>[r.iteration,r[key]*scale]);
+ if(!points.length){el(id).textContent='等待日志';return;}
+ let xmin=points[0][0],xmax=points.at(-1)[0],ymin=Math.min(...points.map(p=>p[1])),ymax=Math.max(...points.map(p=>p[1]));
+ let pad=(ymax-ymin)*.1||Math.max(Math.abs(ymax)*.05,.01);ymin-=pad;ymax+=pad;
+ const x=v=>55+(v-xmin)/(xmax-xmin||1)*440,y=v=>175-(v-ymin)/(ymax-ymin)*150;
+ let s='<svg viewBox="0 0 520 210" role="img" aria-label="'+key+' 随迭代变化">';
+ for(let i=0;i<4;i++){let v=ymin+(ymax-ymin)*i/3,py=y(v);s+=`<line x1="55" y1="${py}" x2="495" y2="${py}" stroke="#2c3b50"/><text x="48" y="${py+4}" text-anchor="end">${v.toFixed(2)}</text>`;}
+ s+=`<polyline fill="none" stroke="${color}" stroke-width="2" points="${points.map(p=>x(p[0])+','+y(p[1])).join(' ')}"/>`;
+ for(const p of points)s+=`<circle cx="${x(p[0])}" cy="${y(p[1])}" r="3" fill="${color}"><title>迭代 ${p[0]}：${p[1].toFixed(4)}</title></circle>`;
+ s+=`<text x="55" y="200">${xmin}</text><text x="495" y="200" text-anchor="end">${xmax} 次</text></svg>`;el(id).innerHTML=s;
+}
+async function refresh(){
+ try{
+  if(!el('chooseRun').options.length)await loadRuns();
+  const response=await fetch('/api/status'+(selected?'?run='+encodeURIComponent(selected):''),{cache:'no-store',signal:AbortSignal.timeout(8000)});if(!response.ok)throw Error('HTTP '+response.status);
+  const d=await response.json(),r=d.latest;el('error').textContent='';
+  el('run').textContent=d.run+' · GPU '+d.gpu+' · 每 10 秒刷新（训练每 50 次更新日志）';
+  const ps=d.perception_stats||{};el('perceptionNote').textContent=ps.actor_oracle_depth?`感知：策略与 WM 均使用 ${(ps.resolution||[64,128]).join('×')} 场景真值深度（${ps.depth_encoder||'cnn'}）；策略无力、WM 带力 · 无历史地图、无图像回放`:ps.schema?`感知：64×128 历史融合深度 → 无力观测策略；场景真值深度＋力 → WM · 10 Hz · 已观测像素 ${(100*ps.observed_pixel_fraction).toFixed(1)}%`:'';
+  const ss=d.sampler_stats||{};el('samplerNote').textContent=ss.training_envs?`采样器：${ss.sampler} · ${ss.training_envs} 个训练环境＋${ss.statistics_only_probe_envs} 个仅统计 probe · ${ss.probe_mode==='long_short'?'每条1长2短，短probe前100／后50帧，共同更新完成度 · ':'每条3个从起始帧开始的probe · '}失败重试 ${ss.reset_counts.failure_retry} 次，完成度窗口 ${ss.reset_counts.completion_window} 次`:'';
+  el('status').textContent=d.state+(d.log_age>120&&d.alive?' · 日志超过 2 分钟未更新':'')+(d.failure?' · 已保存故障现场':'');
+  el('status').style.color=d.failure?'#ff9696':d.alive?'#56d5b4':'#ffd28e';
+  el('iteration').textContent=(r.iteration??'—')+' / '+d.total;el('progress').max=d.total;el('progress').value=r.iteration||0;
+  el('speed').textContent=fixed(r.it_per_s,2)+' 次/秒';el('eta').textContent=d.alive&&r.it_per_s>0?Math.ceil(Math.max(0,d.total-r.iteration)/r.it_per_s/60)+' 分钟':'—';
+  el('length').textContent=Number.isFinite(r.ep_len)?fixed(r.ep_len*.02,2)+' 秒':'—';
+  chart('wm',d.train,'wm_loss','#7eaeff');chart('reward',d.train,'sim_rew','#56d5b4');chart('episode',d.train,'ep_len','#e3bb78',.02);chart('survival',d.train,'imag_survival','#bfa0ff');
+  el('evalStatus').textContent=d.eval_alive?'自动评估监测进程运行中':'自动评估监测进程未运行（最终评估由训练结束流程执行）';
+  el('evals').replaceChildren();
+  for(const e of d.evaluations){const tr=document.createElement('tr');for(const value of [e.iteration,e.source,e.total?`${e.passed} / ${e.total}`:'—',fixed(e.norm_return,4),e.eval_at]){const td=document.createElement('td');td.textContent=value;tr.append(td);}el('evals').append(tr);}
+  if(!d.evaluations.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=5;td.textContent='尚无完整评估结果';tr.append(td);el('evals').append(tr);}
+  el('groupSection').hidden=!Object.keys(d.group_counts||{}).length;
+  el('groupEvals').replaceChildren();
+  const grouped=d.evaluations.filter(e=>Object.keys(e.groups||{}).length).sort((a,b)=>b.iteration-a.iteration)[0];
+  el('groupNote').textContent=grouped?'检查点 '+grouped.iteration+' · 每条轨迹从头评估':'等待首次分组评估';
+  const groupLabels={lowstep:'低台阶',lowclimb:'低攀爬',highclimb:'高攀爬',flatwalk:'平地步行／转向'};
+  for(const [name,g] of Object.entries(grouped?.groups||{})){const tr=document.createElement('tr');for(const value of [groupLabels[name]||name,`${g.n_clips-g.n_failed} / ${g.n_clips}`,fixed(g.norm_return,4),`${fixed(g.mean_rollout_seconds,2)} / ${fixed(g.mean_reference_seconds,2)} 秒`,fixed(g.mean_length_ratio*100,1)+'%']){const td=document.createElement('td');td.textContent=value;tr.append(td);}el('groupEvals').append(tr);}
+  el('pipeline').textContent=d.pipeline;el('evalLog').textContent=d.evaluation_log;
+  el('updated').textContent='页面更新：'+new Date(d.updated*1000).toLocaleString()+' · 最近训练日志：'+Math.round(d.log_age??0)+' 秒前 · 剩余时间不包含评估与视频生成';
+ }catch(e){el('error').textContent='连接中断，所示数据可能已过期：'+e.message;}
+ await refreshComparison();setTimeout(refresh,10000);
+}
+refresh();
+</script></html>

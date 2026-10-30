@@ -1,0 +1,22 @@
+{
+  "name": "motion-edit-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "lucide": "^0.468.0",
+    "three": "^0.170.0",
+    "urdf-loader": "^0.12.6"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "@types/three": "^0.170.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5"
+  }
+}

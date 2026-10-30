@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "somaforge-generator"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = ['numpy', 'torch', 'somaforge-core', 'contact-solver']
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["generator*"]

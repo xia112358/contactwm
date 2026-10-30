@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "contact-solver"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = ['numpy', 'torch', 'somaforge-core[solid]']
+
+[project.optional-dependencies]
+research = ["scipy", "osqp", "trimesh"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["contact_solver*"]

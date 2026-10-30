@@ -1,0 +1,360 @@
+{
+  "schema": "predictor_stage_summary_v1",
+  "run": "runtime/current/models/generator/v1_shared_interval_scratch1100_20261009",
+  "planned_intervals": 1100,
+  "last_recorded_interval": 1002,
+  "last_saved_evaluation_interval": 1000,
+  "completion_report_present": false,
+  "completion_status": "incomplete",
+  "exit_reason": "unknown; no traceback or completion report in training log",
+  "total_predictions": 2627500,
+  "total_optimizer_updates": 21044,
+  "validation": "same 780 native-current-pose one-step endpoints; stage means and medians, not selected checkpoint peaks",
+  "penetration_metric": "per-pose maximum depth across native Newton and complete solids, then aggregate across samples/evaluations",
+  "blocks": [
+    {
+      "first_interval": 101,
+      "last_interval": 300,
+      "evaluations": 8,
+      "samples_per_evaluation": 780,
+      "contact_safety_pass_percent": {
+        "mean": 52.2275641025641,
+        "median": 55.19230769230769
+      },
+      "contact_pass_percent": {
+        "mean": 57.5,
+        "median": 60.448717948717956
+      },
+      "penetration_mm": {
+        "mean": 2.2419137191505003,
+        "median": 1.893355369567871
+      },
+      "body_error_cm": {
+        "mean": 3.4871322099979105,
+        "median": 3.36593966117272
+      },
+      "intent_contact_exact_percent": {
+        "mean": 95.91346153846153,
+        "median": 96.15384615384616
+      },
+      "own_endpoint_layout_pass_percent": {
+        "mean": 57.11538461538461,
+        "median": 59.35897435897436
+      },
+      "demonstration_intent_contact_safety_pass_percent": 52.94871794871795,
+      "pool_mean": {
+        "accepted_transitions": 240.855,
+        "advances": 119.7,
+        "rollbacks": 1022.08,
+        "autonomous_inputs": 498.2
+      },
+      "pool_attempts_per_interval": 1280
+    },
+    {
+      "first_interval": 301,
+      "last_interval": 550,
+      "evaluations": 10,
+      "samples_per_evaluation": 780,
+      "contact_safety_pass_percent": {
+        "mean": 57.82051282051282,
+        "median": 61.34615384615384
+      },
+      "contact_pass_percent": {
+        "mean": 61.91025641025641,
+        "median": 62.69230769230769
+      },
+      "penetration_mm": {
+        "mean": 1.2099887850574957,
+        "median": 1.3298124418808865
+      },
+      "body_error_cm": {
+        "mean": 2.677391682160206,
+        "median": 2.6656348521892843
+      },
+      "intent_contact_exact_percent": {
+        "mean": 97.52564102564102,
+        "median": 97.5
+      },
+      "own_endpoint_layout_pass_percent": {
+        "mean": 62.44871794871795,
+        "median": 63.46153846153846
+      },
+      "demonstration_intent_contact_safety_pass_percent": 57.92307692307692,
+      "pool_mean": {
+        "accepted_transitions": 314.908,
+        "advances": 129.292,
+        "rollbacks": 947.576,
+        "autonomous_inputs": 585.772
+      },
+      "pool_attempts_per_interval": 1280
+    },
+    {
+      "first_interval": 551,
+      "last_interval": 800,
+      "evaluations": 10,
+      "samples_per_evaluation": 780,
+      "contact_safety_pass_percent": {
+        "mean": 64.66666666666667,
+        "median": 63.91025641025641
+      },
+      "contact_pass_percent": {
+        "mean": 67.35897435897436,
+        "median": 66.28205128205128
+      },
+      "penetration_mm": {
+        "mean": 0.7175759974676065,
+        "median": 0.4783370766120079
+      },
+      "body_error_cm": {
+        "mean": 2.0320707658620982,
+        "median": 2.027017429547432
+      },
+      "intent_contact_exact_percent": {
+        "mean": 98.14102564102565,
+        "median": 98.58974358974359
+      },
+      "own_endpoint_layout_pass_percent": {
+        "mean": 67.82051282051282,
+        "median": 66.53846153846155
+      },
+      "demonstration_intent_contact_safety_pass_percent": 64.98717948717949,
+      "pool_mean": {
+        "accepted_transitions": 381.868,
+        "advances": 130.708,
+        "rollbacks": 880.012,
+        "autonomous_inputs": 716
+      },
+      "pool_attempts_per_interval": 1280
+    },
+    {
+      "first_interval": 801,
+      "last_interval": 1000,
+      "evaluations": 8,
+      "samples_per_evaluation": 780,
+      "contact_safety_pass_percent": {
+        "mean": 71.53846153846153,
+        "median": 71.53846153846155
+      },
+      "contact_pass_percent": {
+        "mean": 73.09294871794872,
+        "median": 72.82051282051282
+      },
+      "penetration_mm": {
+        "mean": 0.6171831263181491,
+        "median": 0.40683664782689166
+      },
+      "body_error_cm": {
+        "mean": 1.8438239195407964,
+        "median": 1.7566418941204365
+      },
+      "intent_contact_exact_percent": {
+        "mean": 97.66025641025641,
+        "median": 97.56410256410257
+      },
+      "own_endpoint_layout_pass_percent": {
+        "mean": 73.15705128205128,
+        "median": 73.14102564102564
+      },
+      "demonstration_intent_contact_safety_pass_percent": 71.58653846153845,
+      "pool_mean": {
+        "accepted_transitions": 484.875,
+        "advances": 129.11,
+        "rollbacks": 778.155,
+        "autonomous_inputs": 779.125
+      },
+      "pool_attempts_per_interval": 1280
+    }
+  ],
+  "selected_checkpoint_step": 1000,
+  "selection_rule": "latest immutable saved checkpoint; not a validation maximum",
+  "latest_saved_metrics": {
+    "loss": 2.58019585731702,
+    "contact_cm": 2.105070476042919,
+    "contact_max_cm": 3.0818773440825633,
+    "interaction_location_loss": 0.00955260300483459,
+    "root_cm": 1.4038324673970541,
+    "joint_rmse_rad": 0.05888625230544653,
+    "body_cm": 1.853458032852564,
+    "penetration_cm": 0.031076050110352346,
+    "joint_violation_rad": 0.0006219926552894787,
+    "pose_loss": 0.06490961897831697,
+    "structure_loss": 1.0619552104901044,
+    "imitation_loss": 0.5958871856713907,
+    "interaction_pose_prior_loss": 0.16010957001111445,
+    "nominal_taskspace_teacher_loss": 0.0,
+    "own_plan_realization_loss": 0.20009087186593275,
+    "missing_pair_approach_loss": 0.06958777232047839,
+    "contact_establishment_loss": 0.006958777323747292,
+    "missing_pair_surface_distance_cm": 0.10538869759975336,
+    "safety_loss": 0.0031773243768092913,
+    "collision_loss": 0.1504732439151177,
+    "joint_limit_loss": 0.0031773243768092913,
+    "newton_contact_accepted": 0.7243589743589743,
+    "newton_generation_accepted": 0.7243589743589743,
+    "newton_ignored_extra_pairs": 0.005128205128205128,
+    "newton_blocking_extra_pairs": 0.019230769230769232,
+    "newton_max_extra_activation_overlap_m": 3.610228618177084e-05,
+    "newton_plan_realization_loss": 0.049021853086275935,
+    "newton_unwanted_contact_loss": 0.0005957789360903777,
+    "newton_collision_loss": 0.1504732439151177,
+    "newton_plan_exact": 0.7205128205128205,
+    "newton_generation_valid": 0.7166666666666667,
+    "newton_intended_contacts": 2.2794871794871794,
+    "newton_realized_intended_contacts": 1.8794871794871795,
+    "newton_unrealized_intended_contacts": 0.4,
+    "newton_missing_intended_pairs": 0.02564102564102564,
+    "newton_missing_intended_mask": 0.02564102564102564,
+    "newton_unwanted_contact_parts": 0.010256410256410256,
+    "newton_penetration_cm": 0.031076050110352346,
+    "newton_invalid_fullbody_witnesses": 0.0,
+    "newton_configured_includemargin": 0.019999999552965164,
+    "newton_body_collision_loss": 0.0,
+    "body_position_max_cm": 3.4105092635521523,
+    "body_orientation_max": 0.21000216129498603,
+    "joint_error_max_rad": 0.15360478789378434,
+    "support_motion_evidence_known": 0.0,
+    "keep_patch_loss": 0.0813296235524691,
+    "keep_patch_missing": 0.0,
+    "keep_patch_motion_cm": 0.9379907216781225,
+    "keep_patch_excess_cm": 0.1382016490667294,
+    "keep_patch_unknown_allowance": 0.0,
+    "imitation_supervised": 0.9564102564102565,
+    "unified_region_loss": 0.3611716279616723,
+    "region_plan_realized": 0.7012820512820512,
+    "region_approach_material_unknown": 0.0,
+    "solid_penetration_cm": 0.03107546078853118,
+    "solid_terrain_penetration_cm": 0.00814983592583583,
+    "solid_self_penetration_cm": 0.02292562539760883,
+    "unified_attraction_component": 0.35473258525897294,
+    "unified_separation_component": 0.00643903972246708,
+    "unified_contact_interval_component": 0.35473258525897294,
+    "unified_physical_clearance_component": 0.00643903972246708,
+    "region_missing_count": 0.7153846153846154,
+    "region_lower_bound_violating_groups": 0.10256410256410256,
+    "region_gradient_valid": 1.0,
+    "region_invalid_penetrating_normals": 0.0,
+    "region_invalid_nonpenetrating_normals": 0.0,
+    "execution_penetration_cm": 0.03107642241013356,
+    "region_plan_safe": 0.6935897435897436,
+    "optimized_execution_loss": 0.3611716279616723,
+    "region_classification_loss": 0.0474830228357743,
+    "region_classification_correct": 0.9641025641025641,
+    "own_endpoint_layout_accepted": 0.7307692307692307,
+    "task_endpoint_layout_accepted": 0.7141025641025641,
+    "persistent_role_accepted": 0.9974358974358974,
+    "event_endpoint_accepted": 0.7115384615384616,
+    "issued_plan_position_loss": 0.005437308549880981,
+    "plan_role_loss": 0.020127381613621344,
+    "plan_location_loss": 1.9035932198548928,
+    "plan_contact_exact": 0.9692307692307692,
+    "plan_role_exact": 0.9602564102564103,
+    "plan_location_error_cm": 1.0554968772790372,
+    "plan_cell_exact": 0.36923076923076925,
+    "relative_layout_rms_cm": 0.803296562952873,
+    "relative_layout_observed_parts": 1.8794871794871795,
+    "plan_exact": 0.9564102564102565,
+    "constraint_prior": 2.2158469224587467,
+    "maxima": {
+      "loss": 10.470708847045898,
+      "contact_cm": 24.249425888061523,
+      "contact_max_cm": 61.05370330810547,
+      "interaction_location_loss": 0.9883965253829956,
+      "root_cm": 20.171289443969727,
+      "joint_rmse_rad": 0.5310446619987488,
+      "body_cm": 25.045082092285156,
+      "penetration_cm": 2.047269821166992,
+      "joint_violation_rad": 0.055055439472198486,
+      "pose_loss": 3.2779600620269775,
+      "structure_loss": 62.715965270996094,
+      "imitation_loss": 34.63594436645508,
+      "interaction_pose_prior_loss": 9.278416633605957,
+      "nominal_taskspace_teacher_loss": -0.0,
+      "own_plan_realization_loss": 15.167438507080078,
+      "missing_pair_approach_loss": 5.589533805847168,
+      "contact_establishment_loss": 0.5589534044265747,
+      "missing_pair_surface_distance_cm": 8.466119766235352,
+      "safety_loss": 0.315952330827713,
+      "collision_loss": 15.167438507080078,
+      "joint_limit_loss": 0.315952330827713,
+      "newton_contact_accepted": 1.0,
+      "newton_generation_accepted": 1.0,
+      "newton_ignored_extra_pairs": 2.0,
+      "newton_blocking_extra_pairs": 5.0,
+      "newton_max_extra_activation_overlap_m": 0.0065881842747330666,
+      "newton_plan_realization_loss": 0.7615805268287659,
+      "newton_unwanted_contact_loss": 0.12659549713134766,
+      "newton_collision_loss": 15.167438507080078,
+      "newton_plan_exact": 1.0,
+      "newton_generation_valid": 1.0,
+      "newton_intended_contacts": 4.0,
+      "newton_realized_intended_contacts": 4.0,
+      "newton_unrealized_intended_contacts": 3.0,
+      "newton_missing_intended_pairs": 2.0,
+      "newton_missing_intended_mask": 1.0,
+      "newton_unwanted_contact_parts": 1.0,
+      "newton_penetration_cm": 2.047269821166992,
+      "newton_invalid_fullbody_witnesses": 0.0,
+      "newton_configured_includemargin": 0.019999999552965164,
+      "newton_body_collision_loss": -0.0,
+      "body_position_max_cm": 60.45989227294922,
+      "body_orientation_max": 1.7342305183410645,
+      "joint_error_max_rad": 1.6640832424163818,
+      "support_motion_evidence_known": 0.0,
+      "keep_patch_loss": 1.9593505859375,
+      "keep_patch_missing": 0.0,
+      "keep_patch_motion_cm": 4.96979284286499,
+      "keep_patch_excess_cm": 2.4687483310699463,
+      "keep_patch_unknown_allowance": 0.0,
+      "imitation_supervised": 1.0,
+      "unified_region_loss": 7.847814559936523,
+      "region_plan_realized": 1.0,
+      "region_approach_material_unknown": 0.0,
+      "solid_penetration_cm": 2.0472562313079834,
+      "solid_terrain_penetration_cm": 0.42348942160606384,
+      "solid_self_penetration_cm": 2.0472562313079834,
+      "unified_attraction_component": 7.734492301940918,
+      "unified_separation_component": 0.835062563419342,
+      "unified_contact_interval_component": 7.734492301940918,
+      "unified_physical_clearance_component": 0.835062563419342,
+      "region_missing_count": 7.0,
+      "region_lower_bound_violating_groups": 4.0,
+      "region_gradient_valid": 1.0,
+      "region_invalid_penetrating_normals": 0.0,
+      "region_invalid_nonpenetrating_normals": 0.0,
+      "execution_penetration_cm": 2.047269821166992,
+      "region_plan_safe": 1.0,
+      "optimized_execution_loss": 7.847814559936523,
+      "region_classification_loss": 5.144708633422852,
+      "region_classification_correct": 1.0,
+      "own_endpoint_layout_accepted": 1.0,
+      "task_endpoint_layout_accepted": 1.0,
+      "persistent_role_accepted": 1.0,
+      "event_endpoint_accepted": 1.0,
+      "issued_plan_position_loss": 0.48086708784103394,
+      "plan_role_loss": 1.0132248401641846,
+      "plan_location_loss": 7.176408290863037,
+      "plan_contact_exact": 1.0,
+      "plan_role_exact": 1.0,
+      "plan_location_error_cm": 6.830951690673828,
+      "plan_cell_exact": 1.0,
+      "relative_layout_rms_cm": 6.773783206939697,
+      "relative_layout_observed_parts": 4.0,
+      "plan_exact": 1.0,
+      "constraint_prior": 10.339262008666992
+    },
+    "evaluated_samples": 780,
+    "excluded_out_of_view_samples": 0,
+    "complete_actual_layout_samples": 488,
+    "actual_layout_rms_cm": 0.6921923339183702,
+    "safe_complete_actual_layout_samples": 486,
+    "safe_actual_layout_rms_cm": 0.6949540787824878
+  },
+  "comparability": "source run ends at550; historical source differs in regional-distribution feedback gate; not a pure loss ablation",
+  "recursive_evidence": {
+    "checkpoint_step": 950,
+    "report": "runtime/current/archives/preserved_inputs_20261010/v1_shared_interval_scratch1100_20261009/visualization_step950_vs725_motion4/latest950/report.json",
+    "scope": "motion4 height1 training case, 15 demonstration events plus15 diagnostic continuation; not baseline1000 recursive evaluation",
+    "baseline1000_recursive_evaluated": false
+  },
+  "no_dynamic_execution_claim": true
+}

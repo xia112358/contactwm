@@ -1,0 +1,833 @@
+{
+  "schema": "scratch1k_self_feedback_summary_v1",
+  "initialization": {
+    "schema": "predictor_initialization_v1",
+    "initialization": "scratch",
+    "seed": 20260917,
+    "source": null,
+    "source_step": null,
+    "sha256": null,
+    "predictor_checkpoints_loaded": [],
+    "optimizer_resumed": false,
+    "shared_weights_exact": false,
+    "new_geometry_zero_output": false,
+    "random_state_sha256": "8df5b88b476341cd33f2b4289e51842648edc97227f7e1b327462f3b219d04b6",
+    "joint_bias_initialization": {
+      "schema": "training_joint_mean_bias_v1",
+      "training_samples": 1470,
+      "joint_bias_rad": [
+        -1.070088267326355,
+        0.11508262157440186,
+        -0.06639064848423004,
+        1.1426377296447754,
+        -0.32975348830223083,
+        -0.0066794781014323235,
+        -0.9247041940689087,
+        -0.0772886872291565,
+        -0.18437853455543518,
+        0.9614936113357544,
+        -0.2968614399433136,
+        -0.01387755200266838,
+        0.16645491123199463,
+        0.041238609701395035,
+        0.3291064202785492,
+        -0.5952136516571045,
+        0.3622671663761139,
+        0.2263955920934677,
+        1.0351969003677368,
+        0.06514821201562881,
+        0.052753791213035583,
+        -0.06379736959934235,
+        -0.7354065179824829,
+        -0.4373096823692322,
+        -0.24782495200634003,
+        1.0365681648254395,
+        0.0003126095107290894,
+        0.06462022662162781,
+        0.12236960232257843
+      ],
+      "validation_or_test_used": false
+    },
+    "initial_model_sha256": "c771f20c856543e660cf801ab1d4f88224897d0c06136c47c338edf2770c87bf",
+    "stage_a_loaded": [],
+    "stage_a_fresh": [
+      "execution_adapter.bias",
+      "execution_adapter.weight",
+      "execution_geometry_encoder.bias",
+      "execution_geometry_encoder.weight",
+      "execution_norm.bias",
+      "execution_norm.weight",
+      "execution_role_encoder.weight",
+      "fk.joint_axis",
+      "fk.joint_lower",
+      "fk.joint_upper",
+      "fk.origin_rotation",
+      "fk.origin_xyz",
+      "geometry.contact_part",
+      "geometry.local_points",
+      "global_encoder.bias",
+      "global_encoder.weight",
+      "height.conv.0.bias",
+      "height.conv.0.weight",
+      "height.conv.2.bias",
+      "height.conv.2.weight",
+      "height.conv.4.bias",
+      "height.conv.4.weight",
+      "height.norm.bias",
+      "height.norm.weight",
+      "interaction_decoder.layers.0.linear1.bias",
+      "interaction_decoder.layers.0.linear1.weight",
+      "interaction_decoder.layers.0.linear2.bias",
+      "interaction_decoder.layers.0.linear2.weight",
+      "interaction_decoder.layers.0.norm1.bias",
+      "interaction_decoder.layers.0.norm1.weight",
+      "interaction_decoder.layers.0.norm2.bias",
+      "interaction_decoder.layers.0.norm2.weight",
+      "interaction_decoder.layers.0.self_attn.in_proj_bias",
+      "interaction_decoder.layers.0.self_attn.in_proj_weight",
+      "interaction_decoder.layers.0.self_attn.out_proj.bias",
+      "interaction_decoder.layers.0.self_attn.out_proj.weight",
+      "interaction_decoder.layers.1.linear1.bias",
+      "interaction_decoder.layers.1.linear1.weight",
+      "interaction_decoder.layers.1.linear2.bias",
+      "interaction_decoder.layers.1.linear2.weight",
+      "interaction_decoder.layers.1.norm1.bias",
+      "interaction_decoder.layers.1.norm1.weight",
+      "interaction_decoder.layers.1.norm2.bias",
+      "interaction_decoder.layers.1.norm2.weight",
+      "interaction_decoder.layers.1.self_attn.in_proj_bias",
+      "interaction_decoder.layers.1.self_attn.in_proj_weight",
+      "interaction_decoder.layers.1.self_attn.out_proj.bias",
+      "interaction_decoder.layers.1.self_attn.out_proj.weight",
+      "location_key.0.bias",
+      "location_key.0.weight",
+      "location_key.2.bias",
+      "location_key.2.weight",
+      "location_query.bias",
+      "location_query.weight",
+      "norm.bias",
+      "norm.weight",
+      "part_encoder.bias",
+      "part_encoder.weight",
+      "part_identity.weight",
+      "plan_fusion.0.bias",
+      "plan_fusion.0.weight",
+      "plan_fusion.1.bias",
+      "plan_fusion.1.weight",
+      "plan_fusion.3.bias",
+      "plan_fusion.3.weight",
+      "plan_position_encoder.bias",
+      "plan_position_encoder.weight",
+      "pose_head.bias",
+      "pose_head.weight",
+      "pose_terrain.attention.in_proj_bias",
+      "pose_terrain.attention.in_proj_weight",
+      "pose_terrain.attention.out_proj.bias",
+      "pose_terrain.attention.out_proj.weight",
+      "pose_terrain.ffn.0.bias",
+      "pose_terrain.ffn.0.weight",
+      "pose_terrain.ffn.2.bias",
+      "pose_terrain.ffn.2.weight",
+      "pose_terrain.ffn_norm.bias",
+      "pose_terrain.ffn_norm.weight",
+      "pose_terrain.memory_norm.bias",
+      "pose_terrain.memory_norm.weight",
+      "pose_terrain.query_norm.bias",
+      "pose_terrain.query_norm.weight",
+      "region_geometry_encoder.0.bias",
+      "region_geometry_encoder.0.weight",
+      "region_geometry_encoder.2.bias",
+      "region_geometry_encoder.2.weight",
+      "region_head.bias",
+      "region_head.weight",
+      "region_plan_encoder.weight",
+      "region_prior",
+      "role_head.bias",
+      "role_head.weight",
+      "shared.layers.0.linear1.bias",
+      "shared.layers.0.linear1.weight",
+      "shared.layers.0.linear2.bias",
+      "shared.layers.0.linear2.weight",
+      "shared.layers.0.norm1.bias",
+      "shared.layers.0.norm1.weight",
+      "shared.layers.0.norm2.bias",
+      "shared.layers.0.norm2.weight",
+      "shared.layers.0.self_attn.in_proj_bias",
+      "shared.layers.0.self_attn.in_proj_weight",
+      "shared.layers.0.self_attn.out_proj.bias",
+      "shared.layers.0.self_attn.out_proj.weight",
+      "shared.layers.1.linear1.bias",
+      "shared.layers.1.linear1.weight",
+      "shared.layers.1.linear2.bias",
+      "shared.layers.1.linear2.weight",
+      "shared.layers.1.norm1.bias",
+      "shared.layers.1.norm1.weight",
+      "shared.layers.1.norm2.bias",
+      "shared.layers.1.norm2.weight",
+      "shared.layers.1.self_attn.in_proj_bias",
+      "shared.layers.1.self_attn.in_proj_weight",
+      "shared.layers.1.self_attn.out_proj.bias",
+      "shared.layers.1.self_attn.out_proj.weight",
+      "shared.layers.2.linear1.bias",
+      "shared.layers.2.linear1.weight",
+      "shared.layers.2.linear2.bias",
+      "shared.layers.2.linear2.weight",
+      "shared.layers.2.norm1.bias",
+      "shared.layers.2.norm1.weight",
+      "shared.layers.2.norm2.bias",
+      "shared.layers.2.norm2.weight",
+      "shared.layers.2.self_attn.in_proj_bias",
+      "shared.layers.2.self_attn.in_proj_weight",
+      "shared.layers.2.self_attn.out_proj.bias",
+      "shared.layers.2.self_attn.out_proj.weight",
+      "terrain_reasoning.0.attention.in_proj_bias",
+      "terrain_reasoning.0.attention.in_proj_weight",
+      "terrain_reasoning.0.attention.out_proj.bias",
+      "terrain_reasoning.0.attention.out_proj.weight",
+      "terrain_reasoning.0.ffn.0.bias",
+      "terrain_reasoning.0.ffn.0.weight",
+      "terrain_reasoning.0.ffn.2.bias",
+      "terrain_reasoning.0.ffn.2.weight",
+      "terrain_reasoning.0.ffn_norm.bias",
+      "terrain_reasoning.0.ffn_norm.weight",
+      "terrain_reasoning.0.memory_norm.bias",
+      "terrain_reasoning.0.memory_norm.weight",
+      "terrain_reasoning.0.query_norm.bias",
+      "terrain_reasoning.0.query_norm.weight",
+      "terrain_reasoning.1.attention.in_proj_bias",
+      "terrain_reasoning.1.attention.in_proj_weight",
+      "terrain_reasoning.1.attention.out_proj.bias",
+      "terrain_reasoning.1.attention.out_proj.weight",
+      "terrain_reasoning.1.ffn.0.bias",
+      "terrain_reasoning.1.ffn.0.weight",
+      "terrain_reasoning.1.ffn.2.bias",
+      "terrain_reasoning.1.ffn.2.weight",
+      "terrain_reasoning.1.ffn_norm.bias",
+      "terrain_reasoning.1.ffn_norm.weight",
+      "terrain_reasoning.1.memory_norm.bias",
+      "terrain_reasoning.1.memory_norm.weight",
+      "terrain_reasoning.1.query_norm.bias",
+      "terrain_reasoning.1.query_norm.weight"
+    ]
+  },
+  "reference_warmup_intervals": 100,
+  "self_feedback_intervals": 1000,
+  "training_predictions": 1427000,
+  "optimizer_updates": 11200,
+  "final_validation": {
+    "root_cm": 2.733176336532984,
+    "body_cm": 3.4739019638452775,
+    "joint_rmse_rad": 0.12171893685291975,
+    "plan_contact_exact": 0.8628205128205129,
+    "plan_role_exact": 0.8282051282051283,
+    "newton_contact_accepted": 0.7487179487179487,
+    "newton_generation_accepted": 0.6692307692307692,
+    "penetration_cm": 0.04901658747440729,
+    "region_gradient_valid": 1.0
+  },
+  "recursive_summary": {
+    "empty_contact_steps": 0,
+    "first_empty_contact_step": null,
+    "task_accepted_prefix": 1,
+    "task_accepted_steps": 1,
+    "steps": 2,
+    "continuous_groups": 1,
+    "demonstrated_steps": 15,
+    "extra_steps": 0,
+    "predicted_plan_matches_gt_steps": 1,
+    "predicted_plan_realized_steps": 2,
+    "actual_contact_matches_gt_steps": 1,
+    "mean_terrain_penetration_cm": 0.01761261373758316,
+    "max_terrain_penetration_cm": 0.03522522747516632,
+    "penetrating_steps": 1,
+    "settled_pose_steps": [],
+    "mean_root_error_cm": 2.7502862736582756,
+    "max_root_error_cm": 3.615618869662285,
+    "final_root_error_cm": 3.615618869662285,
+    "mean_body_error_cm": 4.02191337198019,
+    "max_body_error_cm": 5.564000457525253,
+    "own_plan_safe_prefix": 2,
+    "own_plan_safe_steps": 2,
+    "own_spatial_plan_realized_steps": 2,
+    "own_spatial_plan_safe_steps": 2,
+    "empty_predicted_plan_steps": 0,
+    "spatial_realization_contract": "nonempty plan; actual Newton primary-face active+allocated terrain witness in each intended observation raster cell; topology exact",
+    "exact_cell_metrics_diagnostic_only": true,
+    "mean_relative_layout_rms_cm_on_realized_plans": 5.498193607866164,
+    "relative_layout_evaluable_steps": 2,
+    "relative_layout_minimum_parts": 2,
+    "planned_events": 15,
+    "attempted_events": 2,
+    "successful_prefix": 1,
+    "first_failed_event": 2,
+    "completed_chain": false,
+    "retries": 0
+  },
+  "scratch100_recursive_summary": {
+    "empty_contact_steps": 1,
+    "first_empty_contact_step": 2,
+    "task_accepted_prefix": 1,
+    "task_accepted_steps": 1,
+    "steps": 2,
+    "continuous_groups": 1,
+    "demonstrated_steps": 15,
+    "extra_steps": 0,
+    "predicted_plan_matches_gt_steps": 2,
+    "predicted_plan_realized_steps": 1,
+    "actual_contact_matches_gt_steps": 1,
+    "mean_terrain_penetration_cm": 0.0,
+    "max_terrain_penetration_cm": 0.0,
+    "penetrating_steps": 0,
+    "settled_pose_steps": [],
+    "mean_root_error_cm": 1.7673630267381668,
+    "max_root_error_cm": 1.9386805593967438,
+    "final_root_error_cm": 1.5960454940795898,
+    "mean_body_error_cm": 2.6947293430566788,
+    "max_body_error_cm": 2.870563603937626,
+    "own_plan_safe_prefix": 1,
+    "own_plan_safe_steps": 1,
+    "own_spatial_plan_realized_steps": 0,
+    "own_spatial_plan_safe_steps": 0,
+    "empty_predicted_plan_steps": 0,
+    "spatial_realization_contract": "nonempty plan; actual Newton primary-face active+allocated terrain witness in each intended observation raster cell; topology exact",
+    "exact_cell_metrics_diagnostic_only": true,
+    "mean_relative_layout_rms_cm_on_realized_plans": 1.952209758386076,
+    "relative_layout_evaluable_steps": 1,
+    "relative_layout_minimum_parts": 2,
+    "planned_events": 15,
+    "attempted_events": 2,
+    "successful_prefix": 1,
+    "first_failed_event": 2,
+    "completed_chain": false,
+    "retries": 0
+  },
+  "inherited1k_recursive_summary": {
+    "empty_contact_steps": 0,
+    "first_empty_contact_step": null,
+    "task_accepted_prefix": 3,
+    "task_accepted_steps": 3,
+    "steps": 4,
+    "continuous_groups": 1,
+    "demonstrated_steps": 15,
+    "extra_steps": 0,
+    "predicted_plan_matches_gt_steps": 4,
+    "predicted_plan_realized_steps": 3,
+    "actual_contact_matches_gt_steps": 3,
+    "mean_terrain_penetration_cm": 0.049042701721191406,
+    "max_terrain_penetration_cm": 0.19617080688476562,
+    "penetrating_steps": 1,
+    "settled_pose_steps": [],
+    "mean_root_error_cm": 1.4435548335313797,
+    "max_root_error_cm": 2.1398603916168213,
+    "final_root_error_cm": 1.6872486099600792,
+    "mean_body_error_cm": 2.501453272998333,
+    "max_body_error_cm": 3.6816757172346115,
+    "own_plan_safe_prefix": 3,
+    "own_plan_safe_steps": 3,
+    "own_spatial_plan_realized_steps": 3,
+    "own_spatial_plan_safe_steps": 3,
+    "empty_predicted_plan_steps": 0,
+    "spatial_realization_contract": "nonempty plan; actual Newton primary-face active+allocated terrain witness in each intended observation raster cell; topology exact",
+    "exact_cell_metrics_diagnostic_only": true,
+    "mean_relative_layout_rms_cm_on_realized_plans": 6.429288085556414,
+    "relative_layout_evaluable_steps": 2,
+    "relative_layout_minimum_parts": 2,
+    "planned_events": 15,
+    "attempted_events": 4,
+    "successful_prefix": 3,
+    "first_failed_event": 4,
+    "completed_chain": false,
+    "retries": 0
+  },
+  "comparison_contract": "same motion4/group1/start0; stop first failure; no forward-progress gate, projector, infiller or pose correction; endpoint contact only, support/load/slip unknown",
+  "final_event_endpoint_accepted": 0.5974358974358974,
+  "elapsed_training_and_validation_seconds": 4368.675757318997,
+  "all_training_valid_gradient_fraction_min": 0.9993197278911564,
+  "conservative_guard_diagnostic": {
+    "schema": "conservative_guard_monitor_audit_v1",
+    "checkpoint_step": 850,
+    "validation_samples": 780,
+    "cpu_replay_metrics_match": true,
+    "root_cm_replayed": 2.8658037185668945,
+    "root_cm_logged": 2.8660248683049128,
+    "joint_rad_replayed": 0.127363920211792,
+    "joint_rad_logged": 0.12736548277047965,
+    "configured_continuation_depth_limit_cm": 3.0,
+    "logged_actual_newton_max_penetration_cm": 1.8654383420944214,
+    "conservative_guard_rejection_count": 52,
+    "conservative_guard_rejection_pct": 6.6666669845581055,
+    "max_conservative_guard_depth_cm": 5.9309868812561035,
+    "independently_added_guard_rejections_demonstrated": true,
+    "contact_truth_unchanged": true,
+    "scope": "diagnostic conservative guard only; neither new contact labels nor a substitute for Newton truth",
+    "largest_guard_depth_rows": [
+      {
+        "sample_index": 1234,
+        "motion_id": 82,
+        "current_frame": 170,
+        "target_frame": 260,
+        "guard_depth_cm": 5.9309868812561035,
+        "shape": "left_knee_link/0"
+      },
+      {
+        "sample_index": 1849,
+        "motion_id": 123,
+        "current_frame": 170,
+        "target_frame": 260,
+        "guard_depth_cm": 5.786952495574951,
+        "shape": "left_knee_link/0"
+      },
+      {
+        "sample_index": 1624,
+        "motion_id": 108,
+        "current_frame": 170,
+        "target_frame": 260,
+        "guard_depth_cm": 5.744781970977783,
+        "shape": "left_knee_link/0"
+      },
+      {
+        "sample_index": 124,
+        "motion_id": 8,
+        "current_frame": 170,
+        "target_frame": 260,
+        "guard_depth_cm": 5.302339553833008,
+        "shape": "left_knee_link/0"
+      },
+      {
+        "sample_index": 364,
+        "motion_id": 24,
+        "current_frame": 170,
+        "target_frame": 260,
+        "guard_depth_cm": 5.189678192138672,
+        "shape": "left_knee_link/0"
+      },
+      {
+        "sample_index": 49,
+        "motion_id": 3,
+        "current_frame": 170,
+        "target_frame": 260,
+        "guard_depth_cm": 5.184909820556641,
+        "shape": "left_knee_link/0"
+      },
+      {
+        "sample_index": 559,
+        "motion_id": 37,
+        "current_frame": 170,
+        "target_frame": 260,
+        "guard_depth_cm": 5.1764607429504395,
+        "shape": "left_knee_link/0"
+      },
+      {
+        "sample_index": 289,
+        "motion_id": 19,
+        "current_frame": 170,
+        "target_frame": 260,
+        "guard_depth_cm": 5.10544490814209,
+        "shape": "left_knee_link/0"
+      },
+      {
+        "sample_index": 799,
+        "motion_id": 53,
+        "current_frame": 170,
+        "target_frame": 260,
+        "guard_depth_cm": 5.062335968017578,
+        "shape": "left_knee_link/0"
+      },
+      {
+        "sample_index": 3064,
+        "motion_id": 204,
+        "current_frame": 170,
+        "target_frame": 260,
+        "guard_depth_cm": 5.05586576461792,
+        "shape": "left_knee_link/0"
+      }
+    ]
+  },
+  "curves": "runtime/current/archives/preserved_inputs_20261010/predictor_scratch1k_20261002/monitor_curves.png",
+  "support_load_and_slip_verified": false,
+  "additional_checkpoint_evaluations": [
+    {
+      "checkpoint_step": 725,
+      "checkpoint": "runtime/current/archives/preserved_inputs_20261010/predictor_scratch1k_20261002/training/best_historical_score.pt",
+      "report": "runtime/current/archives/preserved_inputs_20261010/predictor_scratch1k_20261002/recursive_candidates/training_best_historical_score/report.json",
+      "successful_prefix": 2,
+      "planned_events": 15,
+      "completed_chain": false,
+      "first_failed_event": 3,
+      "max_terrain_penetration_cm": 0.0,
+      "failure": {
+        "predicted_contact": [
+          true,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "actual_contact": [
+          true,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "gt_contact": [
+          true,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "predicted_role": [
+          2,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "predicted_plan_matches_gt": true,
+        "termination_reasons": [
+          "own_region_or_safety"
+        ],
+        "region_plan_acceptance": {
+          "schema": "canonical_contact_regions_4_4_2_2_3_3_v1",
+          "actual_regions": [
+            [
+              false,
+              true,
+              false,
+              true
+            ],
+            [
+              false,
+              false,
+              false,
+              false
+            ],
+            [
+              false,
+              false,
+              false,
+              false
+            ],
+            [
+              false,
+              false,
+              false,
+              false
+            ],
+            [
+              false,
+              false,
+              false,
+              false
+            ],
+            [
+              false,
+              false,
+              false,
+              false
+            ]
+          ],
+          "planned_regions": [
+            [
+              true,
+              true,
+              true,
+              true
+            ],
+            [
+              false,
+              false,
+              false,
+              false
+            ],
+            [
+              false,
+              false,
+              false,
+              false
+            ],
+            [
+              false,
+              false,
+              false,
+              false
+            ],
+            [
+              false,
+              false,
+              false,
+              false
+            ],
+            [
+              false,
+              false,
+              false,
+              false
+            ]
+          ],
+          "missing_regions": [
+            [
+              true,
+              false,
+              true,
+              false
+            ],
+            [
+              false,
+              false,
+              false,
+              false
+            ],
+            [
+              false,
+              false,
+              false,
+              false
+            ],
+            [
+              false,
+              false,
+              false,
+              false
+            ],
+            [
+              false,
+              false,
+              false,
+              false
+            ],
+            [
+              false,
+              false,
+              false,
+              false
+            ]
+          ],
+          "realized": false,
+          "accepted": false
+        },
+        "task_acceptance": {
+          "contact_accepted": true,
+          "missing_required_pairs": 0,
+          "ignored_extra_pairs": 0,
+          "blocking_extra_pairs": 0,
+          "max_extra_activation_overlap_m": 0.0,
+          "safety_failure": null,
+          "accepted": true
+        },
+        "own_plan_acceptance": {
+          "contact_accepted": true,
+          "missing_required_pairs": 0,
+          "ignored_extra_pairs": 0,
+          "blocking_extra_pairs": 0,
+          "max_extra_activation_overlap_m": 0.0,
+          "safety_failure": null,
+          "accepted": true
+        }
+      }
+    },
+    {
+      "checkpoint_step": 925,
+      "checkpoint": "runtime/current/archives/preserved_inputs_20261010/predictor_scratch1k_20261002/training/step_0925.pt",
+      "report": "runtime/current/archives/preserved_inputs_20261010/predictor_scratch1k_20261002/recursive_candidates/training_step_0925/report.json",
+      "successful_prefix": 5,
+      "planned_events": 15,
+      "completed_chain": false,
+      "first_failed_event": 6,
+      "max_terrain_penetration_cm": 0.0,
+      "failure": {
+        "predicted_contact": [
+          false,
+          false,
+          true,
+          true,
+          true,
+          false
+        ],
+        "actual_contact": [
+          false,
+          false,
+          true,
+          true,
+          true,
+          false
+        ],
+        "gt_contact": [
+          false,
+          false,
+          true,
+          true,
+          false,
+          false
+        ],
+        "predicted_role": [
+          0,
+          0,
+          1,
+          2,
+          2,
+          0
+        ],
+        "predicted_plan_matches_gt": false,
+        "termination_reasons": [
+          "task_contact_or_safety"
+        ],
+        "region_plan_acceptance": {
+          "schema": "canonical_contact_regions_4_4_2_2_3_3_v1",
+          "actual_regions": [
+            [
+              false,
+              false,
+              false,
+              false
+            ],
+            [
+              false,
+              false,
+              false,
+              false
+            ],
+            [
+              false,
+              true,
+              false,
+              false
+            ],
+            [
+              false,
+              true,
+              false,
+              false
+            ],
+            [
+              false,
+              true,
+              false,
+              false
+            ],
+            [
+              false,
+              false,
+              false,
+              false
+            ]
+          ],
+          "planned_regions": [
+            [
+              false,
+              false,
+              false,
+              false
+            ],
+            [
+              false,
+              false,
+              false,
+              false
+            ],
+            [
+              false,
+              true,
+              false,
+              false
+            ],
+            [
+              false,
+              true,
+              false,
+              false
+            ],
+            [
+              false,
+              true,
+              false,
+              false
+            ],
+            [
+              false,
+              false,
+              false,
+              false
+            ]
+          ],
+          "missing_regions": [
+            [
+              false,
+              false,
+              false,
+              false
+            ],
+            [
+              false,
+              false,
+              false,
+              false
+            ],
+            [
+              false,
+              false,
+              false,
+              false
+            ],
+            [
+              false,
+              false,
+              false,
+              false
+            ],
+            [
+              false,
+              false,
+              false,
+              false
+            ],
+            [
+              false,
+              false,
+              false,
+              false
+            ]
+          ],
+          "realized": true,
+          "accepted": true
+        },
+        "task_acceptance": {
+          "contact_accepted": false,
+          "missing_required_pairs": 0,
+          "ignored_extra_pairs": 0,
+          "blocking_extra_pairs": 2,
+          "max_extra_activation_overlap_m": 0.01774937636218965,
+          "safety_failure": null,
+          "accepted": false
+        },
+        "own_plan_acceptance": {
+          "contact_accepted": true,
+          "missing_required_pairs": 0,
+          "ignored_extra_pairs": 0,
+          "blocking_extra_pairs": 0,
+          "max_extra_activation_overlap_m": 0.0,
+          "safety_failure": null,
+          "accepted": true
+        }
+      }
+    }
+  ],
+  "best_among_evaluated_scratch_checkpoints": 925,
+  "checkpoint_selection_scope": "Only steps725,925,1100 were recursively tested on motion4/group1/start0; not an exhaustive milestone selection or broader generalization test",
+  "selected_925_validation": {
+    "root_cm": 2.671323786026392,
+    "body_cm": 3.297027010795398,
+    "joint_rmse_rad": 0.12502008645962445,
+    "plan_contact_exact": 0.8897435897435897,
+    "newton_contact_accepted": 0.8794871794871795,
+    "newton_generation_accepted": 0.7846153846153846,
+    "event_endpoint_accepted": 0.7217948717948718
+  },
+  "training_rows_excluded_for_invalid_gradient_evidence": 2,
+  "budget_note": "Final run1427000 predictions/11200 updates; candidate9251203000 predictions/9450 updates; inherited1k post-StageA run1280000 predictions/10000 updates, excluding its ancestral pretraining"
+}

@@ -1,0 +1,190 @@
+{
+  "schema": "contact_trim_demo_v1",
+  "recording": "/home/zhouxia/workspace/supermimic_vibed/tmp/contact-tracker-20261027-v1/demo0-roles-v1/rollout.pt",
+  "recording_sha256": "cf591361663530e2c5a0bebef0aa94f4cdba50e9a5f832ebc7179cd8e9036b2a",
+  "remove_long_idle": true,
+  "keep_boundary_context_frames": 2,
+  "source_frame_indexing": "zero-based; end exclusive",
+  "preserve_original_goal_frames": true,
+  "tracking_teacher_verified_first_segment": {
+    "original_successes": 107,
+    "original_attempts": 107,
+    "trimmed_successes": 107,
+    "trimmed_attempts": 107,
+    "original_mean_steps": 82.24298858642578,
+    "trimmed_mean_steps": 38.29906463623047
+  },
+  "segments": [
+    {
+      "segment": 1,
+      "original_start": 0,
+      "original_end": 82,
+      "trimmed_start": 44,
+      "trimmed_end": 82,
+      "removed_head": 44,
+      "removed_tail": 0
+    },
+    {
+      "segment": 2,
+      "original_start": 82,
+      "original_end": 110,
+      "trimmed_start": 82,
+      "trimmed_end": 110,
+      "removed_head": 0,
+      "removed_tail": 0
+    },
+    {
+      "segment": 3,
+      "original_start": 110,
+      "original_end": 132,
+      "trimmed_start": 110,
+      "trimmed_end": 132,
+      "removed_head": 0,
+      "removed_tail": 0
+    },
+    {
+      "segment": 4,
+      "original_start": 132,
+      "original_end": 202,
+      "trimmed_start": 132,
+      "trimmed_end": 202,
+      "removed_head": 0,
+      "removed_tail": 0
+    },
+    {
+      "segment": 5,
+      "original_start": 202,
+      "original_end": 223,
+      "trimmed_start": 202,
+      "trimmed_end": 223,
+      "removed_head": 0,
+      "removed_tail": 0
+    },
+    {
+      "segment": 6,
+      "original_start": 223,
+      "original_end": 261,
+      "trimmed_start": 223,
+      "trimmed_end": 261,
+      "removed_head": 0,
+      "removed_tail": 0
+    },
+    {
+      "segment": 7,
+      "original_start": 261,
+      "original_end": 305,
+      "trimmed_start": 261,
+      "trimmed_end": 305,
+      "removed_head": 0,
+      "removed_tail": 0
+    },
+    {
+      "segment": 8,
+      "original_start": 305,
+      "original_end": 349,
+      "trimmed_start": 305,
+      "trimmed_end": 349,
+      "removed_head": 0,
+      "removed_tail": 0
+    },
+    {
+      "segment": 9,
+      "original_start": 349,
+      "original_end": 392,
+      "trimmed_start": 349,
+      "trimmed_end": 392,
+      "removed_head": 0,
+      "removed_tail": 0
+    },
+    {
+      "segment": 10,
+      "original_start": 392,
+      "original_end": 441,
+      "trimmed_start": 392,
+      "trimmed_end": 441,
+      "removed_head": 0,
+      "removed_tail": 0
+    },
+    {
+      "segment": 11,
+      "original_start": 441,
+      "original_end": 478,
+      "trimmed_start": 441,
+      "trimmed_end": 478,
+      "removed_head": 0,
+      "removed_tail": 0
+    },
+    {
+      "segment": 12,
+      "original_start": 478,
+      "original_end": 513,
+      "trimmed_start": 478,
+      "trimmed_end": 513,
+      "removed_head": 0,
+      "removed_tail": 0
+    },
+    {
+      "segment": 13,
+      "original_start": 513,
+      "original_end": 541,
+      "trimmed_start": 513,
+      "trimmed_end": 541,
+      "removed_head": 0,
+      "removed_tail": 0
+    },
+    {
+      "segment": 14,
+      "original_start": 541,
+      "original_end": 588,
+      "trimmed_start": 541,
+      "trimmed_end": 588,
+      "removed_head": 0,
+      "removed_tail": 0
+    },
+    {
+      "segment": 15,
+      "original_start": 588,
+      "original_end": 617,
+      "trimmed_start": 588,
+      "trimmed_end": 617,
+      "removed_head": 0,
+      "removed_tail": 0
+    },
+    {
+      "segment": 16,
+      "original_start": 617,
+      "original_end": 643,
+      "trimmed_start": 617,
+      "trimmed_end": 643,
+      "removed_head": 0,
+      "removed_tail": 0
+    },
+    {
+      "segment": 17,
+      "original_start": 643,
+      "original_end": 669,
+      "trimmed_start": 643,
+      "trimmed_end": 669,
+      "removed_head": 0,
+      "removed_tail": 0
+    },
+    {
+      "segment": 18,
+      "original_start": 669,
+      "original_end": 690,
+      "trimmed_start": 669,
+      "trimmed_end": 690,
+      "removed_head": 0,
+      "removed_tail": 0
+    },
+    {
+      "segment": 19,
+      "original_start": 690,
+      "original_end": 799,
+      "trimmed_start": 690,
+      "trimmed_end": 732,
+      "removed_head": 0,
+      "removed_tail": 67
+    }
+  ]
+}

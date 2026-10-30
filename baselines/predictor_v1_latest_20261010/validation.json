@@ -1,0 +1,22 @@
+{
+  "schema": "predictor_baseline_registration_validation_v1",
+  "date": "2026-10-10",
+  "training_entrypoint_tests_passed": 8,
+  "asset_manifest_check": "passed;10 assets",
+  "training_pipeline_check": "passed",
+  "checkpoint_sha256_verified": true,
+  "checkpoint_schema_and_asset_verified": true,
+  "formal_checkpoint_loader_roundtrip": "passed on CPU",
+  "dependency_and_training_material_hashes": "verified",
+  "current_defaults_match_recorded_recipe": "passed",
+  "training_started": false,
+  "historical_files_deleted": false,
+  "single_checkpoint_peak_selection": false,
+  "new_recursive_evaluation_performed": false,
+  "repository_sync_package_tests_passed": 1124,
+  "repository_sync_subtests_passed": 3,
+  "repository_static_python_files_checked": 959,
+  "repository_static_errors": [],
+  "repository_sync_test_log": "runtime/current/archives/preserved_inputs_20261010/git_sync_latest_baseline_20261010_tests_run3.log",
+  "repository_sync_test_scope": "contact_solver, generator, somaforge_core, motion_edit packages and changed root contact-pipeline tests"
+}

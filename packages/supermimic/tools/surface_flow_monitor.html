@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Surface v2 · Tracking 实时监测</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#101722;color:#e6edf6}body{max-width:1240px;margin:30px auto;padding:0 20px}h1{font-size:26px;margin-bottom:8px}h2{font-size:17px;margin-top:0}.muted,small{color:#a9b8cb}.cards,.charts{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.charts{grid-template-columns:repeat(2,1fr);margin:18px 0}.card,section{background:#182333;border:1px solid #2c3b50;border-radius:12px;padding:20px}.value{font-size:27px;margin-top:8px;font-variant-numeric:tabular-nums}progress{width:100%;height:10px;accent-color:#56d5b4;margin:16px 0}svg{width:100%;display:block}svg text{fill:#a9b8cb;font-size:11px}section{margin:18px 0}.charts section{margin:0}table{width:100%;border-collapse:collapse;text-align:left}td,th{padding:10px;border-bottom:1px solid #2c3b50}.scroll{overflow:auto}pre{white-space:pre-wrap;font-size:12px;line-height:1.5;max-height:320px;overflow:auto}.error{color:#ff9696}#state{font-size:19px;color:#56d5b4}button{border:1px solid #516078;background:#22334a;color:white;border-radius:6px;padding:7px 12px;cursor:pointer}@media(max-width:760px){.cards{grid-template-columns:repeat(2,1fr)}.charts{grid-template-columns:1fr}.value{font-size:22px}}
+</style>
+<h1>Surface v2 · Tracking 实时监测</h1>
+<p id="run" class="muted">读取实时训练数据…</p><p id="state"></p><p id="error" class="error" role="alert"></p>
+<div class="muted" id="workflow">流程：Tracking → 原生回放验收 → DAgger → 各接触段独立 episode 训练</div>
+<progress id="progress" value="0" max="24000"></progress>
+<div class="cards">
+<div class="card"><small>Tracking 更新进度</small><div class="value" id="iteration">—</div></div>
+<div class="card"><small id="coverageTitle">完整接触转移段案例</small><div class="value" id="transitions">待采集</div><small id="coverage"></small></div>
+<div class="card"><small>冻结 checkpoint 原生完成动作</small><div class="value" id="native">待评估</div><small id="nativeNote"></small></div>
+<div class="card"><small>训练 episode 平均长度</small><div class="value" id="length">—</div></div>
+</div>
+<p class="muted" id="pace"></p>
+<p class="muted" id="semantics">一个案例是从初始支撑到目标接触完成的整段过程。段库在 tracking 原生验收后从多条动作构建；仿真步数仅作为训练量指标。训练 episode 使用随机起始帧，其长度不等于完整动作完成率。</p>
+<div class="charts">
+<section><h2>真实仿真单步奖励</h2><div id="reward"></div></section>
+<section><h2>世界模型训练损失</h2><div id="wm"></div></section>
+<section><h2>训练 episode 平均长度（秒）</h2><div id="episode"></div></section>
+<section><h2>训练结束 episode 中提前终止比例</h2><div id="term"></div></section>
+<section><h2>想象 rollout 存活率</h2><div id="imagined"></div><small>世界模型预测指标，不是真实任务成功率。</small></section>
+<section><h2>世界模型 8 步误差</h2><div id="wmerr"></div></section>
+</div>
+<section><h2>原生回放评估</h2><p class="muted">每条动作从头运行；显示对应 checkpoint 的冻结策略结果。</p><div class="scroll"><table><thead><tr><th>Checkpoint</th><th>完整动作</th><th>平均长度覆盖</th><th>归一化回报</th><th>评估时间</th></tr></thead><tbody id="evaluations"></tbody></table></div></section>
+<section id="groupsSection" hidden><h2>最新 checkpoint 分组整段评估</h2><div class="scroll"><table><thead><tr><th>任务组</th><th>完整通过</th><th>平均长度覆盖</th><th>归一化回报</th></tr></thead><tbody id="groups"></tbody></table></div></section>
+<section><h2>Checkpoint 与进程</h2><p id="checkpoints"></p><p class="muted" id="updated"></p><button onclick="refresh()">立即刷新</button><details><summary>最近训练日志</summary><pre id="log"></pre></details><details><summary>阶段流程日志</summary><pre id="flowlog"></pre></details></section>
+<script>
+const el=id=>document.getElementById(id),fixed=(v,n=3)=>Number.isFinite(v)?v.toFixed(n):'—';
+function chart(id,rows,key,color,scale=1){
+ const pts=rows.filter(r=>Number.isFinite(r.iteration)&&Number.isFinite(r[key])).map(r=>[r.iteration,r[key]*scale]);
+ if(!pts.length){el(id).textContent='等待训练日志';return;}
+ const xmin=pts[0][0],xmax=pts.at(-1)[0];let ymin=Math.min(...pts.map(p=>p[1])),ymax=Math.max(...pts.map(p=>p[1]));
+ const pad=(ymax-ymin)*.1||.01;ymin-=pad;ymax+=pad;
+ const x=v=>55+(v-xmin)/(xmax-xmin||1)*440,y=v=>175-(v-ymin)/(ymax-ymin)*150;
+ let s=`<svg viewBox="0 0 520 210" role="img" aria-label="${key} 随更新变化">`;
+ for(let i=0;i<4;i++){const v=ymin+(ymax-ymin)*i/3,py=y(v);s+=`<line x1="55" y1="${py}" x2="495" y2="${py}" stroke="#2c3b50"/><text x="48" y="${py+4}" text-anchor="end">${v.toFixed(2)}</text>`;}
+ s+=`<polyline fill="none" stroke="${color}" stroke-width="2" points="${pts.map(p=>x(p[0])+','+y(p[1])).join(' ')}"/>`;
+ for(const p of pts)s+=`<circle cx="${x(p[0])}" cy="${y(p[1])}" r="2.5" fill="${color}"><title>更新 ${p[0]}：${p[1].toFixed(4)}</title></circle>`;
+ el(id).innerHTML=s+`<text x="55" y="200">${xmin}</text><text x="495" y="200" text-anchor="end">${xmax} 次</text></svg>`;
+}
+let timer;
+async function refresh(){
+ clearTimeout(timer);
+ try{
+  const response=await fetch('status.json?t='+Date.now(),{cache:'no-store',signal:AbortSignal.timeout(8000)});
+  if(!response.ok)throw Error('HTTP '+response.status);
+  const d=await response.json(),r=d.latest;el('error').textContent='';
+  el('run').textContent=`${d.run} · GPU ${d.gpu} · ${d.num_envs} 训练环境 · ${d.case_count} 条 ${d.dataset_label} 动作 · ${d.collision_profile} · ${d.contact_model}`;
+  el('state').textContent=`${d.state} · 当前流程阶段：${d.phase}${d.log_age>120&&d.alive?' · 训练日志超过两分钟未更新':''}`;
+  el('state').style.color=d.failure||d.flow_status==='failed'?'#ff9696':'#56d5b4';
+  if(d.flow_error)el('error').textContent=d.flow_error;
+  el('iteration').textContent=`${r.iteration??'—'} / ${d.total}`;el('progress').value=r.iteration||0;el('progress').max=d.total;
+  el('transitions').textContent=Number.isFinite(d.whole_transfer_count)?d.whole_transfer_count+' 段':'待原生采集';
+  el('coverage').textContent=d.whole_transfer_motions?`来自 ${d.whole_transfer_motions} 条动作`:`首批门槛 ≥${d.whole_transfer_gate.minimum_transfers??'—'} 段／≥${d.whole_transfer_gate.minimum_motions??'—'} 条动作`;
+  if(d.tracking_only){
+   el('workflow').textContent=`Tracking 上限 ${d.total} 次更新 → 每 ${d.eval_every} 次全量整段评估 → 根据中期结果决定何时停止`;
+   el('coverageTitle').textContent='仅统计的从头 probe';el('transitions').textContent=d.probe_envs+' 个';
+   el('coverage').textContent='每条 3 个，排除出训练数据';
+   el('semantics').textContent='PHP 五组全量参考动作；排除 LAFAN。高度图＋force6，从头 probe＋recent30 失败重试。训练 episode 长度不等于整段完成率；想象存活率不等于真实任务成功率。';
+  }
+  el('length').textContent=fixed(r.ep_len*.02,2)+' 秒';
+  const eta=d.alive&&r.it_per_s>0?Math.ceil((d.total-r.iteration)/r.it_per_s/60):null;
+  el('pace').textContent=`累计仿真单步 ${Number.isFinite(r.sim_steps)?r.sim_steps.toLocaleString():'—'} · 最近速度 ${fixed(r.it_per_s,2)} 次/秒 · tracking 预计剩余 ${eta??'—'} 分钟（不含后续验收和训练）`;
+  const e=d.evaluations.at(-1);el('native').textContent=e?`${e.passed} / ${e.total}`:'待评估';el('native').style.color=e&&e.passed===0?'#ff9696':'#e6edf6';
+  el('nativeNote').textContent=(e?`checkpoint ${e.iteration} · 非当前权重实时成功率；`:'')+`每 ${d.eval_every} 次更新自动评估${d.eval_alive?'（监测运行中）':'（监测未运行）'}`;
+  chart('reward',d.train,'sim_rew','#56d5b4');chart('wm',d.train,'wm_loss','#7eaeff');chart('episode',d.train,'ep_len','#e3bb78',.02);
+  chart('term',d.train,'term_frac','#ff9696');chart('imagined',d.train,'imag_survival','#bfa0ff');chart('wmerr',d.train,'wm_err8','#7ed4ef');
+  el('evaluations').replaceChildren();
+  for(const e of d.evaluations){const row=document.createElement('tr');for(const value of [e.iteration,`${e.passed} / ${e.total}`,fixed(e.mean_length_ratio*100,1)+'%',fixed(e.norm_return,4),new Date(e.evaluated_at*1000).toLocaleString()]){const cell=document.createElement('td');cell.textContent=value;row.append(cell);}el('evaluations').append(row);}
+  el('groupsSection').hidden=!Object.keys(d.group_counts||{}).length;el('groups').replaceChildren();
+  const labels={locomotion:'移动',lowstep:'低台阶',highstep:'高台阶',lowclimb:'低攀爬',highclimb:'高攀爬'};
+  for(const [name,count] of Object.entries(d.group_counts||{})){const g=e?.groups?.[name],row=document.createElement('tr');for(const value of [labels[name]||name,g?`${g.n_clips-g.n_failed} / ${g.n_clips}`:`待评估 / ${count}`,g?fixed(g.mean_length_ratio*100,1)+'%':'—',g?fixed(g.norm_return,4):'—']){const cell=document.createElement('td');cell.textContent=value;row.append(cell);}el('groups').append(row);}
+  el('checkpoints').textContent=d.checkpoints.join(' · ')||'等待首次保存';el('log').textContent=d.log;el('flowlog').textContent=d.pipeline_log;
+  el('updated').textContent=`数据更新：${new Date(d.updated*1000).toLocaleString()} · 训练日志 ${Math.round(d.log_age??0)} 秒前 · 每 10 秒刷新`;
+ }catch(e){el('error').textContent='连接异常，页面数据可能已过期：'+e.message;}
+ timer=setTimeout(refresh,10000);
+}
+refresh();
+</script></html>

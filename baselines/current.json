@@ -1,0 +1,7 @@
+{
+  "schema": "somaforge_current_predictor_baseline_v1",
+  "id": "predictor.v1_latest.20261010",
+  "record": "baselines/predictor_v1_latest_20261010/baseline.json",
+  "training_config": "baselines/predictor_v1_latest_20261010/training_config.json",
+  "archives": "baselines/archives.json"
+}

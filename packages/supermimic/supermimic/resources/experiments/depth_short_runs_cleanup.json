@@ -1,0 +1,14 @@
+{
+  "action": "reversible removal from active experiment records",
+  "directory": "/perception/workspace/zhouxia/supermimic_vibed/retired_depth_short_runs/20261026_preoptimization",
+  "moved": [
+    "mixed_panorama_smoke",
+    "mixed_panorama_scale_smoke",
+    "mixed_panorama_rolling_smoke",
+    "mixed_panorama_rolling_scale_smoke",
+    "mixed_panorama_oracle_smoke",
+    "mixed_panorama_oracle_scale_smoke",
+    "mixed_terrain_walk_panorama_noforce_main",
+    "mixed_terrain_walk_oracle_depth_noforce_main"
+  ]
+}

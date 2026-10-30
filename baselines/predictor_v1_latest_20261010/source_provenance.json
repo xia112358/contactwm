@@ -1,0 +1,48 @@
+{
+  "schema": "predictor_baseline_source_provenance_v1",
+  "training_launch": {
+    "path": "runtime/current/archives/preserved_inputs_20261010/v1_shared_interval_scratch1100_20261009/specification.json",
+    "sha256": "a7fb20c74bb507de016e72441215f796cdc515fa0eea8c570a664a7a3a5d64bc",
+    "original_sha256": "d349ccfd3b82a03a9ad7498246cc43c096682e89ae49c6e9215791dc76136ce6"
+  },
+  "training_launch_source_hashes": {
+    "packages/generator/generator/train_full1000_position.py": "91f27d1611832a899a0dc481ff461f889fd581024730e66505715df69cbff685",
+    "packages/generator/generator/full1000_position_predictor.py": "ac1512bdec831f79d2631027be9f7110f4361b08b62de2d50ba6eadced9f806f",
+    "packages/generator/generator/predictor_architecture.py": "2fbf1284bbecad0d0596cf83342b5af2598ab8845af9470cafa351a19a5cd932",
+    "packages/generator/generator/predictor_initialization.py": "c7fb9b19f9a78d80430897cafeb766ae6e8bf93f8c0e3ac8e768aad141c8f579",
+    "packages/generator/generator/full1000_training_variants.py": "2681ae6dc0ad3fc6b67ad59c6fe1af0e1a005c4fda13d4b94295507153f95235",
+    "packages/generator/generator/scene_workers.py": "37b4330ef5cdac16cc536c32905b2938d7ff28f987d6f1bbdfebba9ca87ce9f8",
+    "packages/generator/generator/parallel_rollout_pool.py": "be2182fc0e031df03fdfed63e5c81e8e4da4a58d430840250d4636d688a083c4",
+    "packages/generator/generator/training_data.py": "3e10e42fe11686be2b43458dd94c7db731e12b0a38fd826fe82de7adbddfab1b",
+    "packages/contact_solver/contact_solver/contact_regions.py": "3f202a29bbc88f4c8775eeb20e05d266154b9714c8c382f46d97a30b573454b9",
+    "packages/contact_solver/contact_solver/contact_surface_interval.py": "164287e62cc2e6e1ffaa4679dd00448f4d3130553f4238f0a54feb47a78f47d4",
+    "packages/contact_solver/contact_solver/material_surface_interval.py": "c11ecd3cceba4dfd6c04b30c88f6e612dd5f604bc83a97fa6973510a8b6b8b26",
+    "packages/contact_solver/contact_solver/shape_target_interval.py": "9629b7b7781a3de6c4dd2c7c62867944b9ad2db3d46c5b063b249a5ba0a09061",
+    "packages/contact_solver/contact_solver/interval_identity.py": "3b16277bbe009a4658b66af9c5fbb11ccaeb2d6caadffef94da99c2379071b96",
+    "packages/contact_solver/contact_solver/solid_witness_loss.py": "cd747fad4300416c64945d42f3f94486df4c625b0a926efebbfe86d2b0f0ddf1",
+    "packages/contact_solver/contact_solver/constraint_penalty.py": "9656b9a5c9fdc08ace922ad9ebd40bda11f98078bdd011c0cc14cc880f1dd664",
+    "packages/contact_solver/contact_solver/keep_patch_loss.py": "91f72f77d1ab735cdac29f16932c75583804dc07e748c1f96f34c7383656ca33",
+    "packages/contact_solver/contact_solver/interaction_acceptance.py": "0d2f3e4bfb67501331be71561e3c903485b0a6c6b30b70aaffe243ab9694fc38"
+  },
+  "training_launch_snapshot": "runtime/current/archives/preserved_inputs_20261010/v1_shared_interval_scratch1100_20261009/source_snapshot",
+  "registration_source_hashes": {
+    "packages/generator/generator/train_full1000_position.py": "6da0d898c22b9ee8ca0559c5e9f2be665eeb90b54d4b8633a07ecff55240a7cc",
+    "packages/generator/generator/full1000_position_predictor.py": "ac1512bdec831f79d2631027be9f7110f4361b08b62de2d50ba6eadced9f806f",
+    "packages/generator/generator/predictor_architecture.py": "2fbf1284bbecad0d0596cf83342b5af2598ab8845af9470cafa351a19a5cd932",
+    "packages/generator/generator/predictor_initialization.py": "c7fb9b19f9a78d80430897cafeb766ae6e8bf93f8c0e3ac8e768aad141c8f579",
+    "packages/generator/generator/full1000_training_variants.py": "2681ae6dc0ad3fc6b67ad59c6fe1af0e1a005c4fda13d4b94295507153f95235",
+    "packages/generator/generator/scene_workers.py": "37b4330ef5cdac16cc536c32905b2938d7ff28f987d6f1bbdfebba9ca87ce9f8",
+    "packages/generator/generator/parallel_rollout_pool.py": "be2182fc0e031df03fdfed63e5c81e8e4da4a58d430840250d4636d688a083c4",
+    "packages/generator/generator/training_data.py": "3e10e42fe11686be2b43458dd94c7db731e12b0a38fd826fe82de7adbddfab1b",
+    "packages/contact_solver/contact_solver/contact_regions.py": "3f202a29bbc88f4c8775eeb20e05d266154b9714c8c382f46d97a30b573454b9",
+    "packages/contact_solver/contact_solver/contact_surface_interval.py": "164287e62cc2e6e1ffaa4679dd00448f4d3130553f4238f0a54feb47a78f47d4",
+    "packages/contact_solver/contact_solver/material_surface_interval.py": "c11ecd3cceba4dfd6c04b30c88f6e612dd5f604bc83a97fa6973510a8b6b8b26",
+    "packages/contact_solver/contact_solver/shape_target_interval.py": "9629b7b7781a3de6c4dd2c7c62867944b9ad2db3d46c5b063b249a5ba0a09061",
+    "packages/contact_solver/contact_solver/interval_identity.py": "3b16277bbe009a4658b66af9c5fbb11ccaeb2d6caadffef94da99c2379071b96",
+    "packages/contact_solver/contact_solver/solid_witness_loss.py": "cd747fad4300416c64945d42f3f94486df4c625b0a926efebbfe86d2b0f0ddf1",
+    "packages/contact_solver/contact_solver/constraint_penalty.py": "9656b9a5c9fdc08ace922ad9ebd40bda11f98078bdd011c0cc14cc880f1dd664",
+    "packages/contact_solver/contact_solver/keep_patch_loss.py": "91f72f77d1ab735cdac29f16932c75583804dc07e748c1f96f34c7383656ca33",
+    "packages/contact_solver/contact_solver/interaction_acceptance.py": "0d2f3e4bfb67501331be71561e3c903485b0a6c6b30b70aaffe243ab9694fc38"
+  },
+  "difference_note": "Registration aligns CLI default data paths, keep weight and output with the actual run; historical launch source is separately pinned. No loss formula, asset or model tensor change."
+}

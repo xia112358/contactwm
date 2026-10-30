@@ -1,0 +1,6 @@
+{
+  "images": {
+    "holosoma": "holosoma:2025_1211_0109",
+    "hs-isaacsim": "holosoma-isaacsim:latest"
+  }
+}

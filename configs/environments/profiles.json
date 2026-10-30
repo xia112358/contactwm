@@ -1,0 +1,120 @@
+{
+  "schema": "somaforge_environment_profiles_v1",
+  "profiles": {
+    "main": {
+      "description": "Unified SomaForge runtime: WBT, distillation, motion review and Predictor",
+      "python": "3.12",
+      "prefix": "runtime/environments/conda/somaforge",
+      "requirements": "configs/environments/main-linux-x86_64.lock.txt",
+      "local_packages": [
+        "packages/somaforge_core",
+        "packages/contact_solver",
+        "packages/generator",
+        "packages/motion_edit",
+        "src/holosoma",
+        "packages/supermimic"
+      ],
+      "isaaclab_commit": "e3f7d9ff1f5d7f8280de3ece9000b7117f66bcf4",
+      "isaaclab_packages": [
+        "isaaclab",
+        "isaaclab_assets",
+        "isaaclab_contrib",
+        "isaaclab_experimental",
+        "isaaclab_newton",
+        "isaaclab_ov",
+        "isaaclab_physx",
+        "isaaclab_ppisp",
+        "isaaclab_rl",
+        "isaaclab_tasks",
+        "isaaclab_tasks_experimental",
+        "isaaclab_visualizers"
+      ],
+      "pins": {
+        "torch": "2.11.0+cu130",
+        "isaacsim": "6.2.0.0",
+        "newton": "1.7.0",
+        "warp-lang": "1.18.0",
+        "mujoco": "3.15.0",
+        "mujoco-warp": "3.15.0",
+        "numpy": "2.3.5"
+      },
+      "dependency_overrides": [
+        {
+          "package": "mujoco-usd-converter",
+          "version": "0.6.1",
+          "requirement": "mujoco<3.13,>=3.12.0",
+          "installed": "3.15.0",
+          "reason": "Retain the converter with the project's validated Newton 1.7 / MuJoCo 3.15 overlay."
+        },
+        {
+          "package": "isaacsim-core",
+          "version": "6.2.0.0",
+          "requirement": "mujoco==3.12.0",
+          "installed": "3.15.0",
+          "reason": "Project Newton 1.7 compatibility overlay."
+        },
+        {
+          "package": "isaacsim-core",
+          "version": "6.2.0.0",
+          "requirement": "mujoco-warp==3.12.0",
+          "installed": "3.15.0",
+          "reason": "Project Newton 1.7 compatibility overlay."
+        },
+        {
+          "package": "isaacsim-core",
+          "version": "6.2.0.0",
+          "requirement": "newton[sim]==1.6.1",
+          "installed": "1.7.0",
+          "reason": "Project pinned Newton release; native contact and collision compatibility guards remain active."
+        },
+        {
+          "package": "isaacsim-core",
+          "version": "6.2.0.0",
+          "requirement": "fsspec==2026.2.0",
+          "installed": "2026.6.0",
+          "reason": "Official Isaac Lab GA override required by Torch 2.11."
+        },
+        {
+          "package": "isaacsim-kernel",
+          "version": "6.2.0.0",
+          "requirement": "numpy==2.3.1",
+          "installed": "2.3.5",
+          "reason": "Official GA permits NumPy >=2; retain the validated project pin 2.3.5."
+        },
+        {
+          "package": "isaacsim-kernel",
+          "version": "6.2.0.0",
+          "requirement": "urllib3==2.7.0",
+          "installed": "2.8.0",
+          "reason": "Official Isaac Lab GA security override."
+        }
+      ],
+      "provider_substitutions": [
+        {
+          "package": "holosoma",
+          "version": "0.0.1",
+          "requirement": "onnxruntime",
+          "provider": "onnxruntime-gpu",
+          "provider_version": "1.26.0",
+          "module": "onnxruntime",
+          "reason": "Use Isaac Sim's required GPU provider for the shared ONNX Python API; do not co-install conflicting CPU/GPU provider files."
+        },
+        {
+          "package": "holosoma",
+          "version": "0.0.1",
+          "requirement": "opencv-python",
+          "provider": "opencv-python-headless-noffmpeg",
+          "provider_version": "4.14.0.94rc3",
+          "module": "cv2",
+          "reason": "Use Isaac Sim's pinned OpenCV API provider; normal OpenCV wheels overwrite the same cv2 binary and must not co-install."
+        }
+      ],
+      "bootstrap_requirements": [
+        "pip==26.2.2",
+        "setuptools==81.0.0",
+        "wheel==0.45.1",
+        "packaging==26.0"
+      ]
+    }
+  }
+}

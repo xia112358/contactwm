@@ -1,0 +1,20 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+node_modules/
+playwright-report/
+test-results/
+build/
+dist/
+*.egg-info/
+
+# Local runtime data and generated motion/contact artifacts.
+data/
+!data/.gitkeep
+
+# Local logs or scratch files.
+*.log
+tmp/

@@ -1,0 +1,55 @@
+{
+  "schema": "somaforge_main_generator_inputs_v1",
+  "id": "predictor.v1_latest.main_20261022",
+  "parent_baseline": {
+    "path": "baselines/predictor_v1_latest_20261010/baseline.json",
+    "sha256": "92580fef62a8a12d3a46922f7132bbcdd20d1e6cda8393b9667accf9f22f5dac"
+  },
+  "checkpoint": {
+    "path": "runtime/current/models/generator/v1_shared_interval_scratch1100_20261009/step_1000.pt",
+    "sha256": "b50df5dc0271717dc592875289fd54c93b0502073f5b61781a21ccc860ff1a8b",
+    "schema": "full1000_position_predictor_v1",
+    "step": 1000,
+    "selection": "latest saved immutable checkpoint",
+    "optimizer_in_checkpoint": false
+  },
+  "dependencies": {
+    "query_checkpoint": {
+      "path": "runtime/current/holosoma/logs/WholeBodyTracking/20260727_085520-g1_29dof_wbt_single_climb00_completionema_horizon50_ncon160_from4k_to10k-locomotion/model_06000.pt",
+      "sha256": "9d8470b07859ecc5d4f53f4ce2b741beb9cb6c3ec258a9e094a3d67213491824"
+    },
+    "query_source_manifest": {
+      "path": "runtime/current/motions/climb00_contact_dataset/versions/loaded_material_rebuild_20261003/edits207_joint_v12/scenes/0e21fa0c89cb673d/manifest.json",
+      "sha256": "48e33b3e5cfd41e768150764c1099a84de2f1dd1e165c76bc8aa0f29fa4de64f"
+    },
+    "query_source_model": {
+      "path": "runtime/current/motions/climb00_contact_dataset/versions/loaded_material_rebuild_20261003/edits207_joint_v12/scenes/0e21fa0c89cb673d/model.json",
+      "sha256": "e3285f25b2ccb753c7e22af6b628b4882abd4a6eb6b4383c7233441491eafa3f"
+    },
+    "manifest": {
+      "path": "runtime/current/motions/climb00_contact_dataset/training/predictor_main_20261022/manifest.json",
+      "sha256": "e8629595041efada1e057f43707e02091fbf34fa8b72207620f715a4b68b829d"
+    },
+    "data_cache": {
+      "path": "runtime/current/motions/climb00_contact_dataset/training/predictor_main_20261022/data.pt",
+      "sha256": "63f4b3a111311ad1ca43755b4128f3169e19278e93fe8b933298387557d60b19"
+    },
+    "q_cache": {
+      "path": "runtime/current/motions/climb00_contact_dataset/training/predictor_main_20261022/q_cache_64.npz",
+      "sha256": "050a940d437a3e90ce49f38a722c7ce7b09c690edb8a51722dd617d92198f0d3"
+    }
+  },
+  "newton_runtime": {
+    "runtime_id": "newton-1.7.0+7e75abe28b8d69522bc0b34837aaed2c303dff5a",
+    "version": "1.7.0",
+    "source_commit": "7e75abe28b8d69522bc0b34837aaed2c303dff5a",
+    "module": "/home/xiaz/somaforge/runtime/environments/conda/somaforge/lib/python3.12/site-packages/newton/__init__.py",
+    "newton": "1.7.0",
+    "warp-lang": "1.18.0",
+    "mujoco": "3.15.0",
+    "mujoco-warp": "3.15.0"
+  },
+  "purpose": "Same frozen v1 weights; explicitly rebuilt current Newton observations, events and caches. Historical results remain attached to original data.",
+  "source_motions_changed": false,
+  "historical_baseline_modified": false
+}

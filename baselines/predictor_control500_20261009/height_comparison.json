@@ -1,0 +1,109 @@
+{
+  "scope": "fixed same demonstration-start endpoint inputs, own predicted intent; static Newton and complete-solid distance, not continuous recurrence",
+  "height_values_are_scales": true,
+  "statistics_include_zero_depth_samples": true,
+  "over_5mm_is_statistical_group_not_contact_definition": true,
+  "train_heights": [
+    0.95,
+    1.0,
+    1.05
+  ],
+  "validation_height": 0.9,
+  "test_height": 1.1,
+  "by_height": {
+    "0.9": {
+      "source550": {
+        "samples": 780,
+        "mean_penetration_mm": 1.1409193726565439,
+        "max_penetration_mm": 13.47954511642456,
+        "samples_over_5mm": 69
+      },
+      "control500": {
+        "samples": 780,
+        "mean_penetration_mm": 0.612088917921751,
+        "max_penetration_mm": 15.653461217880249,
+        "samples_over_5mm": 52
+      }
+    },
+    "0.95": {
+      "source550": {
+        "samples": 450,
+        "mean_penetration_mm": 0.09590935121393866,
+        "max_penetration_mm": 5.854908227920532,
+        "samples_over_5mm": 1
+      },
+      "control500": {
+        "samples": 450,
+        "mean_penetration_mm": 0.002939502398173014,
+        "max_penetration_mm": 1.3227760791778564,
+        "samples_over_5mm": 0
+      }
+    },
+    "1.0": {
+      "source550": {
+        "samples": 615,
+        "mean_penetration_mm": 0.2159708781940181,
+        "max_penetration_mm": 5.9770941734313965,
+        "samples_over_5mm": 2
+      },
+      "control500": {
+        "samples": 615,
+        "mean_penetration_mm": 0.0,
+        "max_penetration_mm": 0.0,
+        "samples_over_5mm": 0
+      }
+    },
+    "1.05": {
+      "source550": {
+        "samples": 405,
+        "mean_penetration_mm": 0.09318586016349771,
+        "max_penetration_mm": 4.690766334533691,
+        "samples_over_5mm": 0
+      },
+      "control500": {
+        "samples": 405,
+        "mean_penetration_mm": 0.0,
+        "max_penetration_mm": 0.0,
+        "samples_over_5mm": 0
+      }
+    },
+    "1.1": {
+      "source550": {
+        "samples": 855,
+        "mean_penetration_mm": 2.733322084565478,
+        "max_penetration_mm": 21.981899738311768,
+        "samples_over_5mm": 169
+      },
+      "control500": {
+        "samples": 855,
+        "mean_penetration_mm": 1.6214264056683458,
+        "max_penetration_mm": 13.867452144622803,
+        "samples_over_5mm": 124
+      }
+    }
+  },
+  "test110_paired": {
+    "decreased": 249,
+    "increased": 62,
+    "unchanged": 544,
+    "initial_over5_become_under5": 49,
+    "initial_under5_become_over5": 4
+  },
+  "validation090_repeat_calibration": {
+    "source550": {
+      "samples": 780,
+      "maximum_depth_difference_mm": 0.0,
+      "mean_depth_difference_mm": 0.0
+    },
+    "control500": {
+      "samples": 780,
+      "maximum_depth_difference_mm": 0.0,
+      "mean_depth_difference_mm": 0.0
+    }
+  },
+  "limitations": [
+    "207 augmentations share one original source motion.",
+    "Combined training objectives; collision loss contribution not isolated.",
+    "Saved recursive input pool frozen during continuation."
+  ]
+}

@@ -1,0 +1,161 @@
+{
+  "schema": "somaforge_predictor_analysis_baseline_v1",
+  "id": "predictor.control500.20261009",
+  "status": "archived",
+  "designated_by_user": true,
+  "designation_date": "2026-10-09",
+  "definition": "Legacy v1 control architecture at source550 plus 500 matched constant-low-LR optimizer updates; fixed baseline for further diagnosis. Not a new scratch training recipe or production acceptance.",
+  "checkpoint": {
+    "path": "runtime/current/archives/preserved_inputs_20261010/baseline_factor_finetune_20261008/experiment/control/update_0500.pt",
+    "sha256": "95c72146267da4ed47554192243076d0e62d61bb07db98e52cc1166f52397b0b",
+    "schema": "baseline_factor_finetune_v1_20261008",
+    "variant": "control",
+    "stored_step": 550,
+    "source_step": 550,
+    "continuation_optimizer_updates": 500
+  },
+  "source_reference": {
+    "path": "runtime/current/models/generator/native_interval_scratch1100_20261007_r4/step_0550.pt",
+    "sha256": "47c22d4edca7c32b495b4fd7034a9f9f02fb000a44ced099f9a1bc9d6c3c1672",
+    "schema": "full1000_position_predictor_v1",
+    "step": 550
+  },
+  "robot_asset_json": "{\"asset_bundle_sha256\": \"30cb9ed0b83795ed8861a92e2b800357fdd1067b0986aa997e078de720233f20\", \"asset_id\": \"g1_29dof_spherehand_v1\", \"urdf_path\": \"/home/xiaz/somaforge/src/holosoma/holosoma/data/robots/g1/g1_29dof_spherehand.urdf\", \"urdf_sha256\": \"f869ea6547fd18f40558d91dfc5ad76347f73ba88351c5e7c81e98868ab60937\"}",
+  "architecture_contract": {
+    "schema": "baseline_factor_finetune_v1_20261008",
+    "variant": "control",
+    "width": 192,
+    "source_architecture": "full1000_position_predictor_v1",
+    "source_step": 550,
+    "canonical_physics_unchanged": true,
+    "initial_function_preserved": true,
+    "observation_token_count": 7,
+    "intent_token_count": 0,
+    "target_conditioned_dense_terrain": true,
+    "readout": "legacy root+part mean",
+    "clipping": "legacy planner/executor/shared",
+    "scope": "single-factor v1 descendant; not a complete v2 recreation"
+  },
+  "checkpoint_loader": {
+    "path": "runtime/current/archives/preserved_inputs_20261010/baseline_factor_finetune_20261008/models.py",
+    "function": "load",
+    "sha256": "67290e360065335460a31c839679239b4fed4fb782bea6d1f8a819cff5fc3e63",
+    "note": "Checkpoint uses explicit factor-experiment schema. Do not silently treat its stored step550 as an unmodified source550 checkpoint."
+  },
+  "training_config": "baselines/predictor_control500_20261009/training_config.json",
+  "training": {
+    "learning_rate": 1e-05,
+    "constant_learning_rate": true,
+    "optimizer_state": "matched source550 Adam state inherited",
+    "updates": 500,
+    "update_unit": "one minibatch optimizer update, not reporting interval",
+    "train_samples": 1470,
+    "train_heights": [
+      0.95,
+      1.0,
+      1.05
+    ],
+    "batch_source_counts": {
+      "demonstration": 270,
+      "saved_pool": 230
+    },
+    "pool_commits": 0,
+    "teacher_q_or_qp": false,
+    "material_bank": {
+      "path": "runtime/current/archives/preserved_inputs_20261010/baseline_factor_finetune_20261008/experiment/common_material_bank.pt",
+      "sha256": "770971cd11894b62bd706806d87e1484b94e5ec96fbb879afaaca526aafc1935"
+    }
+  },
+  "data": {
+    "manifest": {
+      "path": "runtime/current/motions/climb00_contact_dataset/training/predictor_loaded_material207_joint_v12_20261004/manifest.json",
+      "sha256": "c58a8ba027458a95d5b5385eac44fd80128cc0990e0a5c16ff0efe7b6eed0339"
+    },
+    "data_cache": {
+      "path": "runtime/current/motions/climb00_contact_dataset/training/predictor_loaded_material207_joint_v12_20261004/data.pt",
+      "sha256": "aac4bd5106462c8275936c4d099d448cf23c479619fc319dfcf0ad139edc4233"
+    },
+    "q_cache": {
+      "path": "runtime/current/motions/climb00_contact_dataset/training/predictor_loaded_material207_joint_v12_20261004/q_cache_64.npz",
+      "sha256": "95553c106bacf8eb4e0a7ca25ba345d3483da9a19a1cd5a922cd29b739f9912b"
+    }
+  },
+  "physics_query": {
+    "query_checkpoint": {
+      "path": "runtime/current/holosoma/logs/WholeBodyTracking/20260727_085520-g1_29dof_wbt_single_climb00_completionema_horizon50_ncon160_from4k_to10k-locomotion/model_06000.pt",
+      "sha256": "9d8470b07859ecc5d4f53f4ce2b741beb9cb6c3ec258a9e094a3d67213491824"
+    },
+    "query_source_manifest": {
+      "path": "runtime/current/motions/climb00_contact_dataset/versions/loaded_material_rebuild_20261003/edits207_joint_v12/scenes/0e21fa0c89cb673d/manifest.json",
+      "sha256": "48e33b3e5cfd41e768150764c1099a84de2f1dd1e165c76bc8aa0f29fa4de64f"
+    },
+    "query_source_model": {
+      "path": "runtime/current/motions/climb00_contact_dataset/versions/loaded_material_rebuild_20261003/edits207_joint_v12/scenes/0e21fa0c89cb673d/model.json",
+      "sha256": "e3285f25b2ccb753c7e22af6b628b4882abd4a6eb6b4383c7233441491eafa3f"
+    }
+  },
+  "contact_truth": "Actual Newton/MJWarp CONSTRAINT activation, dist<actual includemargin, allocation checked; actual primary horizontal upward face selection. Distance is diagnosis/optimization, not contact truth.",
+  "penetration_metric": "max(actual Newton full-body depth, raw complete-solid GJK/EPA depth); activation overlap is not penetration.",
+  "architecture_decision": "baselines/predictor_control500_20261009/architecture_decision.json",
+  "height_comparison": "baselines/predictor_control500_20261009/height_comparison.json",
+  "evidence": [
+    {
+      "path": "runtime/current/archives/preserved_inputs_20261010/baseline_factor_finetune_20261008/experiment/report.json",
+      "sha256": "0cc93aa93b1d6c4c24f06996d7a0304d8d2584746a15cd81a6c43e07203f5ce3",
+      "original_sha256": "c41f7d1cc3664187cdd97343b3d8eb149f8acab9328790ce172cdec2883f7d12"
+    },
+    {
+      "path": "runtime/current/archives/preserved_inputs_20261010/baseline_characteristics_20261009/height_generalization_audit/report.json",
+      "sha256": "785108021128bb297a585519097b1310468f728080bc46eee2894f519a9e388f",
+      "original_sha256": "8ef782ca41a33a992064d8d6c3141828e710a7aedccf0d852634d6d763eb376e"
+    },
+    {
+      "path": "runtime/current/archives/preserved_inputs_20261010/baseline_height110_20261009/report.json",
+      "sha256": "dad7102e6b748367a06651d9844edf012e6278a6a02d0d40aa872aba441bb7d4",
+      "original_sha256": "bb2f2a5ba067c70f138a1c5f0d206316163545c3a8fe69f8edfe074741fa4d79"
+    },
+    {
+      "path": "runtime/current/archives/preserved_inputs_20261010/baseline_factor_finetune_20261008/experiment/objective_verification.json",
+      "sha256": "c405d4f723ef80062ed865eb32e2f103acbc35243eae86ff86e864032b03f0d9",
+      "original_sha256": "13aaf56285931f1b756b888e78655ed30895704257a9ae516fc3e501b9cd52af"
+    },
+    {
+      "path": "runtime/current/archives/preserved_inputs_20261010/baseline_factor_finetune_20261008/source_hashes.json",
+      "sha256": "a8a0253d34740e1a86a837c4b0ff92034e1930fc6eccaf72793bc4739b469098",
+      "original_sha256": "a9490b77a965adadd2f91454c8e9fd2489a91741b77ba97b15e0ab13a298ba07"
+    },
+    {
+      "path": "runtime/current/archives/preserved_inputs_20261010/baseline_control500_mechanism_20261009/report.json",
+      "sha256": "23ccea3ed50ab0b70b15c526d345bb3d14fe8237c9de673928632802260d2393",
+      "original_sha256": "3fe5c827982258ed0d19750e34a4af332ba0caee7f2bbf44ecc411130caccc99"
+    },
+    {
+      "path": "runtime/current/archives/preserved_inputs_20261010/baseline_control500_mechanism_20261009/reference_pose_comparison.json",
+      "sha256": "c48ecdcfdc6965614727bf60d65def0b789e0182ea3629c07c256f22d00a1703",
+      "original_sha256": "f97e373d6d19c5cd86ec1aeddddc820211c4518ba87e3c9bbbd837b72f361da7"
+    },
+    {
+      "path": "runtime/current/archives/preserved_inputs_20261010/baseline_height110_20261009/solid_link_attribution.json",
+      "sha256": "5180e15cb609cd9e897a2b8ac6f2d59779589885b1711565a156c90941d19974",
+      "original_sha256": "f5063f9a2da54433a9d08722c973e784123b53bb49806bc2a5464e77bcbf938b"
+    }
+  ],
+  "remaining_analysis": [
+    "Why some endpoint states improve while others regress under the same update stream.",
+    "Whether whole-body clearance improvements move the deepest penetration between hands and feet.",
+    "Separate root translation, root orientation and joint contributions using frozen-pose geometry diagnostics."
+  ],
+  "training_default_changed": false,
+  "training_started": false,
+  "deletions": false,
+  "mechanism_analysis": "baselines/predictor_control500_20261009/analysis.md",
+  "archive": {
+    "date": "2026-10-10",
+    "method": "in_place",
+    "previous_status": "current_analysis_baseline",
+    "superseded_by": "predictor.v1_latest.20261010",
+    "record": "baselines/predictor_v1_latest_20261010/baseline.json",
+    "reason": "User designated latest v1 recipe and step1000 checkpoint as current baseline; preserve historical evidence",
+    "weights_data_and_source_snapshots_preserved": true
+  }
+}

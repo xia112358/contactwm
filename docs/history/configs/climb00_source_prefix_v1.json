@@ -1,0 +1,8 @@
+{
+  "schema": "source_prefix_reference_v1",
+  "hold_frames": 104,
+  "transition_end_frame": 142,
+  "surface_transform_id": "ground_heading",
+  "joint_prior_scale": 100.0,
+  "semantic_weight": 10000.0
+}

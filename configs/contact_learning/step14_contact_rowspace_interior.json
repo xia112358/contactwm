@@ -1,0 +1,97 @@
+{
+  "schema": "constraint_learning_case_v1",
+  "context_id": "baseline1000-step14-top-contact-v1",
+  "distance_scale_m": 0.01,
+  "angle_scale_rad": 0.1,
+  "prior_weight": 0.001,
+  "root_relative_cost": 1000,
+  "rho": 1,
+  "dual_update_every": 10,
+  "steps": 480,
+  "learning_rate": 1e-07,
+  "contacts": [
+    {
+      "id": "new_left_foot",
+      "link": "left_ankle_roll_link",
+      "mode": "establish",
+      "surface": "terrain_top",
+      "max_gap_margin_fraction": 0.9,
+      "align_local_normal": [
+        0,
+        0,
+        -1
+      ],
+      "coverage": true,
+      "surface_id": 1
+    },
+    {
+      "id": "keep_left_hand",
+      "link": "left_sphere_hand_link",
+      "mode": "keep",
+      "surface": "terrain_top",
+      "max_gap_margin_fraction": 0.9,
+      "keep_tangent": true,
+      "surface_id": 1
+    },
+    {
+      "id": "keep_left_knee",
+      "link": "left_knee_link",
+      "mode": "keep",
+      "surface": "terrain_top",
+      "max_gap_margin_fraction": 0.9,
+      "keep_tangent": true,
+      "surface_id": 1
+    }
+  ],
+  "cases": [
+    {
+      "id": "nominal",
+      "input_root_offset": [
+        0,
+        0,
+        0
+      ],
+      "input_joint_offsets": {}
+    }
+  ],
+  "filter_rules": [
+    {
+      "prefix": "contact/keep_",
+      "tolerance": 0.05
+    },
+    {
+      "prefix": "joint_limits/",
+      "tolerance": 1e-05
+    },
+    {
+      "prefix": "collision/",
+      "tolerance": 0.1
+    },
+    {
+      "prefix": "contact/keep_left_hand/upper_gap",
+      "tolerance": 0.0
+    },
+    {
+      "prefix": "contact/keep_left_knee/upper_gap",
+      "tolerance": 0.0
+    }
+  ],
+  "filter_methods": [
+    "protected_dual_restore"
+  ],
+  "max_blocked_dual_updates": 12,
+  "direction_methods": [
+    "network_projected"
+  ],
+  "active_slack_fraction": 0.2,
+  "interior_reserve_fraction": 0.1,
+  "contact_semantics": "solver_activation_with_penetration_v1",
+  "activation_numerical_reserve_m": 1e-06,
+  "zero_tolerance_activation_slack": 0.05,
+  "acceptance_geometry_residuals": true,
+  "projection_algorithm": "rowspace",
+  "require_converged_projection": true,
+  "network_float64": true,
+  "relax_infeasible_reserve": true,
+  "zero_tolerance_interior_reserve": true
+}

@@ -1,0 +1,8 @@
+{
+  "asset_bundle_sha256": "30cb9ed0b83795ed8861a92e2b800357fdd1067b0986aa997e078de720233f20",
+  "asset_id": "g1_29dof_spherehand_v1",
+  "urdf_path": "/home/zhouxia/workspace/somaforge/src/holosoma/holosoma/data/robots/g1/g1_29dof_spherehand.urdf",
+  "urdf_sha256": "f869ea6547fd18f40558d91dfc5ad76347f73ba88351c5e7c81e98868ab60937",
+  "usd_bundle_sha256": "2df7b7c6ea4a906c81f5bbee91ea49f7df77622089b676516856fb0cea2c010a",
+  "usd_path": "/home/zhouxia/workspace/somaforge/src/holosoma/holosoma/data/robots/converted_rank0/g1_29dof_spherehand/g1_29dof_spherehand.usda"
+}

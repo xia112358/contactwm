@@ -1,0 +1,41 @@
+{
+  "baseline_id": "climb00_direct_infiller_v1",
+  "definition": "Training recipe, architecture and evaluation protocol; not a checkpoint",
+  "training": {
+    "corpus": "runtime/current/archives/preserved_inputs_20261010/contact_shared_full_v1/corpus.pt",
+    "output": "runtime/current/models/direct_infiller_reproduction",
+    "epochs": 4000,
+    "frame_budget": 8192,
+    "maximum_batch_size": 512,
+    "learning_rate": 0.001,
+    "evaluation_every": 50,
+    "seed": 20260908,
+    "benchmark_only": false,
+    "resume": null,
+    "wall_time_seconds": 7800.0,
+    "cache_batches": true,
+    "benchmark_full_epoch": false,
+    "direct_infiller": true,
+    "smoothness_limits_file": "configs/climb00/direct_infiller_v1.json"
+  },
+  "smoothness_limits": {
+    "root_d1_peak": 0.008684218358248473,
+    "root_d1_rms": 0.006244444800540805,
+    "root_d2_peak": 0.005099999886006117,
+    "root_d2_rms": 0.0027570064226165414,
+    "root_d3_peak": 0.005716688269749284,
+    "root_d3_rms": 0.0027658642223104836,
+    "joint_d1_peak": 0.15084369778633117,
+    "joint_d1_rms": 0.11546011045575143,
+    "joint_d2_peak": 0.026277687549591065,
+    "joint_d2_rms": 0.0165996752679348,
+    "joint_d3_peak": 0.02641744405031204,
+    "joint_d3_rms": 0.014083987958729267,
+    "rotation_matrix_d1_peak": 0.0543568280339241,
+    "rotation_matrix_d1_rms": 0.03842236027121544,
+    "rotation_matrix_d2_peak": 0.027786905765533446,
+    "rotation_matrix_d2_rms": 0.016358631402254104,
+    "rotation_matrix_d3_peak": 0.02907910242676735,
+    "rotation_matrix_d3_rms": 0.015672636162489654
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "schema": "somaforge_augmentation_refinement_v1",
+  "plan_manifest": "runtime/current/motions/climb00_contact_dataset/versions/source_prefix_standard_20261014/edits207_joint_v14/manifest.json",
+  "catalog_collection": "runtime/current/motions/climb00_contact_dataset/versions/loaded_material_rebuild_20261003/edits207_joint_v12/index.json",
+  "generation": {
+    "output_dir": "runtime/current/motions/climb00_contact_dataset/versions/source_prefix_standard_20261014/edits207_joint_v14/motions",
+    "ik_max_nfev": 25,
+    "ik_q_acceleration_weight": 8,
+    "workers": 3,
+    "threads_per_worker": 4,
+    "device": "cuda:0",
+    "collision_reference_cache": "runtime/current/motions/climb00_contact_dataset/versions/loaded_material_rebuild_20261003/edits207_joint_v12/source/collision_reference_0.npz"
+  },
+  "refinement": {
+    "schema": "somaforge_trajectory_refinement_v1",
+    "base_checkpoint": "runtime/current/rollout/trajectory_refinement/climb00_joint_v12/training/ed76bd19beed4746be1ed4d658e5d6fa/models/TrajectoryRefinement/20261013_062727-joint-locomotion/model_08800.pt",
+    "output_dir": "runtime/current/rollout/trajectory_refinement/climb00_source_prefix_v14_finetune_r2",
+    "train": {"num_envs": 2048, "iterations": 3000, "save_interval": 100, "full_checkpoints": false},
+    "evaluation": {"attempts": 3, "min_success_rate": 1.0, "seed": 4100, "initial_pose_noise": 0.0},
+    "collection": {"attempts": 10, "seed": 5100, "initial_pose_noise": 0.0},
+    "task": {
+      "kind": "contact_events",
+      "contract": "runtime/current/motions/climb00_contact_dataset/versions/loaded_material_rebuild_20261003/edits207_joint_v12/source/event_contract.json",
+      "max_abnormal_contacts": 0
+    }
+  },
+  "gpu": {"index": 0, "min_free_mib": 6144, "poll_seconds": 30}
+}

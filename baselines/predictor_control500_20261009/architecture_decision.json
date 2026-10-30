@@ -1,0 +1,74 @@
+{
+  "schema": "predictor_architecture_experiment_decision_v1",
+  "date": "2026-10-09",
+  "status": "failed_not_adopted",
+  "experiment": "Full structured v2 architecture replacement: separate planner/executor encoders, distinct current-observation and intent tokens, per-output readout",
+  "reason": "Whole replacement worsened measured raw recursion; independent-encoder single-factor continuation did not improve on the legacy control. The experiment is rejected as the current baseline replacement.",
+  "raw30_step250_comparison": {
+    "old_rollout": {
+      "report": {
+        "path": "runtime/current/archives/preserved_inputs_20261010/architecture250_motion8_comparison_20261008/old_rollout/report.json",
+        "sha256": "9be996f1c7739f859568fc26bcf9666e839886e50bf551eab53f3bad5aab18ea"
+      },
+      "checkpoint": "/home/xiaz/somaforge/runtime/current/models/generator/native_interval_scratch1100_20261007_r4/step_0250.pt",
+      "checkpoint_step": 250,
+      "successful_prefix": 3,
+      "demonstrated_events": 15,
+      "demonstrated_max_penetration_mm": 26.993061697817176,
+      "all30_max_penetration_mm": 26.993061697817176,
+      "all30_mean_penetration_mm": 7.375594875843023
+    },
+    "new_rollout": {
+      "report": {
+        "path": "runtime/current/archives/preserved_inputs_20261010/architecture250_motion8_comparison_20261008/new_rollout/report.json",
+        "sha256": "84ef6a5909bb482fed634956898ecf6be8cc2e2f9578f2e4518030c5e45d5c57"
+      },
+      "checkpoint": "/home/xiaz/somaforge/runtime/current/models/generator/structured_tokens_scratch500_20261008/step_0250.pt",
+      "checkpoint_step": 250,
+      "successful_prefix": 1,
+      "demonstrated_events": 15,
+      "demonstrated_max_penetration_mm": 27.458426707145357,
+      "all30_max_penetration_mm": 151.7790167899316,
+      "all30_mean_penetration_mm": 26.47804775246996
+    }
+  },
+  "single_factor_validation090": [
+    {
+      "variant": "control",
+      "updates": 0,
+      "samples": 780,
+      "contact_and_safety_acceptance": 0.6487179487179487,
+      "mean_penetration_mm": 1.1409193726565439
+    },
+    {
+      "variant": "independent_encoder",
+      "updates": 0,
+      "samples": 780,
+      "contact_and_safety_acceptance": 0.6487179487179487,
+      "mean_penetration_mm": 1.1409193726565439
+    },
+    {
+      "variant": "control",
+      "updates": 500,
+      "samples": 780,
+      "contact_and_safety_acceptance": 0.7230769230769231,
+      "mean_penetration_mm": 0.612088917921751
+    },
+    {
+      "variant": "independent_encoder",
+      "updates": 500,
+      "samples": 780,
+      "contact_and_safety_acceptance": 0.6512820512820513,
+      "mean_penetration_mm": 0.6829767655103635
+    }
+  ],
+  "limits": [
+    "The full v2 change altered multiple factors; the unique cause of regression is unresolved.",
+    "Single-factor token/readout branches remain diagnostic evidence; this decision does not label every architectural idea intrinsically invalid.",
+    "Raw30 continues after failures and includes 15 post-demonstration steps. Prefix and penetration are separate statistics; no executed support/slip validation."
+  ],
+  "selected_analysis_baseline": "predictor.control500.20261009",
+  "source_reference": "source550",
+  "training_default_changed": false,
+  "experiment_records_removed": false
+}

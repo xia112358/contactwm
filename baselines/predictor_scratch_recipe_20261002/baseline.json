@@ -1,0 +1,201 @@
+{
+  "schema": "somaforge_predictor_training_recipe_v1",
+  "id": "predictor.scratch_recipe.20261002",
+  "status": "archived",
+  "definition": "From-scratch training recipe, not a designated checkpoint or inherited weight source",
+  "robot_asset_id": "robot.g1.spherehand",
+  "robot_asset_json": "{\"asset_bundle_sha256\": \"30cb9ed0b83795ed8861a92e2b800357fdd1067b0986aa997e078de720233f20\", \"asset_id\": \"g1_29dof_spherehand_v1\", \"urdf_path\": \"/home/xiaz/somaforge/src/holosoma/holosoma/data/robots/g1/g1_29dof_spherehand.urdf\", \"urdf_sha256\": \"f869ea6547fd18f40558d91dfc5ad76347f73ba88351c5e7c81e98868ab60937\"}",
+  "configuration": "baselines/predictor_scratch_recipe_20261002/training_config.json",
+  "reproduction_command": "baselines/predictor_scratch_recipe_20261002/reproduction_command.json",
+  "training_run_configuration": "baselines/predictor_scratch_recipe_20261002/training_run_config.json",
+  "course": {
+    "initialization": "scratch",
+    "predictor_checkpoints_loaded": [],
+    "optimizer_resumed": false,
+    "seed": 20260917,
+    "reference_warmup_intervals": 100,
+    "feedback_intervals": 1000,
+    "total_reporting_intervals": 1100,
+    "scheduler_intervals": 1100,
+    "reference_warmup": "One shuffled traversal of all1470 training rows per interval; supervised endpoint targets and visible teacher role/contact/cell plans; predicted region head supervised",
+    "feedback_begins_at_interval": 101,
+    "teacher_plan_probability": "For interval s>100: clamp((800-s)/500,0,1); mask out plans whose required heightmap cells are invisible",
+    "teacher_probability_one_through_interval": 300,
+    "teacher_probability_zero_from_interval": 800,
+    "teacher_conditioning": "Plan only; future demonstrated q is a loss target, not predictor forward input or generated-state feedback",
+    "optimizer_and_scheduler_restart_at_transition": false,
+    "initial_statistics": "Joint output bias = mean training joint targets; region prior = log(training counts+1); no validation/test rows in either statistic"
+  },
+  "architecture_and_optimizer": {
+    "model": "generator.full1000_position_predictor.Full1000PositionPredictor",
+    "width": 192,
+    "layers": 3,
+    "location_width": 32,
+    "batch_size": 128,
+    "learning_rate": 0.0003,
+    "event_roles": true,
+    "region_plan": true,
+    "unified_contact": true,
+    "execution_plan_gradients": false,
+    "execution_observation_gradients": true,
+    "execution_only": false,
+    "body_geometry": false,
+    "part_geometry": false,
+    "configuration_is_authoritative": true
+  },
+  "feedback_contract": {
+    "parallel_pool_size": 128,
+    "updates_per_feedback_interval": 10,
+    "generated_input": "Exact raw predicted q committed only after existing endpoint acceptance",
+    "failed_prediction": "Output contributes loss; preserve the complete pre-prediction input and target for retry",
+    "resampling": "From training rows only, on demonstrated chain completion or after64 prediction attempts per slot",
+    "attempts_count": "Every prediction, including failures; persistent across reporting intervals",
+    "teacher_q_feedback": false,
+    "allowed_successors": "Training rows only",
+    "post_demo_training": false,
+    "cross_step_gradient": false,
+    "expected_training_predictions": 1427000,
+    "expected_optimizer_updates": 11200
+  },
+  "data": {
+    "training_rows": 1470,
+    "validation_rows": 780,
+    "test_rows": 855,
+    "split_rule": "train heights0.95/1.00/1.05; validation0.90; test1.10; nonoverlapping row indices",
+    "source_scope": "207 augmentations of one original climb00 source; source-motion independence not established",
+    "external_dependencies": {
+      "manifest": {
+        "path": "runtime/current/motions/climb00_contact_dataset/training/predictor_demo_observed207_geometry_v2_20261002/manifest.json",
+        "sha256": "712cf2ab02f31065e7366ee1b8a3ab19d83eca5e78a52b19400e7c213c2f4592"
+      },
+      "data_cache": {
+        "path": "runtime/current/motions/climb00_contact_dataset/training/predictor_demo_observed207_geometry_v2_20261002/data.pt",
+        "sha256": "ca85160fe8271bc72f16209f7a9a305f5c4d0c2859b831fc85c7eeae365c9cb1"
+      },
+      "q_cache": {
+        "path": "runtime/current/motions/climb00_contact_dataset/training/predictor_demo_observed207_geometry_v2_20261002/q_cache_64.npz",
+        "sha256": "0257a7012d84e5623ae6c19175bd6fbab181007ae644d0ba95841099c7eb06b2"
+      },
+      "query_checkpoint": {
+        "path": "runtime/current/holosoma/logs/WholeBodyTracking/20260727_085520-g1_29dof_wbt_single_climb00_completionema_horizon50_ncon160_from4k_to10k-locomotion/model_06000.pt",
+        "sha256": "9d8470b07859ecc5d4f53f4ce2b741beb9cb6c3ec258a9e094a3d67213491824"
+      },
+      "query_source_manifest": {
+        "path": "runtime/current/motions/climb00_contact_dataset/versions/native_support_edit207_20261001/scenes/0e21fa0c89cb673d/manifest.json",
+        "sha256": "d88e551c005ad2d9e2319aa2557252e9c328544510af09ffd7ef9426ba9ce9b6"
+      },
+      "query_source_model": {
+        "path": "runtime/current/motions/climb00_contact_dataset/versions/native_support_edit207_20261001/scenes/0e21fa0c89cb673d/model.json",
+        "sha256": "e3285f25b2ccb753c7e22af6b628b4882abd4a6eb6b4383c7233441491eafa3f"
+      }
+    }
+  },
+  "contact_and_evaluation_contract": {
+    "contact_truth": "Current Newton/MJWarp actual CONSTRAINT type and dist<actual includemargin; allocation checked; shared actual-primary-horizontal-face selection",
+    "raw_pairs_preserved": true,
+    "authoritative_robot_asset_required": true,
+    "query_checkpoint_role": "Loads saved physical scene/solver configuration only; no policy action inference or predictor weight inheritance",
+    "unified_contact_objective": "Existing actual gap interval and full-body safety objective unchanged",
+    "collision_aggregation": "max",
+    "require_forward_progress": false,
+    "endpoint_evaluation": "Raw self-fed predictor, fresh current contact query and heightmap; no future q, teacher plan, event index, infiller, projector or pose correction",
+    "support_load_slip_status": "unknown without an executed trajectory and measured loads",
+    "heldout_generalization": "Not established; original source shared across height splits",
+    "evaluation_every_intervals": 25
+  },
+  "observed_run": {
+    "source_run": "tmp/predictor_scratch1k_20261002",
+    "initialization_evidence": "baselines/predictor_scratch_recipe_20261002/initialization.json",
+    "optimizer_transition_audit": "baselines/predictor_scratch_recipe_20261002/transition_audit.json",
+    "completed_intervals": 1100,
+    "checkpoints_are_results_not_baseline_definition": true,
+    "step925_example": {
+      "checkpoint": {
+        "path": "runtime/current/models/generator/scratch925_20261002/step_0925.pt",
+        "sha256": "c5ab3bcc5a8447b4ae77410630ffe17f879f06e11a3525f11835e28b20b9bc12",
+        "step": 925,
+        "schema": "full1000_position_predictor_v1",
+        "optimizer_state_available": false
+      },
+      "validation": {
+        "root_cm": 2.671323786026392,
+        "body_cm": 3.297027010795398,
+        "joint_rmse_rad": 0.12502008645962445,
+        "plan_contact_exact": 0.8897435897435897,
+        "newton_contact_accepted": 0.8794871794871795,
+        "newton_generation_accepted": 0.7846153846153846,
+        "event_endpoint_accepted": 0.7217948717948718
+      },
+      "recursive_case": {
+        "motion_id": 4,
+        "continuous_group": 1,
+        "start_frame": 0,
+        "split": "train",
+        "training_row_indices": [
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74
+        ],
+        "successful_prefix": 5,
+        "demonstrated_events": 15,
+        "first_failed_event": 6,
+        "failure": "Left knee contact is retained while the demonstrated endpoint requires only the two hands",
+        "selection_scope": "Compared only steps725,925,1100 on this training case; no independent held-out recursive selection",
+        "stop_on_failure_report": "runtime/current/models/generator/scratch925_20261002/recursive15_report.json",
+        "diagnostic_continuation_report": "runtime/current/models/generator/scratch925_20261002/recursive30_report.json",
+        "diagnostic_predictions": 30,
+        "post_demo_predictions": 15,
+        "post_demo_reference": "Final demonstrated pose held for display; no future ground truth",
+        "rollout_inputs": [
+          "initial demonstrated pose once",
+          "raw previous predicted pose",
+          "fresh Newton current contacts and anchors",
+          "current terrain heightmap"
+        ],
+        "future_pose_input": false,
+        "teacher_plan_input": false,
+        "event_index_input": false,
+        "infiller": false,
+        "projector": false,
+        "penetration_correction": false,
+        "max_30step_terrain_penetration_mm": 4.687927197664976,
+        "support_load_slip_status": "unknown; endpoint-only evaluation without executed trajectory"
+      },
+      "role": "Historical visualization and comparison result; not required as initialization, target model or reference checkpoint for the recipe"
+    }
+  },
+  "runtime_environment": "runtime/environments/newton-main-20260914",
+  "dependency_hashes_at_promotion": "baselines/predictor_scratch_recipe_20261002/dependencies_at_promotion.json",
+  "original_launch_record": "baselines/predictor_scratch_recipe_20261002/launch.json",
+  "recipe_sources": "baselines/predictor_scratch_recipe_20261002/source_snapshot",
+  "recipe_sources_provenance": "baselines/predictor_scratch_recipe_20261002/source_cleanup.json",
+  "initialization_contract": {
+    "allowed": [
+      "scratch"
+    ],
+    "predictor_pretraining_supported": false,
+    "read_only_audit_checkpoint": "explicit audit only; exits before optimizer construction",
+    "cli_defaults_match_training_configuration": true
+  },
+  "archive": {
+    "date": "2026-10-10",
+    "method": "in_place",
+    "previous_status": "current_training_recipe_baseline",
+    "superseded_by": "predictor.v1_latest.20261010",
+    "record": "baselines/predictor_v1_latest_20261010/baseline.json",
+    "reason": "User designated latest v1 recipe and step1000 checkpoint as current baseline; preserve historical evidence",
+    "weights_data_and_source_snapshots_preserved": true
+  }
+}

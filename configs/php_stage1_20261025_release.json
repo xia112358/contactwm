@@ -1,0 +1,280 @@
+{
+  "schema": "somaforge_data_release_catalog_v1",
+  "repository": "xia112358/somaforge",
+  "tag": "php-stage1-20261025-v1",
+  "source_roots_aliases": [
+    {
+      "source": "/home/xiaz/somaforge",
+      "target": "."
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current",
+      "target": "runtime/current"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_action_segments_20261024/segments_all40_v1",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/prepared"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_continuous_20261024",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/evaluation"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_all40_v1",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/extraction"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_case0_v1/aggregated/motion_000000",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000000"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard0_v1/aggregated/motion_000001",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000001"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard0_v1/aggregated/motion_000005",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000005"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard0_v1/aggregated/motion_000009",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000009"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard0_v1/aggregated/motion_000013",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000013"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard0_v1/aggregated/motion_000017",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000017"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard0_v1/aggregated/motion_000021",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000021"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard0_v1/aggregated/motion_000025",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000025"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard0_v1/aggregated/motion_000029",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000029"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard0_v1/aggregated/motion_000033",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000033"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard0_v1/aggregated/motion_000037",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000037"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard1_v1/aggregated/motion_000002",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000002"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard1_v1/aggregated/motion_000006",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000006"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard1_v1/aggregated/motion_000010",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000010"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard1_v1/aggregated/motion_000014",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000014"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard1_v1/aggregated/motion_000018",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000018"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard1_v1/aggregated/motion_000022",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000022"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard1_v1/aggregated/motion_000026",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000026"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard1_v1/aggregated/motion_000030",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000030"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard1_v1/aggregated/motion_000034",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000034"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard1_v1/aggregated/motion_000038",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000038"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard2_v1/aggregated/motion_000003",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000003"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard2_v1/aggregated/motion_000007",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000007"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard2_v1/aggregated/motion_000011",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000011"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard2_v1/aggregated/motion_000015",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000015"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard2_v1/aggregated/motion_000019",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000019"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard2_v1/aggregated/motion_000023",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000023"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard2_v1/aggregated/motion_000027",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000027"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard2_v1/aggregated/motion_000031",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000031"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard2_v1/aggregated/motion_000035",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000035"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard2_v1/aggregated/motion_000039",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000039"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard3_v1/aggregated/motion_000004",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000004"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard3_v1/aggregated/motion_000008",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000008"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard3_v1/aggregated/motion_000012",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000012"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard3_v1/aggregated/motion_000016",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000016"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard3_v1/aggregated/motion_000020",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000020"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard3_v1/aggregated/motion_000024",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000024"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard3_v1/aggregated/motion_000028",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000028"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard3_v1/aggregated/motion_000032",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000032"
+    },
+    {
+      "source": "/home/xiaz/somaforge-data/current/holosoma/tmp/php_segment_distill_20261024/native_shard3_v1/aggregated/motion_000036",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/native/motion_000036"
+    },
+    {
+      "source": "/home/xiaz/somaforge/tmp/php_action_segments_20261024/segments_all40_v1",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/prepared"
+    },
+    {
+      "source": "/home/xiaz/somaforge/tmp/php_continuous_20261024",
+      "target": "runtime/current/motions/php_stage1_20261025_v1/evaluation"
+    }
+  ],
+  "repository_files": [],
+  "components": {
+    "php-stage1-runtime-inputs": {
+      "purpose": "Original low-climb teacher 03600, its 40-task manifest inputs, and upstream attribution",
+      "status": "existing_experimental_stage1",
+      "dependencies": [],
+      "file_count": 167,
+      "bytes": 205552305,
+      "index": {
+        "name": "php-stage1-runtime-inputs.files.json",
+        "url": "https://github.com/xia112358/somaforge/releases/download/php-stage1-20261025-v1/php-stage1-runtime-inputs.files.json",
+        "size": 64494,
+        "sha256": "7ad4ae3becfeaac4b3611d59396b9b2fa62b6ced07d1c29ff8c6d66283daaa4a"
+      },
+      "archives": [
+        {
+          "name": "php-stage1-runtime-inputs.part-001.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/php-stage1-20261025-v1/php-stage1-runtime-inputs.part-001.tar.gz",
+          "size": 133162949,
+          "sha256": "082a01c241f50d6d0961839f0c309ec9b025d9fe18fe4609889fa04832df0482"
+        }
+      ],
+      "provenance_notes": [
+        "Original bytes retained; fixed-q native contact intentions are not dynamic support certification."
+      ]
+    },
+    "php-stage1-native-references": {
+      "purpose": "40 canonical native references, native point-pair labels, 775 action segments and provenance",
+      "status": "existing_experimental_stage1",
+      "dependencies": [
+        "php-stage1-runtime-inputs"
+      ],
+      "file_count": 244,
+      "bytes": 1713910652,
+      "index": {
+        "name": "php-stage1-native-references.files.json",
+        "url": "https://github.com/xia112358/somaforge/releases/download/php-stage1-20261025-v1/php-stage1-native-references.files.json",
+        "size": 92304,
+        "sha256": "0694ecb1cbb3ccf66d6d6cbd26d0f8d7f4745308ccc3532ec2352d4af854238c"
+      },
+      "archives": [
+        {
+          "name": "php-stage1-native-references.part-001.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/php-stage1-20261025-v1/php-stage1-native-references.part-001.tar.gz",
+          "size": 34171458,
+          "sha256": "fd2c0214d4258519cafb36ddcf06ac1657a5d2033b989ef79c2c173bd7b34064"
+        },
+        {
+          "name": "php-stage1-native-references.part-002.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/php-stage1-20261025-v1/php-stage1-native-references.part-002.tar.gz",
+          "size": 279956296,
+          "sha256": "dff3c9b54461112bcf8316cc93a73d3a79502b60dbf4b1dfef31ea5e018e03dc"
+        }
+      ],
+      "provenance_notes": [
+        "Original bytes retained; fixed-q native contact intentions are not dynamic support certification."
+      ]
+    },
+    "php-stage1-checkpoint": {
+      "purpose": "Unmodified student 07000 checkpoint, native configuration and 40-task evaluation reports",
+      "status": "existing_experimental_stage1",
+      "dependencies": [
+        "php-stage1-native-references"
+      ],
+      "file_count": 7,
+      "bytes": 16558309,
+      "index": {
+        "name": "php-stage1-checkpoint.files.json",
+        "url": "https://github.com/xia112358/somaforge/releases/download/php-stage1-20261025-v1/php-stage1-checkpoint.files.json",
+        "size": 3053,
+        "sha256": "3378bd01a4f0f2182bf45f3e66dbaf1fca0a4ab33e02d344b57ee9628f7228ef"
+      },
+      "archives": [
+        {
+          "name": "php-stage1-checkpoint.part-001.tar.gz",
+          "url": "https://github.com/xia112358/somaforge/releases/download/php-stage1-20261025-v1/php-stage1-checkpoint.part-001.tar.gz",
+          "size": 9496733,
+          "sha256": "bcd134e57a2734f6c57a70e736e4a54d4be9bc3225884582fee4adf7dac5309a"
+        }
+      ],
+      "provenance_notes": [
+        "Original bytes retained; fixed-q native contact intentions are not dynamic support certification."
+      ]
+    }
+  }
+}

@@ -1,0 +1,246 @@
+{
+  "schema": "somaforge_asset_manifest_v1",
+  "root": "..",
+  "external_roots": [
+    "runtime/current",
+    "runtime/supermimic",
+    "runtime/stage2"
+  ],
+  "assets": [
+    {
+      "id": "robot.g1.spherehand",
+      "kind": "robot",
+      "status": "verified",
+      "files": {
+        "urdf": "src/holosoma/holosoma/data/robots/g1/g1_29dof_spherehand.urdf",
+        "usd": "src/holosoma/holosoma/data/robots/converted_rank0/g1_29dof_spherehand/g1_29dof_spherehand.usda"
+      },
+      "sha256": {
+        "urdf": "f869ea6547fd18f40558d91dfc5ad76347f73ba88351c5e7c81e98868ab60937",
+        "usd": "c976fc12cde03efcdbc1d838f455e63478e4e11c04f2e3f96141ff7f35072e57"
+      },
+      "metadata": {
+        "asset_bundle_sha256": "30cb9ed0b83795ed8861a92e2b800357fdd1067b0986aa997e078de720233f20",
+        "usd_bundle_sha256": "2df7b7c6ea4a906c81f5bbee91ea49f7df77622089b676516856fb0cea2c010a",
+        "generator": "scripts/convert_g1_spherehand_usd.py"
+      }
+    },
+    {
+      "id": "robot.g1.surface_v2",
+      "kind": "robot",
+      "status": "verified",
+      "files": {
+        "urdf": "src/holosoma/holosoma/data/robots/g1/g1_29dof_spherehand.urdf",
+        "usd": "assets/g1_surface_v2_usd/g1_29dof_surface_v2.usda"
+      },
+      "sha256": {
+        "urdf": "f869ea6547fd18f40558d91dfc5ad76347f73ba88351c5e7c81e98868ab60937",
+        "usd": "a288f117aa838134eea219bbb88ae422b574b948a180886b8f371073d58f3893"
+      },
+      "metadata": {
+        "collision_profile": "surface_v2",
+        "collision_profile_sha256": "bbfc6dcf245a3ee2fafd4bf5292156d9a38f909827fcea9dfaee4ef7cb1d10f1",
+        "base_usd_bundle_sha256": "2df7b7c6ea4a906c81f5bbee91ea49f7df77622089b676516856fb0cea2c010a",
+        "usd_bundle_sha256": "bd218416d437f9f7ae3a5881125b59006fc888398e1ca6cb43f4dffdd1eea6f4",
+        "generator": "somaforge_core.collision_profiles.generate_surface_usd",
+        "checker": "scripts/check_g1_surface_colliders.py",
+        "colliders": {
+          "mesh": 29,
+          "sphere": 0,
+          "cylinder": 4
+        }
+      }
+    },
+    {
+      "id": "terrain.climb.cache",
+      "kind": "terrain",
+      "status": "verified",
+      "files": {
+        "root": "configs/motion_matched/terrain_obj_cache"
+      },
+      "metadata": {
+        "format": "obj",
+        "variants": "climb_*/multi_boxes_z_scale_1.0.obj"
+      }
+    },
+    {
+      "id": "motion.current",
+      "kind": "motion",
+      "status": "verified",
+      "files": {
+        "root": "runtime/current/motions"
+      },
+      "metadata": {
+        "manifest_required": true,
+        "robot_asset_required": "robot.g1.spherehand",
+        "allow_missing": true
+      }
+    },
+    {
+      "id": "models.current",
+      "kind": "model",
+      "status": "verified",
+      "files": {
+        "root": "runtime/current/models"
+      },
+      "metadata": {
+        "manifest_required": true,
+        "robot_asset_required": "robot.g1.spherehand",
+        "allow_missing": true
+      }
+    },
+    {
+      "id": "predictor.scratch_recipe.20261002",
+      "kind": "training_recipe",
+      "status": "archived",
+      "files": {
+        "baseline": "baselines/predictor_scratch_recipe_20261002/baseline.json",
+        "training_config": "baselines/predictor_scratch_recipe_20261002/training_config.json",
+        "reproduction_command": "baselines/predictor_scratch_recipe_20261002/reproduction_command.json"
+      },
+      "sha256": {
+        "baseline": "ae0b573a4603c156d8d49196dc07b755b27e5feaef70e9c3c846503bade1f11c",
+        "training_config": "07a1ede62da45ef906065f3184bf8a111a2dee449634a351aa1a207a9d035512",
+        "reproduction_command": "7770407a0321aeb94d865324e7502462a5f689685238022634d28316eeae88ca"
+      },
+      "metadata": {
+        "robot_asset_id": "robot.g1.spherehand",
+        "initialization": "scratch",
+        "reference_warmup_intervals": 100,
+        "feedback_intervals": 1000,
+        "total_intervals": 1100,
+        "inherits_predictor_checkpoint": false,
+        "purpose": "Archived historical recipe; not current defaults",
+        "superseded_by": "predictor.v1_latest.20261010"
+      }
+    },
+    {
+      "id": "dataset.climb00.contact_archive",
+      "kind": "dataset",
+      "status": "archived_quality_review_required",
+      "files": {
+        "root": "runtime/current/motions/climb00_contact_dataset",
+        "catalog": "runtime/current/motions/climb00_contact_dataset/catalog.json",
+        "catalog_before_registration": "runtime/current/motions/climb00_contact_dataset/versions/dynamics_corrected_207_20261017/provenance/catalog_before_registration.json"
+      },
+      "sha256": {
+        "catalog": "9a4141300422e88d91968e0544d3849738d265a712043b90008e7b16bbb9d671",
+        "catalog_before_registration": "2d15032c663a86e656012395ea1193ff7d8dff570ea3d18ce384a82b77b45110"
+      },
+      "metadata": {
+        "robot_asset_id": "robot.g1.spherehand",
+        "training_approved": false,
+        "purpose": "Formal independent archive of source v5, historical207 variants and single-case support-repair candidates; not a replacement training manifest",
+        "catalog_registration": {
+          "version": "dynamics_corrected_207_20261017",
+          "original_versions_preserved": true,
+          "registered_payload_files_verified": 621,
+          "training_approved": false
+        }
+      }
+    },
+    {
+      "id": "predictor.v1_latest.20261010",
+      "kind": "training_recipe",
+      "status": "current_training_and_analysis_baseline",
+      "files": {
+        "baseline": "baselines/predictor_v1_latest_20261010/baseline.json",
+        "training_config": "baselines/predictor_v1_latest_20261010/training_config.json",
+        "reproduction_command": "baselines/predictor_v1_latest_20261010/reproduction_command.json",
+        "checkpoint": "runtime/current/models/generator/v1_shared_interval_scratch1100_20261009/step_1000.pt"
+      },
+      "metadata": {
+        "robot_asset_id": "robot.g1.spherehand",
+        "architecture_schema": "full1000_position_predictor_v1",
+        "initialization": "scratch",
+        "reference_warmup_intervals": 100,
+        "feedback_intervals": 1000,
+        "planned_total_intervals": 1100,
+        "observed_intervals": 1002,
+        "checkpoint_interval": 1000,
+        "observed_training_complete": false,
+        "inherits_predictor_checkpoint": false,
+        "dataset_asset_id": "dataset.climb00.loaded_material207_joint_v12.20261004",
+        "purpose": "User-designated latest baseline; not a claim of independent loss gain or dynamic execution acceptance"
+      },
+      "sha256": {
+        "baseline": "92580fef62a8a12d3a46922f7132bbcdd20d1e6cda8393b9667accf9f22f5dac",
+        "training_config": "589d303ef2598caf94f975c8b1e2e46136f9dffdb7a6dd7ad813492f5ae96b4b",
+        "reproduction_command": "5fc7ebdee9f9b292f67c54addb5cf6de6d9c2d9b2e45e987af4ffe717dd1b744",
+        "checkpoint": "b50df5dc0271717dc592875289fd54c93b0502073f5b61781a21ccc860ff1a8b"
+      }
+    },
+    {
+      "id": "dataset.climb00.loaded_material207_joint_v12.20261004",
+      "kind": "dataset",
+      "status": "current_baseline_input",
+      "files": {
+        "manifest": "runtime/current/motions/climb00_contact_dataset/training/predictor_loaded_material207_joint_v12_20261004/manifest.json",
+        "data_cache": "runtime/current/motions/climb00_contact_dataset/training/predictor_loaded_material207_joint_v12_20261004/data.pt",
+        "q_cache": "runtime/current/motions/climb00_contact_dataset/training/predictor_loaded_material207_joint_v12_20261004/q_cache_64.npz"
+      },
+      "sha256": {
+        "manifest": "c58a8ba027458a95d5b5385eac44fd80128cc0990e0a5c16ff0efe7b6eed0339",
+        "data_cache": "aac4bd5106462c8275936c4d099d448cf23c479619fc319dfcf0ad139edc4233",
+        "q_cache": "95553c106bacf8eb4e0a7ca25ba345d3483da9a19a1cd5a922cd29b739f9912b"
+      },
+      "metadata": {
+        "robot_asset_id": "robot.g1.spherehand",
+        "used_by_baseline": "predictor.v1_latest.20261010",
+        "train_rows": 1470,
+        "validation_rows": 780,
+        "test_rows": 855,
+        "source_independent_generalization_established": false,
+        "purpose": "Exact dataset used by the user-designated current baseline; not approval of other archived variants"
+      }
+    },
+    {
+      "id": "predictor.control500.20261009",
+      "kind": "model",
+      "status": "archived",
+      "files": {
+        "baseline": "baselines/predictor_control500_20261009/baseline.json"
+      },
+      "sha256": {
+        "baseline": "8dfd571296146d23112a2a5d3c22371757099a53b2ac47af53bec1af7493cca8"
+      },
+      "metadata": {
+        "superseded_by": "predictor.v1_latest.20261010",
+        "purpose": "Historical source550 plus500 low-LR updates and architecture comparison evidence",
+        "path_migration_original_baseline_sha256": "4ac2e71239c0c4d7a72398a040a807131f17c97868534d1765e5980e8ebf08f8"
+      }
+    },
+    {
+      "id": "dataset.climb00.main_20261022",
+      "kind": "dataset",
+      "status": "current_runtime_input",
+      "files": {
+        "manifest": "runtime/current/motions/climb00_contact_dataset/training/predictor_main_20261022/manifest.json",
+        "data_cache": "runtime/current/motions/climb00_contact_dataset/training/predictor_main_20261022/data.pt",
+        "q_cache": "runtime/current/motions/climb00_contact_dataset/training/predictor_main_20261022/q_cache_64.npz"
+      },
+      "sha256": {
+        "manifest": "e8629595041efada1e057f43707e02091fbf34fa8b72207620f715a4b68b829d",
+        "data_cache": "63f4b3a111311ad1ca43755b4128f3169e19278e93fe8b933298387557d60b19",
+        "q_cache": "050a940d437a3e90ce49f38a722c7ce7b09c690edb8a51722dd617d92198f0d3"
+      },
+      "metadata": {
+        "robot_asset_id": "robot.g1.spherehand",
+        "newton_runtime": {
+          "runtime_id": "newton-1.7.0+7e75abe28b8d69522bc0b34837aaed2c303dff5a",
+          "version": "1.7.0",
+          "source_commit": "7e75abe28b8d69522bc0b34837aaed2c303dff5a",
+          "module": "/home/xiaz/somaforge/runtime/environments/conda/somaforge/lib/python3.12/site-packages/newton/__init__.py",
+          "newton": "1.7.0",
+          "warp-lang": "1.18.0",
+          "mujoco": "3.15.0",
+          "mujoco-warp": "3.15.0"
+        },
+        "rematerialized_motions": 207,
+        "source_motions_modified": false,
+        "original_baseline": "predictor.v1_latest.20261010",
+        "purpose": "Same frozen v1 weights; explicitly rebuilt current Newton observations, events and caches. Historical results remain attached to original data."
+      }
+    }
+  ]
+}
