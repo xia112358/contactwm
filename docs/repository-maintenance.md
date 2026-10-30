@@ -169,6 +169,10 @@ remain archives. Shared dropout handling lives in the core test suite, historica
 contact-plan schemas retain their round-trip/validation checks, and one centralized
 command-retirement test prevents removed editing/generation entrypoints from
 returning. A historical test name alone is not a reason to drop active coverage.
+The follow-up pass also drops old editor jitter/cut and pinned step14/recovery
+experiment tests. Production pose-coordinate checks import their owning module
+directly; current projection, native evidence, segmentation, and storage tests
+remain in the maintained suite.
 
 Static source/config/import audit and manifest checks:
 

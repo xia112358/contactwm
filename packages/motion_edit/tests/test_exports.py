@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import contextlib
-import io
 import json
 import tempfile
 import unittest
@@ -9,14 +7,11 @@ from pathlib import Path
 
 import numpy as np
 
-from motion_edit import cli
 from motion_edit.contact import (
     ContactAnchorRecord,
     ContactGraph,
     ContactSurfaceRecord,
     contact_graph_from_masks,
-    write_contact_layer,
-    write_contact_surfaces,
 )
 from motion_edit.export import (
     export_contact_overlay,
@@ -28,9 +23,6 @@ from motion_edit.export import (
 )
 from motion_edit.io import read_jsonl
 from motion_edit.schema import SegmentRecord
-from motion_edit.storage import io as storage_io
-from motion_edit.storage import MotionVersionRecord, TokenRecord, write_canonical_segments, write_motion_version, write_token_catalog
-from unittest import mock
 
 
 def _contact_segment(motion_path: str) -> SegmentRecord:

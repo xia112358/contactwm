@@ -2,14 +2,8 @@ from __future__ import annotations
 
 import json
 
-import numpy as np
 
-from motion_edit.contact.plans import ContactEditPlan, read_contact_edit_plan, validate_contact_edit_plan
-from motion_edit.contact.schema import (
-    ContactAnchorEditRecord,
-    ContactAnchorRecord,
-    ContactSurfaceRecord,
-)
+from motion_edit.contact.plans import read_contact_edit_plan, validate_contact_edit_plan
 
 
 def _surface(surface_id: str, z: float) -> dict:

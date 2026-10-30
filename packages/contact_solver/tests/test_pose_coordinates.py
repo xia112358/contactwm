@@ -1,5 +1,5 @@
 import torch
-from contact_solver.research.step14_qp_teacher import coordinates,pose
+from contact_solver.pose_coordinates import coordinates, pose
 
 
 def fixture():
@@ -25,7 +25,7 @@ def test_zero_and_nonzero_chart_gradients():
         assert torch.autograd.gradcheck(lambda x:coordinates(pose(x,r,s),r,s),(z,))
 
 
-def test_teacher_descent_equals_target_displacement():
+def test_coordinate_loss_gradient_equals_target_displacement():
     r,s=fixture();target=torch.linspace(-.7,.7,35,dtype=r.dtype)
     z=torch.zeros_like(target,requires_grad=True)
     loss=.5*(coordinates(pose(z,r,s),r,s)-target).square().sum()

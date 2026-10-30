@@ -5,18 +5,13 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from types import SimpleNamespace
-from unittest import mock
 
 import numpy as np
 from somaforge_core.contact_schema import encode_contact_force_provenance, newton_contact_provenance
 from somaforge_core.robot_assets import encode_robot_asset_json
 
 from motion_edit.adapters.asset_manifest import load_asset_manifest
-from motion_edit import cli
 from motion_edit.contact.surface_catalog import surfaces_from_obj_mesh_faces
-from motion_edit.storage import read_motion_asset
-from motion_edit.storage import io as storage_io
 
 
 def _sha256(path: Path) -> str:

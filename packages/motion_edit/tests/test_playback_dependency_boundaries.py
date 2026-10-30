@@ -1,11 +1,8 @@
+"""Playback must not import the retired editing/IK dependency stack."""
 from __future__ import annotations
 
 import ast
 from pathlib import Path
-
-
-FORBIDDEN_MODULE_PREFIXES = ("isaaclab", "isaacsim", "omni")
-FORBIDDEN_SYMBOLS = {"AppLauncher", "SimulationContext", "build_simulation_context"}
 
 
 def test_motion_edit_has_no_jax_or_retired_solver_imports() -> None:
