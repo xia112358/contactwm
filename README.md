@@ -11,11 +11,13 @@ available through its existing training entrypoint. The old trajectory
 editor/generator and Infiller are retired; shared Newton FK, contact processing
 and read-only playback remain.
 
-Source is unified; Python dependencies retain separate SuperMimic and native
-SomaForge runtime profiles. Select their interpreters and external data roots in
-`configs/workflow_resources.json`. The native environment catalog's `main`
-profile applies to PPO/Predictor and shared tools, not every component in this
-repository. Existing checkouts and external artifacts retain their own history.
+Runtime profiles select interpreters and external data roots through
+`configs/workflow_resources.json`. The validated local setup uses an additive
+`runtime/environments/venv/workflow` environment over the existing SuperMimic
+simulation libraries; create it with `python3 scripts/setup_workflow_environment.py`.
+The native catalog's `main` profile remains a separate fully pinned installation
+recipe. See [startup validation](docs/startup-validation.md) for no-training
+GPU checks. Existing checkouts and external artifacts retain their own history.
 
 ## Start here
 

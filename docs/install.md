@@ -1,5 +1,10 @@
 # Install the native SomaForge runtime
 
+For the existing local server, the validated additive venv is described in
+[current workflow](current-workflow.md#本机运行环境与启动验证). It currently
+serves both workflow interpreter entries. The fully pinned native installation
+below is an alternative recipe, with its own version catalog.
+
 Start with [the current unified workflow](current-workflow.md). Its default is
 SuperMimic tracking → collection → DAgger → contact training, with a separate
 SuperMimic interpreter configured in `configs/workflow_resources.json`.

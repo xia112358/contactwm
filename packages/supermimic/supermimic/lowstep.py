@@ -626,6 +626,19 @@ def validate_checkpoint(checkpoint, metadata, *, allow_collision_transfer=False)
     validate_identity(checkpoint, metadata)
     mismatched={key for key,value in metadata.items() if checkpoint.get(key)!=value}
     if not mismatched:return None
+    if "robot_asset_json" in mismatched:
+        # Asset locations change when a checkout moves. Identity is the complete
+        # fingerprint/profile contract, excluding only the two location fields.
+        from somaforge_core.robot_assets import validate_g1_asset_metadata
+        source_asset=json.loads(checkpoint["robot_asset_json"])
+        target_asset=json.loads(metadata["robot_asset_json"])
+        validate_g1_asset_metadata(source_asset,context="checkpoint robot asset")
+        validate_g1_asset_metadata(target_asset,context="task robot asset")
+        locations={"urdf_path","usd_path"}
+        if ({k:v for k,v in source_asset.items() if k not in locations}
+                =={k:v for k,v in target_asset.items() if k not in locations}):
+            mismatched.remove("robot_asset_json")
+    if not mismatched:return None
     collision_keys={"robot_asset_json","robot_collision_schema","collision_profile","collision_profile_sha256"}
     if allow_collision_transfer and mismatched<=collision_keys:
         from somaforge_core.robot_assets import validate_g1_asset_metadata

@@ -6,6 +6,7 @@ import argparse
 import json
 import math
 import os
+from pathlib import Path
 import sys
 import time
 
@@ -56,8 +57,12 @@ parser.add_argument("--resume", type=str, default=None)
 parser.add_argument("--check_numerics", action="store_true", help="stop and save the first invalid or extreme physical transition")
 parser.add_argument("--capture_physics_failure", action="store_true", help="record first failing physics substep, phase and solver warm starts")
 parser.add_argument("--amp", type=str, default="bf16", choices=["none", "bf16"], help="autocast dtype for MLP matmuls")
+parser.add_argument("--headless", action="store_true", help="Disable visualizers even if one was requested")
+parser.add_argument("--startup_check", action="store_true", help="Initialize physics and run one policy step without optimization or checkpoint writes")
 add_launcher_args(parser)
 args = parser.parse_args()
+if args.headless:
+    args.visualizer = None
 
 task_metadata = {}
 if args.task_manifest:
@@ -324,6 +329,19 @@ def policy_update():
 sim_cfg = make_sim(dev, args)
 with launch_simulation(sim_cfg, args):
     env = TrackingSim(sim_cfg, args.num_envs, motion, mdp, gamma=args.gamma)
+    if args.startup_check:
+        with torch.no_grad():
+            obs = mdp.obs(env.state(), env.a_prev, env.xi, env.f)
+            action = pi(obs[:, None].expand(-1, Hh, -1), motion.goal(env.f, K))
+            transition = env.step(action)
+            if not all(bool(torch.isfinite(transition[key]).all()) for key in ("s", "s1", "a")):
+                raise FloatingPointError("Nonfinite tracking startup transition")
+        report = dict(stage="tracking", num_envs=env.N, physics_steps=1,
+                      optimizer_updates=0, checkpoint_written=False,
+                      collision_profile=args.collision_profile, contact_response=args.contact_response)
+        Path(args.log_dir, "startup-check.json").write_text(json.dumps(report, indent=2) + "\n")
+        print(json.dumps(report), flush=True)
+        raise SystemExit(0)
     sampler = getattr(env, "reset_sampler_controller", None)
     if args.resume and sampler is not None:
         sampler.load_state_dict(ck["reset_sampler_state"])

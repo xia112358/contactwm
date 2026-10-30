@@ -1,0 +1,9 @@
+# Additive overlay on the existing SuperMimic runtime; do not upgrade torch/Newton.
+# Versions match this repository uv.lock.
+wandb==0.22.0
+loguru==0.7.3
+tyro==1.0.15
+fastapi==0.139.2
+uvicorn==0.51.0
+httpx==0.28.1
+pytest==9.1.1

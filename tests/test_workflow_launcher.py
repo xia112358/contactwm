@@ -179,3 +179,14 @@ def test_execute_keeps_argv_boundaries_and_creates_only_external_caches(workspac
     assert env['API_TOKEN'] == 'private'
     assert 'API_TOKEN' not in plan.as_dict()['environment']
     assert all(Path(plan.environment[name]).is_dir() for name in workflow.CACHE_DIRS)
+
+
+def test_native_help_does_not_create_runtime_directories(workspace, monkeypatch):
+    _, _, runtime = workspace
+    plan = launch(workspace, ['predictor'], ['--help'])
+    calls = []
+    monkeypatch.setattr(os, 'chdir', lambda path: None)
+    monkeypatch.setattr(os, 'execve', lambda *args: calls.append(args))
+    workflow.execute(plan, environ={})
+    assert len(calls) == 1
+    assert not runtime.exists()

@@ -1,5 +1,10 @@
 # Native SomaForge runtime compatibility
 
+For the existing local server, the validated additive venv is described in
+[current workflow](current-workflow.md#本机运行环境与启动验证). It currently
+serves both workflow interpreter entries. The fully pinned native installation
+below is an alternative recipe, with its own version catalog.
+
 For the merged project's main flow and runtime selection, see
 [current workflow](current-workflow.md): SuperMimic tracking → collect → DAgger
 → contact uses its own interpreter. Original PPO tracking remains independent;

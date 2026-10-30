@@ -1,5 +1,10 @@
 # Native PPO/Predictor environment setup
 
+For the existing local server, the validated additive venv is described in
+[current workflow](current-workflow.md#本机运行环境与启动验证). It currently
+serves both workflow interpreter entries. The fully pinned native installation
+below is an alternative recipe, with its own version catalog.
+
 The unified repository keeps separate SuperMimic and native SomaForge runtime
 profiles. [The current workflow](current-workflow.md) selects them through
 `configs/workflow_resources.json`: SuperMimic serves tracking → collect → DAgger

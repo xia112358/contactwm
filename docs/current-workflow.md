@@ -102,8 +102,16 @@ python scripts/run_workflow.py predictor --dry-run -- --help
 
 这里的合并统一了代码位置与启动入口。两套 Python 依赖保持独立，现有数据、模型和验证记录继续保存在外部 runtime；PPO 的下游连接留待后续单独处理。
 
-## 本机合并时的资源状态
+## 本机运行环境与启动验证
 
-2026-10-30 合并时，SuperMimic 的解释器可用；`ppo.python` 指向的原生 SomaForge 环境尚不存在，PPO 和 Predictor 启动前需按安装文档创建环境，或在资源表中指定已准备好的兼容解释器。保留代码不等于已完成该环境的运行验证。
+本机已建立 `runtime/environments/venv/workflow`，通过 system-site-packages 复用现有 SuperMimic 仿真环境，在独立 venv 中补齐 wandb、CLI 和网页测试依赖。`supermimic.python` 与 `ppo.python` 均明确指向该解释器，原训练环境未修改。重建命令：
 
-资源表中的 legacy force6 WM 文件存在，但历史 `accepted-baseline.json` 和对应的 `checkpoint_dagger.pt` 未在原路径找到。继续 contact 训练前必须显式提供已经验证的 DAgger checkpoint；统一入口不会替你选择或生成基线。此次合并只进行了 CPU 与静态验证，没有启动新的仿真训练。
+```bash
+python3 scripts/setup_workflow_environment.py
+```
+
+基础解释器由资源表中的 `supermimic.base_python` 指定，也可用 `--base-python PATH` 覆盖。补充包精确版本位于 `configs/environments/workflow-extras.lock.txt`，源码包以 editable 方式安装。这个环境沿用 SuperMimic 当前的 Newton/Warp 组合；`profiles.json` 中原生 `main` 的完整版本锁仍是另一套可复现安装方案，不能将两者版本号混称。
+
+`tracking` 和 `initialize` 原生参数支持 `--startup_check`：在真实物理初始化及策略前向后退出，不执行优化器更新、不写训练 checkpoint。contact 的 `--profile_collection --freeze_actor --freeze_wm` 用于冻结采集检查，会验证 actor 和 WM 的 state_dict 完全不变。检查细节见 [启动验证](startup-validation.md)。
+
+历史 `accepted-baseline.json` 和其原 `checkpoint_dagger.pt` 仍缺失。已有其他历史 DAgger/contact 文件只用作兼容性启动样例，不自动成为已接受的新训练基线；正式 contact 训练前仍需明确选定经过验证的 checkpoint。

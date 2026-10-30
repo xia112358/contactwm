@@ -32,7 +32,9 @@ def main():
     p.add_argument('--bc_min_improvement',type=float,default=.001)
     p.add_argument('--bc_relative_improvement',type=float,default=.005)
     p.add_argument('--headless',action='store_true')
+    p.add_argument("--startup_check",action="store_true",help="Initialize native DAgger and query the teacher without updates/checkpoint writes")
     add_launcher_args(p);a=p.parse_args()
+    if a.startup_check and a.bc_steps:raise ValueError("Startup check requires bc_steps=0")
     if a.headless:a.visualizer=None
     import torch
     from supermimic.contact_io import load_checkpoint_cpu
@@ -122,6 +124,18 @@ def main():
         chosen=(torch.isin(env.task_ids,clock.segment_motion.unique()).nonzero().flatten()
                 if hasattr(clock,'segment_motion') else (env.task_ids==recording['metadata']['motion']).nonzero().flatten())
         if len(chosen)<len(clock.event_ends):raise ValueError('Insufficient native worlds for all contact segments')
+        if a.startup_check:
+            with torch.no_grad():
+                actual=mdp.obs(env.state(),env.a_prev,env.xi,env.f)
+                action=teacher(actual[:,None].expand(-1,teacher_hist,-1),motion.goal(env.f,goal_frames))
+                if not bool(torch.isfinite(action).all()):raise FloatingPointError("Nonfinite DAgger teacher action")
+            if optimizer.state:raise AssertionError("DAgger startup must not update the optimizer")
+            report=dict(stage="initialize",num_envs=env.N,segments=len(clock.event_ends),
+                teacher_action_shape=list(action.shape),optimizer_updates=0,checkpoint_written=False)
+            (a.output/'startup-check.json').write_text(json.dumps(report,indent=2)+'\n')
+            status(phase='startup_check_complete',**report)
+            print(json.dumps(report),flush=True)
+            return
         dagger=run_dagger(args=a,env=env,actor=actor,optimizer=optimizer,tracker=teacher,motion=motion,mdp=mdp,
             clock=clock,demo=demo,context=context,default_q=default,chosen=chosen,teacher_hist=teacher_hist,
             goal_frames=goal_frames,status=status,stopped=lambda:stopped)

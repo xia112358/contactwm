@@ -2,12 +2,14 @@
   "schema": "somaforge_workflow_resources_v1",
   "supermimic": {
     "runtime_root": "/perception/workspace/zhouxia/supermimic_vibed",
-    "python": "/home/zhouxia/miniforge3/envs/supermimic/bin/python",
-    "isaaclab_root": "/home/zhouxia/workspace/supermimic_vibed/IsaacLab"
+    "python": "runtime/environments/venv/workflow/bin/python",
+    "isaaclab_root": "/home/zhouxia/workspace/supermimic_vibed/IsaacLab",
+    "base_python": "/home/zhouxia/miniforge3/envs/supermimic/bin/python"
   },
   "ppo": {
     "runtime_root": "/perception/workspace/zhouxia/somaforge/runtime/current",
-    "python": "runtime/environments/conda/somaforge/bin/python"
+    "python": "runtime/environments/venv/workflow/bin/python",
+    "isaaclab_root": "/home/zhouxia/workspace/supermimic_vibed/IsaacLab"
   },
   "stage2": {
     "runtime_root": "/perception/workspace/zhouxia/somaforge-stage2/runtime/current"
@@ -22,5 +24,6 @@
       "status": "not_present_in_current_filesystem",
       "role": "historical README pointer; require an explicit available actor checkpoint"
     }
-  }
+  },
+  "environment_note": "Local additive workflow venv inherits the existing SuperMimic simulation libraries; original runtime untouched. Native pinned main installation remains separately reproducible from profiles.json."
 }

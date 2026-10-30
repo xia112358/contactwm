@@ -177,8 +177,10 @@ def execute(launch: Launch, *, environ: Mapping[str, str] | None = None) -> None
                  "SOMAFORGE_ENV_PROFILE", "SOMAFORGE_ENV_PREFIX", "SOMAFORGE_NEWTON_ENV", "SOMAFORGE_NEWTON_PROFILE"):
         env.pop(name, None)
     env.update(launch.environment)
-    for name in CACHE_DIRS:
-        Path(env[name]).mkdir(parents=True, exist_ok=True)
+    # Native help must work even when external data/caches are read-only.
+    if not any(arg in ("--help", "-h") for arg in launch.argv[1:]):
+        for name in CACHE_DIRS:
+            Path(env[name]).mkdir(parents=True, exist_ok=True)
     os.chdir(launch.cwd)
     os.execve(launch.argv[0], list(launch.argv), env)
 
