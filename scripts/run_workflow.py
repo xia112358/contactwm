@@ -97,21 +97,11 @@ def build_launch(options: argparse.Namespace, backend_args: list[str], *,
     profile = "supermimic" if backend == "supermimic" else "ppo"
     registry = _path(options.resources or inherited.get("SOMAFORGE_RESOURCES")
                      or root / "configs/workflow_resources.json", root)
-    if not registry.is_file():
-        raise ValueError(f"Workflow resource registry is missing: {registry}; provide --resources PATH")
     resources = json.loads(registry.read_text())
-    section = resources.get(profile, {})
-    if not isinstance(section, dict):
-        raise ValueError(f"Resource section {profile!r} must be an object")
-    interpreter = options.python or inherited.get(f"SOMAFORGE_{profile.upper()}_PYTHON") or section.get("python")
-    if not interpreter:
-        raise ValueError(f"Configure {profile}.python in {registry}, SOMAFORGE_{profile.upper()}_PYTHON, or --python PATH")
+    section = resources[profile]
+    interpreter = options.python or inherited.get(f"SOMAFORGE_{profile.upper()}_PYTHON") or section["python"]
     executable = _python(str(interpreter), root, inherited)
-    runtime_value = inherited.get(f"SOMAFORGE_{profile.upper()}_RUNTIME") or section.get("runtime_root")
-    if runtime_value is None and profile == "ppo":
-        runtime_value = root / "runtime/current"
-    if runtime_value is None:
-        raise ValueError(f"Configure {profile}.runtime_root in {registry} or SOMAFORGE_{profile.upper()}_RUNTIME")
+    runtime_value = inherited.get(f"SOMAFORGE_{profile.upper()}_RUNTIME") or section["runtime_root"]
     runtime = _path(runtime_value, root)
     if runtime.is_relative_to(root):
         raise ValueError(f"Runtime must resolve outside the source checkout: {runtime}; configure an external data directory")
@@ -127,8 +117,7 @@ def build_launch(options: argparse.Namespace, backend_args: list[str], *,
     python_paths = [str(root / relative) for relative in LOCAL_PACKAGES] + [str(root)]
     environment = {
         "SOMAFORGE_ROOT": str(root), "SOMAFORGE_RESOURCES": str(registry),
-        "SOMAFORGE_WORKFLOW_STAGE": options.stage, "SOMAFORGE_WORKFLOW_BACKEND": backend,
-        "SOMAFORGE_WORKFLOW_PROFILE": profile, f"SOMAFORGE_{profile.upper()}_RUNTIME": str(runtime),
+        f"SOMAFORGE_{profile.upper()}_RUNTIME": str(runtime),
         "SOMAFORGE_ASSET_MANIFEST": str(root / "configs/assets_manifest.json"),
         "SOMAFORGE_TRAINING_MANIFEST": str(root / "configs/training_pipeline_manifest.json"),
         "PYTHONNOUSERSITE": "1", "PYTHONDONTWRITEBYTECODE": "1", "PYTHONUNBUFFERED": "1",
@@ -167,9 +156,8 @@ def build_launch(options: argparse.Namespace, backend_args: list[str], *,
 
 
 def execute(launch: Launch, *, environ: Mapping[str, str] | None = None) -> None:
-    if not launch.as_dict()["interpreter_available"]:
-        raise ValueError(f"Configured {launch.profile} interpreter is missing or not executable: {launch.argv[0]}. "
-                         f"Prepare that runtime or use --python /path/to/python; no environment is installed automatically.")
+    if not (Path(launch.argv[0]).is_file() and os.access(launch.argv[0], os.X_OK)):
+        raise ValueError(f"Python interpreter is not executable: {launch.argv[0]}")
     env = dict(os.environ if environ is None else environ)
     # Old activation must not inject another Python/IsaacLab source tree.
     for name in ("PYTHONHOME", "PYTHONSTARTUP", "PYTHONUSERBASE", "PYTHONPATH", "VIRTUAL_ENV",
@@ -189,8 +177,9 @@ def main(argv: list[str] | None = None) -> int:
     options, forwarded = parse_args(argv)
     try:
         launch = build_launch(options, forwarded)
-        print(json.dumps(launch.as_dict(), indent=2), flush=True)
-        if not options.dry_run:
+        if options.dry_run:
+            print(json.dumps(launch.as_dict(), indent=2))
+        else:
             execute(launch)
     except (OSError, ValueError) as error:
         parser().error(str(error))

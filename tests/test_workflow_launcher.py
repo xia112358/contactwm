@@ -83,17 +83,25 @@ def test_default_main_flow_preserves_supermimic_teacher_and_dagger_artifact_argu
         assert '--tracking_backend' not in plan.argv
 
 
-def test_dry_run_does_not_import_simulator_or_create_output(workspace, monkeypatch, capsys):
+@pytest.mark.parametrize('dry_run', [True, False])
+def test_launch_plan_is_printed_only_for_dry_run(workspace, monkeypatch, capsys, dry_run):
     root, registry, runtime = workspace
     monkeypatch.setattr(workflow, 'ROOT', root)
     # Main's build default is bound at definition; provide the fixture root explicitly.
     original = workflow.build_launch
     monkeypatch.setattr(workflow, 'build_launch', lambda options, tail: original(options, tail, root=root, environ={}))
-    monkeypatch.setattr(workflow, 'execute', lambda _: pytest.fail('dry-run executed'))
+    executed = []
+    monkeypatch.setattr(workflow, 'execute', executed.append)
     before = set(sys.modules)
-    assert workflow.main(['tracking', '--resources', str(registry), '--dry-run', '--', '--help']) == 0
-    report = json.loads(capsys.readouterr().out)
-    assert report['argv'][-1] == '--help'
+    args = ['tracking', '--resources', str(registry)] + (['--dry-run'] if dry_run else [])
+    assert workflow.main([*args, '--', '--help']) == 0
+    output = capsys.readouterr().out
+    if dry_run:
+        assert json.loads(output)['argv'][-1] == '--help'
+        assert not executed
+    else:
+        assert len(executed) == 1
+        assert output == ''
     assert not runtime.exists()
     assert not any(name == 'isaaclab' or name.startswith('isaaclab.') for name in set(sys.modules) - before)
 
@@ -104,7 +112,7 @@ def test_python_precedence_and_missing_python_is_actionable_without_mkdir(worksp
     plan = launch(workspace, ['tracking', '--python', str(nonexistent)], env={'SOMAFORGE_SUPERMIMIC_PYTHON': sys.executable})
     assert plan.argv[0] == str(nonexistent)
     assert not plan.as_dict()['interpreter_available']
-    with pytest.raises(ValueError, match='no environment is installed automatically'):
+    with pytest.raises(ValueError, match='not executable'):
         workflow.execute(plan, environ={})
     assert not runtime.exists()
     assert launch(workspace, ['tracking'], env={'SOMAFORGE_SUPERMIMIC_PYTHON': sys.executable}).argv[0] == sys.executable
@@ -151,7 +159,7 @@ def test_data_cannot_default_to_real_source_directory(workspace):
 def test_ppo_runtime_symlink_preserves_existing_external_layout(workspace):
     root, registry, runtime = workspace
     payload = json.loads(registry.read_text())
-    del payload['ppo']['runtime_root']
+    payload['ppo']['runtime_root'] = 'runtime/current'
     registry.write_text(json.dumps(payload))
     (root / 'runtime').mkdir()
     runtime.mkdir()

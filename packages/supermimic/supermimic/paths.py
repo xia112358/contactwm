@@ -25,17 +25,9 @@ def runtime_root() -> Path:
         path = Path(override).expanduser()
     else:
         root = workspace_root()
-        config = Path(os.environ.get("SOMAFORGE_RESOURCES", str(root / "configs/workflow_resources.json"))).expanduser()
-        if not config.is_absolute():
-            config = root / config
-        try:
-            resources = json.loads(config.read_text())
-            path = Path(resources["supermimic"]["runtime_root"]).expanduser()
-        except (OSError, KeyError, TypeError, ValueError) as exc:
-            raise RuntimeError("Configure supermimic.runtime_root in configs/workflow_resources.json "
-                               "or set SOMAFORGE_SUPERMIMIC_RUNTIME to the external runtime directory") from exc
-        if not path.is_absolute():
-            path = root / path
+        config = Path(os.environ.get("SOMAFORGE_RESOURCES", "configs/workflow_resources.json")).expanduser()
+        resources = json.loads((root / config).read_text())
+        return (root / Path(resources["supermimic"]["runtime_root"]).expanduser()).resolve()
     if not path.is_absolute():
         raise ValueError("SOMAFORGE_SUPERMIMIC_RUNTIME must be an absolute path")
     return path.resolve()

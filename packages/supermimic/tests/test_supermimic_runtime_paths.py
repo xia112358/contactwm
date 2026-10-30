@@ -24,7 +24,7 @@ def test_missing_runtime_configuration_fails_explicitly(tmp_path, monkeypatch):
     monkeypatch.delenv('SOMAFORGE_SUPERMIMIC_RUNTIME', raising=False)
     monkeypatch.delenv('SOMAFORGE_RESOURCES', raising=False)
     monkeypatch.setattr(paths, 'workspace_root', lambda: tmp_path)
-    with pytest.raises(RuntimeError, match='Configure supermimic.runtime_root'):
+    with pytest.raises(FileNotFoundError, match='workflow_resources.json'):
         paths.runtime_root()
 
 
