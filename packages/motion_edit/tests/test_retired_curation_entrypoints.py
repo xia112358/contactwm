@@ -12,6 +12,8 @@ RETIRED = (
     'workbench', 'workbench-action', 'import-manual-cuts', 'export-cutter-segments',
     'accept', 'reject', 'list-layer', 'migrate-layer-to-canonical',
     'import-lte-catalog', 'force-retarget',
+    'generate-ref', 'edit-clip', 'edit-splice', 'generate-contact-jitter',
+    'generate-augmentations', 'generate-lte-augmentation', 'batch-generate-lte-augmentations',
 )
 
 

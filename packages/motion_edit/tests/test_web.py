@@ -51,13 +51,6 @@ class WebMotionDataTests(unittest.TestCase):
         self.assertEqual(contacts["sample_forces"][1], [[4.0, 5.0, 6.0]])
 
 
-@pytest.mark.parametrize('command', ['generate-ref', 'edit-clip', 'edit-splice', 'generate-contact-jitter'])
-def test_retired_commands_are_not_available(command):
-    with pytest.raises(SystemExit) as error:
-        build_parser().parse_args([command])
-    assert error.value.code == 2
-
-
 def test_review_cli_and_read_only_legacy_alias():
     parsed = build_parser().parse_args(['review', '--input', 'cases.json', '--no-browser'])
     assert parsed.input == 'cases.json' and parsed.no_browser

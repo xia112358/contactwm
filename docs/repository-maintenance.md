@@ -161,6 +161,15 @@ current retained verification is indexed in
 
 ## Verification
 
+Current regression covers maintained implementations, shared data contracts,
+checkpoint compatibility and read-only playback. Tests dedicated solely to
+`generator.research.archived_experiments` and the preserved dropout207 training
+corpus were retired on 2026-10-30. Historical source, data and acceptance reports
+remain archives. Shared dropout handling lives in the core test suite, historical
+contact-plan schemas retain their round-trip/validation checks, and one centralized
+command-retirement test prevents removed editing/generation entrypoints from
+returning. A historical test name alone is not a reason to drop active coverage.
+
 Static source/config/import audit and manifest checks:
 
 ```bash
