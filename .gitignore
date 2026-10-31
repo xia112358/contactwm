@@ -80,3 +80,9 @@ NvStreamer-*.etli
 !src/holosoma/holosoma/data/robots/converted_rank0/
 src/holosoma/holosoma/data/robots/converted_rank0/*
 !src/holosoma/holosoma/data/robots/converted_rank0/g1_29dof_spherehand/
+
+# Machine-specific resource registry and credentials
+/configs/workflow_resources.local.json
+.env
+.env.*
+!.env.example

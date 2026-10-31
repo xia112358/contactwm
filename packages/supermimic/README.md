@@ -1,3 +1,8 @@
+> This is the preserved upstream reproduction README. Its old shell/Docker
+> commands and asset recipe describe the original repository. For ContactWM,
+> use the root [installation guide](../../docs/quickstart.md) and the
+> [packaged workflow](README_UNIFIED.md), including the canonical spherehand asset.
+
 # SuperMimic reproduction on Isaac Lab 3 (kit-less, MuJoCo-Warp)
 
 **Unofficial** reproduction of *SuperMimic: Scaling Humanoid Whole-Body Control with One Differentiable World

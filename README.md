@@ -7,14 +7,35 @@ Original optimized PPO tracking, next-contact Predictor and read-only motion
 playback remain available as independent entrypoints. Shared assets, FK and
 native contact processing live in `somaforge_core`.
 
-Runtime profiles select interpreters and external data roots through
-`configs/workflow_resources.json`. The validated local setup uses an additive
-`runtime/environments/venv/workflow` environment over the existing SuperMimic
-simulation libraries; create it with `python3 scripts/setup_workflow_environment.py`.
-The native catalog's `main` profile remains a separate fully pinned installation
-recipe. See [startup validation](docs/startup-validation.md) for no-training
-GPU checks. Original checkouts and Git histories are archived; their old workspace names
-are resource compatibility links. External artifacts retain their original history.
+## Quick start
+
+Linux x86_64 (Ubuntu 22.04 or newer), Python 3, Git, a C++ build toolchain and
+an NVIDIA GPU/driver compatible with CUDA 13 are required for simulation.
+Source checks need no GPU. Native Windows simulation has not been qualified.
+
+```bash
+git clone https://github.com/xia112358/contactwm.git
+cd contactwm
+python3 -m pip install uv==0.13.1
+python3 scripts/check_workflow.py --source-only
+python3 scripts/setup_workflow_environment.py
+python3 scripts/check_workflow.py --check-cli
+```
+
+The default installer builds Python 3.12 from the pinned Isaac Lab kit-less
+lockfile and installs the project packages. No existing SuperMimic environment,
+workstation paths or second project checkout is required. It does not start
+training. Large downloads require access to GitHub, PyPI, NVIDIA and PyTorch.
+
+The tracked resource registry uses checkout-relative paths. Training data, logs
+and caches default to a sibling `contactwm-data/` directory; the environment and
+pinned dependencies are ignored under `runtime/`. No GPU index is forced:
+`CUDA_VISIBLE_DEVICES` is optional and respected when set.
+
+Read [fresh installation and first run](docs/quickstart.md) for custom storage,
+data downloads and a one-step simulation check. Installation does not include
+trained policies or certify historical contact labels. The optional native
+PPO/Predictor environment has its own [installation recipe](docs/install.md).
 
 ## Start here
 

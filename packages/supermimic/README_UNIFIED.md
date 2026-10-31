@@ -11,8 +11,12 @@ Use the unified workflow launcher or an environment where this package,
 registered compatible Isaac Lab / Newton / MuJoCo-Warp environment; it is not
 vendored or silently upgraded by installing this package.
 
-Runtime location is explicit: set `SOMAFORGE_SUPERMIMIC_RUNTIME`, or register
-`supermimic.runtime_root` in `configs/workflow_resources.json`. `SOMAFORGE_RESOURCES`
+For a new clone, start with the root [quick start](../../docs/quickstart.md).
+The default installer creates the pinned simulation environment from scratch.
+
+Runtime location is configurable: set `SOMAFORGE_SUPERMIMIC_RUNTIME`, or register
+`supermimic.runtime_root` in `configs/workflow_resources.local.json` (ignored), or use the portable defaults
+in `configs/workflow_resources.json`. `SOMAFORGE_RESOURCES`
 can select another resource file. The root contains existing `data`, `logs`,
 `tmp`, `results`, `models`, etc. Run tools from that runtime directory (the
 compatibility `tools/run_native.sh` does this); packaged `tools/` and `experiments/`

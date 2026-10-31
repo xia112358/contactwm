@@ -1,5 +1,24 @@
 # Contributing Guidelines
 
+## ContactWM setup and launch changes
+
+Use [the fresh-clone guide](docs/quickstart.md). Keep machine-specific settings in
+`configs/workflow_resources.local.json` (ignored), and data, logs and models outside Git.
+For setup changes, run these CPU checks from the root:
+
+```bash
+python3 -m pip install pytest numpy uv==0.13.1
+python3 scripts/check_workflow.py --source-only
+python3 scripts/setup_workflow_environment.py --dry-run
+mkdir -p tmp
+python3 -m pytest -q --confcutdir=tests --basetemp=tmp/setup-tests \
+  tests/test_workflow_launcher.py tests/test_workflow_setup.py tests/test_bootstrap_runtime.py
+```
+
+Report CPU checks separately from actual GPU execution. Preserve the canonical
+robot and native contact contracts, package-specific licenses and source provenance.
+
+
 Thank you for your interest in contributing to our project. Whether it's a bug report, new feature, correction, or additional
 documentation, we greatly value feedback and contributions from our community.
 

@@ -60,7 +60,7 @@ def parser() -> argparse.ArgumentParser:
                         help="tracking algorithm (default: supermimic); valid only for tracking")
     result.add_argument("--python", dest="python", help="explicit interpreter for the selected runtime profile")
     result.add_argument("--resources", type=Path,
-                        help="resource registry (default: SOMAFORGE_RESOURCES or configs/workflow_resources.json)")
+                        help="resource registry (default: SOMAFORGE_RESOURCES or configs/workflow_resources.local.json, then configs/workflow_resources.json)")
     result.add_argument("--dry-run", action="store_true", help="print the launch plan without creating files or running it")
     return result
 
@@ -87,6 +87,11 @@ def _python(value: str, root: Path, env: Mapping[str, str]) -> str:
     return str(candidate.absolute() if candidate.is_absolute() else (root / candidate).absolute())
 
 
+def default_resources(root: Path) -> Path:
+    local = root / "configs/workflow_resources.local.json"
+    return local if local.is_file() else root / "configs/workflow_resources.json"
+
+
 def build_launch(options: argparse.Namespace, backend_args: list[str], *,
                  root: Path = ROOT, environ: Mapping[str, str] | None = None) -> Launch:
     inherited = os.environ if environ is None else environ
@@ -96,7 +101,7 @@ def build_launch(options: argparse.Namespace, backend_args: list[str], *,
     backend = options.backend or ("supermimic" if options.stage != "predictor" else "predictor")
     profile = "supermimic" if backend == "supermimic" else "ppo"
     registry = _path(options.resources or inherited.get("SOMAFORGE_RESOURCES")
-                     or root / "configs/workflow_resources.json", root)
+                     or default_resources(root), root)
     resources = json.loads(registry.read_text())
     section = resources[profile]
     interpreter = options.python or inherited.get(f"SOMAFORGE_{profile.upper()}_PYTHON") or section["python"]
@@ -147,8 +152,9 @@ def build_launch(options: argparse.Namespace, backend_args: list[str], *,
         # Preserve the native launcher's CPU compilation defaults, not a new training recipe.
         environment["OMP_NUM_THREADS"] = inherited.get("OMP_NUM_THREADS", "16")
         environment["TORCHINDUCTOR_COMPILE_THREADS"] = inherited.get("TORCHINDUCTOR_COMPILE_THREADS", "8")
-        visible = inherited.get("CUDA_VISIBLE_DEVICES", "1")
-        environment["CUDA_VISIBLE_DEVICES"] = visible
+        visible = inherited.get("CUDA_VISIBLE_DEVICES")
+        if visible is not None:
+            environment["CUDA_VISIBLE_DEVICES"] = visible
         if visible and "MUJOCO_EGL_DEVICE_ID" not in inherited and all(item.isdigit() for item in visible.split(",")):
             environment["MUJOCO_EGL_DEVICE_ID"] = visible.split(",")[0]
     return Launch(options.stage, backend, profile, (executable, *entrypoint, *backend_args),
