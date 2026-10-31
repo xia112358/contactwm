@@ -95,7 +95,8 @@ def main():
         from pathlib import Path
         import sys
         task_path = Path(a.task_manifest).resolve()
-        TASK_SPEC = json.loads(task_path.read_text())
+        from supermimic.task_manifest import load_task_manifest
+        TASK_SPEC = load_task_manifest(task_path)
         a.global_ghost = True
         if str(d.get("task_manifest_sha256", "")) != hashlib.sha256(task_path.read_bytes()).hexdigest():
             raise ValueError("Trajectory and task manifest disagree")

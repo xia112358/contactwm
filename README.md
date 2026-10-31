@@ -42,6 +42,7 @@ PPO/Predictor environment has its own [installation recipe](docs/install.md).
 - [Current workflow and commands](docs/current-workflow.md): tracking, collect, initialize, contact and Predictor
 - [Native PPO/Predictor installation](docs/install.md), [Python environment setup](docs/python-environments.md) and [compatibility](docs/environments.md)
 - [SuperMimic package and original runtime recipe](packages/supermimic/README.md)
+- [original12 task and complete input download](docs/original12.md)
 - [Download training inputs, reference models and extracted demonstrations](docs/data-downloads.md)
 - [Read-only browser playback](packages/motion_edit/README.md)
 - [Predictor baseline and reproduction records](baselines/README.md)
