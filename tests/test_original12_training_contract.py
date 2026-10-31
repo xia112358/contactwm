@@ -40,7 +40,7 @@ def test_no_reset_noise_reaches_the_actual_environment_constructor():
     parser = argparse.ArgumentParser()
     node = next(n for n in ast.walk(tree) if isinstance(n, ast.Call) and n.args
                 and isinstance(n.args[0], ast.Constant) and n.args[0].value == '--no_reset_noise')
-    exec(compile(ast.Module(body=[ast.Expr(value=copy.deepcopy(node))], type_ignores=[]), '<actual parser>', 'exec'), {'parser': parser})
+    exec(compile(ast.fix_missing_locations(ast.Module(body=[ast.Expr(value=copy.deepcopy(node))], type_ignores=[])), '<actual parser>', 'exec'), {'parser': parser})
     call = next(n for n in ast.walk(tree) if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)
                 and n.func.id == 'TrackingSim')
     for flags, expected in [([], True), (['--no_reset_noise'], False)]:
@@ -48,7 +48,7 @@ def test_no_reset_noise_reaches_the_actual_environment_constructor():
         captured = []
         namespace = dict(args=args, sim_cfg=None, motion=None, mdp=None,
                          TrackingSim=lambda *a, **kw: captured.append(kw))
-        exec(compile(ast.Module(body=[ast.Expr(value=copy.deepcopy(call))], type_ignores=[]), '<actual constructor>', 'exec'), namespace)
+        exec(compile(ast.fix_missing_locations(ast.Module(body=[ast.Expr(value=copy.deepcopy(call))], type_ignores=[])), '<actual constructor>', 'exec'), namespace)
         assert captured[0]['reset_noise'] is expected
 
 
