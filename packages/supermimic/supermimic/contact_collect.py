@@ -24,7 +24,7 @@ def main():
     p.add_argument('--seed', type=int, default=0)
     p.add_argument('--noise', type=float, default=0.)
     p.add_argument('--collision_profile',choices=('legacy_v1','surface_v2'),default='surface_v2')
-    p.add_argument('--contact_response', choices=('legacy','firm_v2','manifold_v1','manifold_v2','manifold_soft_v1','manifold_balanced_v1'), default='legacy')
+    p.add_argument('--contact_response', choices=('legacy','firm_v2','manifold_v1','manifold_v2','manifold_v3','newton_contacts_v1','newton_contacts_v2','manifold_soft_v1','manifold_balanced_v1'), default='legacy')
     p.add_argument('--allow_collision_transfer',action='store_true',help='Use legacy policy only as an unvalidated initialization in surface-v2 physics')
     p.add_argument('--headless', action='store_true')
     add_launcher_args(p)

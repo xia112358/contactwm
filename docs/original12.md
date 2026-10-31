@@ -6,38 +6,88 @@ The complete task component is distributed as
 [original12-20261031-v1](https://github.com/xia112358/contactwm/releases/tag/original12-20261031-v1),
 not as an assumed local training directory.
 
-After [installing ContactWM](quickstart.md), run from the checkout root:
+## Complete original training setup
+
+From a fresh clone with GitHub access and `uv==0.13.1` installed:
+
+```bash
+python3 scripts/original12.py prepare
+```
+
+This installs the pinned workflow environment, downloads the task's 54-file data
+component and both full training checkpoints, then verifies every distributed
+file. It needs no pre-existing author environment, directory, temporary script or
+uncommitted source. For a private repository, authenticate GitHub CLI first with
+`gh auth login`. No credentials are stored in this repository.
+
+If the pinned environment is already installed, use `prepare --skip-environment`.
+For offline files, `--assets /path/to/assets` accepts a directory containing the
+index and archive files from **both** original12 releases. The original data-only
+command remains available:
 
 ```bash
 python3 scripts/download_data.py fetch original12 --catalog configs/original12_release.json
-python3 scripts/download_data.py verify original12 --catalog configs/original12_release.json
 ```
 
-For a private repository, use an account with repository access and an authenticated
-GitHub CLI (`gh auth login`). The downloader uses `gh` if GitHub rejects an anonymous
-release request. It never stores access tokens in the catalog or download URLs.
-If you already have the release assets, use `--local-archives /path/to/assets`.
-No account is needed for that offline route.
+Inspect the complete exact launch, then run it when an appropriate GPU is available:
 
-The manifest is now located at:
+```bash
+python3 scripts/original12.py tracking --dry-run
+python3 scripts/original12.py tracking
+```
+
+The frozen [recipe](../configs/experiments/original12_newton2ms.json) retains every
+recorded training parameter, including `newton_contacts_v2`, `--no_reset_noise`,
+4096 environments, force6, surface_v2, the completion sampler and the original
+WM refit schedule. Newton collision generation runs at every 2 ms physics
+substep while MJWarp performs dynamics. There is no `manifold_v2` substitution.
+The current source includes the collision-mask handling, response contract and
+runtime guards from the original training tree. Geometry, margins and gaps are
+unchanged. GPU selection uses the destination host's available devices.
+
+By default tracking starts from the original full iteration-1000 initialization,
+which records its explicit transfer from manifold_v3 to newton_contacts_v2.
+To continue the saved iteration-1500 training state instead:
+
+```bash
+python3 scripts/original12.py tracking --resume-state latest
+```
+
+The [training release](https://github.com/xia112358/contactwm/releases/tag/original12-training-20261031-v1)
+contains `initialization.pt`, `tracking/last.pt`, original arguments, transfer
+metadata and two historical audit reports: approximately 476 MB compressed,
+517 MB uncompressed. Both full checkpoints retain actor, WM, critic, optimizers,
+progress and reset sampler. Their ordinary checkpoint boundary creates fresh
+replay and simulator state on resume; it is not a bitwise simulator restart.
+Historical source-model/audit paths remain provenance and are not required on
+the destination host.
+
+The run is **paused at iteration 1500 and is not a converged/accepted policy**.
+Publication does not establish task success. No GPU training or physics check
+was run as part of this synchronization.
+
+For file/checkpoint-contract checks on the destination host, without simulation:
+
+```bash
+python3 scripts/original12.py check
+```
+
+To evaluate the supplied iteration-1500 checkpoint under its exact physics:
+
+```bash
+python3 scripts/original12.py evaluate --dry-run
+python3 scripts/original12.py evaluate
+```
+
+Evaluation runs only when explicitly requested. `tracking --startup-check` is
+also an explicit one-step physics check without optimization. The output path
+defaults to the configured external runtime; `--output` can select another
+external directory. Original checkpoint/data files are not rewritten.
+
+The task manifest path remains:
 
 ```text
 runtime/current/workflow/original12/task_max76_with_walk.json
-```
-
-Use this path as `--task_manifest` in the existing workflow commands. For example,
-inspect the tracking launch without starting training:
-
-```bash
-python3 scripts/run_workflow.py tracking --dry-run -- \
-  --task_manifest runtime/current/workflow/original12/task_max76_with_walk.json
-```
-
-Optional file-integrity and relocation check, using the installed interpreter:
-
-```bash
-runtime/environments/venv/workflow/bin/python -m supermimic.task_manifest \
-  runtime/current/workflow/original12/task_max76_with_walk.json
 ```
 
 The 54-file component includes the unchanged task JSON, all twelve canonical NPZ

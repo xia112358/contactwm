@@ -1,7 +1,7 @@
 """Versioned native contact response, independent of robot collision geometry."""
 import json
 
-PROFILES = ('legacy', 'firm_v2', 'manifold_v1', 'manifold_v2', 'manifold_soft_v1', 'manifold_balanced_v1')
+PROFILES = ('legacy', 'firm_v2', 'manifold_v1', 'manifold_v2', 'manifold_v3', 'manifold_soft_v1', 'manifold_balanced_v1', 'newton_contacts_v1', 'newton_contacts_v2')
 
 
 def contract(profile):
@@ -9,13 +9,19 @@ def contract(profile):
         raise ValueError(f'Unknown contact response: {profile}')
     soft = profile == 'manifold_soft_v1'
     balanced = profile == 'manifold_balanced_v1'
-    return dict(schema='native_contact_response_v1', profile=profile,
+    spec = dict(schema='native_contact_response_v1', profile=profile,
                 control_dt=.02, substeps=4 if profile == 'legacy' or soft or balanced else 10,
                 solref=None if profile=='legacy' else [.02 if soft else .01 if balanced else .004, 1.],
                 solimp=None if profile=='legacy' else ([.9,.95,.001,.5,2.] if soft else [.95,.99,.001,.5,2.] if balanced else [.99,.999,.001,.5,2.]),
-                enable_multiccd=profile.startswith('manifold'),
-                manifold_normal='epa_witness_manifold_normal_v1' if profile in ('manifold_v2','manifold_soft_v1','manifold_balanced_v1') else 'upstream',
+                enable_multiccd=profile.startswith('manifold') or profile in ('newton_contacts_v1', 'newton_contacts_v2'),
+                manifold_normal=('epa_projection_manifold_normal_v2' if profile == 'manifold_v3' else
+                                 'epa_witness_manifold_normal_v1' if profile in ('manifold_v2','manifold_soft_v1','manifold_balanced_v1') else 'upstream'),
                 geometry='unchanged', margins='unchanged', gaps='unchanged')
+    if profile in ('newton_contacts_v1', 'newton_contacts_v2'):
+        spec['contact_generation'] = 'newton_collision_pipeline'
+    if profile == 'newton_contacts_v2':
+        spec['collision_decimation'] = 1
+    return spec
 
 
 
@@ -36,6 +42,10 @@ def apply(env, profile):
     if abs(float(manager.get_solver_dt()) - spec['control_dt']/spec['substeps']) > 1e-9:
         raise ValueError('Contact response and actual solver step disagree')
     model, solver = manager.get_model(), manager._solver
+    if profile in ('newton_contacts_v1', 'newton_contacts_v2') and solver._use_mujoco_contacts:
+        raise ValueError('Contact response and actual collision pipeline disagree')
+    if profile == 'newton_contacts_v2' and manager._collision_decimation != 1:
+        raise ValueError('Contact response requires collision generation every physics substep')
     import mujoco
     multiccd = not bool(solver.mj_model.opt.disableflags & mujoco.mjtDisableBit.mjDSBL_MULTICCD)
     if multiccd != spec['enable_multiccd']:

@@ -33,4 +33,4 @@ jobs:
           mkdir -p tmp
           python -m pytest -q --confcutdir=tests -p no:cacheprovider \
             --basetemp=tmp/portable-tests -o tmp_path_retention_policy=all \
-            tests/test_workflow_launcher.py tests/test_workflow_setup.py tests/test_bootstrap_runtime.py tests/test_original12_portability.py
+            tests/test_workflow_launcher.py tests/test_workflow_setup.py tests/test_bootstrap_runtime.py tests/test_original12_portability.py tests/test_original12_training_contract.py

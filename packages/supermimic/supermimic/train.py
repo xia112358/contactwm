@@ -45,7 +45,7 @@ parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--task_manifest", type=str, default=None, help="verified terrain-conditioned task experiment")
 parser.add_argument("--contact_model", choices=("binary2", "force6", "original", "height_only", "force_only"), default="binary2")
 parser.add_argument("--collision_profile",choices=("legacy_v1","surface_v2"),default="surface_v2")
-parser.add_argument("--contact_response", choices=("legacy", "firm_v2", "manifold_v1", "manifold_v2", "manifold_soft_v1", "manifold_balanced_v1"), default="manifold_v2")
+parser.add_argument("--contact_response", choices=("legacy", "firm_v2", "manifold_v1", "manifold_v2", "manifold_v3", "newton_contacts_v1", "newton_contacts_v2", "manifold_soft_v1", "manifold_balanced_v1"), default="manifold_v3")
 parser.add_argument("--policy_force_observation", choices=("measured", "none"), default="measured")
 parser.add_argument("--perception", choices=("heightmap", "panorama_asymmetric", "panorama_rolling", "panorama_oracle"), default="heightmap")
 parser.add_argument("--depth_encoder", choices=("cnn", "mlp"), default="cnn")
@@ -56,6 +56,7 @@ parser.add_argument("--probe_mode", choices=("all_long", "long_short"), default=
 parser.add_argument("--resume", type=str, default=None)
 parser.add_argument("--check_numerics", action="store_true", help="stop and save the first invalid or extreme physical transition")
 parser.add_argument("--capture_physics_failure", action="store_true", help="record first failing physics substep, phase and solver warm starts")
+parser.add_argument("--no_reset_noise", action="store_true", help="initialize exactly from reference poses without perturbing the robot into nearby terrain")
 parser.add_argument("--amp", type=str, default="bf16", choices=["none", "bf16"], help="autocast dtype for MLP matmuls")
 parser.add_argument("--headless", action="store_true", help="Disable visualizers even if one was requested")
 parser.add_argument("--startup_check", action="store_true", help="Initialize physics and run one policy step without optimization or checkpoint writes")
@@ -132,6 +133,12 @@ if args.resume:
     if task_metadata:
         from supermimic.lowstep import validate_checkpoint
         validate_checkpoint(ck, task_metadata)
+        if 'floor_transfer' in ck:
+            task_metadata['floor_transfer_json'] = json.dumps(ck['floor_transfer'], sort_keys=True)
+        if 'contact_pipeline_transfer' in ck:
+            task_metadata['contact_pipeline_transfer_json'] = json.dumps(ck['contact_pipeline_transfer'], sort_keys=True)
+        elif 'contact_pipeline_transfer_json' in ck:
+            task_metadata['contact_pipeline_transfer_json'] = ck['contact_pipeline_transfer_json']
     wm.load_state_dict(ck["wm"]), pi.load_state_dict(ck["pi"]), critic.load_state_dict(ck["critic"])
     opt_wm.load_state_dict(ck["opt_wm"]), opt_pi.load_state_dict(ck["opt_pi"]), opt_v.load_state_dict(ck["opt_v"])
     start_it, wall_offset, sim_steps = ck["iteration"], ck["wall_time"], ck["sim_steps"]
@@ -328,7 +335,7 @@ def policy_update():
 # ------------------------------------------------------------------------------------------------
 sim_cfg = make_sim(dev, args)
 with launch_simulation(sim_cfg, args):
-    env = TrackingSim(sim_cfg, args.num_envs, motion, mdp, gamma=args.gamma)
+    env = TrackingSim(sim_cfg, args.num_envs, motion, mdp, gamma=args.gamma, reset_noise=not args.no_reset_noise)
     if args.startup_check:
         with torch.no_grad():
             obs = mdp.obs(env.state(), env.a_prev, env.xi, env.f)

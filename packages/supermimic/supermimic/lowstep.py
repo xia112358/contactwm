@@ -18,6 +18,11 @@ import torch
 _SPEC = None
 
 
+def collision_masks_match(a_type, a_affinity, b_type, b_affinity):
+    """MuJoCo allows a pair when either direction's type/affinity bits overlap."""
+    return bool((a_type & b_affinity) or (b_type & a_affinity))
+
+
 def spawn_floating_canonical(prim_path, cfg, translation=None, orientation=None, *, collision_profile="legacy_v1", **kwargs):
     """Match SomaForge's explicit root-joint override on the composed stage."""
     from isaaclab.sim.spawners.from_files.from_files import spawn_from_usd
@@ -498,11 +503,13 @@ def install(path, contact_model="binary2", reset_sampler="return_bins", probes_p
             if set(slots) != set(range(spec["terrain_layout"]["shapes_per_world"])):
                 raise RuntimeError("Missing terrain collision shapes in the live solver")
             indices = [slots[i+1] for i in range(width)]
-            if any(solver.mj_model.geom_type[i] != 6 or solver.mj_model.geom_contype[i] == 0
-                   or solver.mj_model.geom_conaffinity[i] == 0 for i in indices):
-                raise RuntimeError("Terrain must contain active box collision shapes")
             robot_geoms = [i for i in range(solver.mj_model.ngeom)
                            if "/Robot/" in solver.mj_model.geom(i).name]
+            if any(solver.mj_model.geom_type[i] != 6 or not any(
+                collision_masks_match(int(solver.mj_model.geom_contype[i]), int(solver.mj_model.geom_conaffinity[i]),
+                                      int(solver.mj_model.geom_contype[j]), int(solver.mj_model.geom_conaffinity[j]))
+                for j in robot_geoms) for i in indices):
+                raise RuntimeError("Terrain boxes must permit collisions with the robot")
             expected_robot_types = {7: 29, 5: 4}
             if self.collision_profile == 'legacy_v1':
                 expected_robot_types[2] = 14
@@ -568,8 +575,12 @@ def install(path, contact_model="binary2", reset_sampler="return_bins", probes_p
     def make_sim(device, args):
         if response_contract(contact_response)["manifold_normal"] != "upstream":
             from .contact_manifold_normals import install as install_manifold_normals
-            install_manifold_normals()
+            install_manifold_normals(response_contract(contact_response)["manifold_normal"])
         cfg = original_make_sim(device, args)
+        if contact_response in ('newton_contacts_v1', 'newton_contacts_v2'):
+            cfg.physics.solver_cfg.use_mujoco_contacts = False
+        if contact_response == 'newton_contacts_v2':
+            cfg.physics.collision_decimation = 1
         if contact_response != "legacy":
             cfg.physics.num_substeps = response_contract(contact_response)["substeps"]
             cfg.physics.solver_cfg.enable_multiccd = response_contract(contact_response)["enable_multiccd"]

@@ -14,7 +14,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--task_manifest',required=True)
     parser.add_argument('--collision_profile',choices=('legacy_v1','surface_v2'),default='surface_v2')
-    parser.add_argument('--contact_response',choices=('legacy','firm_v2','manifold_v1','manifold_v2','manifold_soft_v1','manifold_balanced_v1'),default='legacy')
+    parser.add_argument('--contact_response',choices=('legacy','firm_v2','manifold_v1','manifold_v2','manifold_v3','newton_contacts_v1','newton_contacts_v2','manifold_soft_v1','manifold_balanced_v1'),default='legacy')
     parser.add_argument('--allow_collision_transfer',action='store_true',help='Use legacy tracker weights as an unvalidated initialization; recordings and resumes must match current physics')
     parser.add_argument('--checkpoint',required=True,help='Original tracking teacher checkpoint')
     parser.add_argument('--recording',type=Path,required=True)
