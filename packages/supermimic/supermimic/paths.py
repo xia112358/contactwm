@@ -25,7 +25,9 @@ def runtime_root() -> Path:
         path = Path(override).expanduser()
     else:
         root = workspace_root()
-        config = Path(os.environ.get("SOMAFORGE_RESOURCES", "configs/workflow_resources.json")).expanduser()
+        local = root / "configs/workflow_resources.local.json"
+        default = local if local.is_file() else root / "configs/workflow_resources.json"
+        config = Path(os.environ.get("SOMAFORGE_RESOURCES", str(default))).expanduser()
         resources = json.loads((root / config).read_text())
         return (root / Path(resources["supermimic"]["runtime_root"]).expanduser()).resolve()
     if not path.is_absolute():

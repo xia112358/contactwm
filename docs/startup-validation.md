@@ -1,6 +1,9 @@
 # 不训练启动检查
 
-先执行 `python3 scripts/setup_workflow_environment.py`，再确认 `configs/workflow_resources.json` 中的解释器、IsaacLab 和外部 runtime 路径。本机的独立 venv 继承现有 SuperMimic 的 torch/CUDA/Newton 库，额外依赖由 `workflow-extras.lock.txt` 固定；不改基础环境。网页 TestClient 测试需要执行器允许本地 socket 通信。
+新机器先按 [默认安装流程](quickstart.md) 安装，再执行
+`python3 scripts/check_workflow.py --check-cli`。默认安装不依赖本机已有环境。
+`--base-python` 仅用于显式复用兼容的仿真环境；历史服务器检查记录见本文末尾。
+网页 TestClient 测试需要执行器允许本地 socket 通信。
 
 所有命令都通过 `scripts/run_workflow.py`，`--` 后是原生参数。先用各阶段的 `--help` 验证解析与依赖导入；`--dry-run` 只打印命令，不能证明物理仿真可启动。
 

@@ -1,29 +1,16 @@
 {
   "schema": "somaforge_workflow_resources_v1",
   "supermimic": {
-    "runtime_root": "/perception/workspace/zhouxia/supermimic_vibed",
+    "runtime_root": "../contactwm-data/supermimic",
     "python": "runtime/environments/venv/workflow/bin/python",
-    "isaaclab_root": "/home/zhouxia/workspace/dependencies/IsaacLab",
-    "base_python": "/home/zhouxia/miniforge3/envs/supermimic/bin/python"
+    "isaaclab_root": "runtime/dependencies/isaaclab-workflow"
   },
   "ppo": {
-    "runtime_root": "/perception/workspace/zhouxia/somaforge/runtime/current",
-    "python": "runtime/environments/venv/workflow/bin/python",
-    "isaaclab_root": "/home/zhouxia/workspace/dependencies/IsaacLab"
+    "runtime_root": "../contactwm-data/native",
+    "python": "runtime/environments/conda/somaforge/bin/python",
+    "isaaclab_root": "runtime/dependencies/isaaclab-v3.0.0"
   },
   "stage2": {
-    "runtime_root": "/perception/workspace/zhouxia/somaforge-stage2/runtime/current"
-  },
-  "artifacts": {
-    "force6_source_wm": {
-      "path": "/perception/workspace/zhouxia/supermimic_vibed/logs/climb_low_force6_resume1000/ckpt_006000.pt",
-      "role": "legacy force6 WM initialization; not an interchangeable PPO checkpoint"
-    },
-    "accepted_contact_baseline": {
-      "path": "/perception/workspace/zhouxia/supermimic_vibed/tmp/contact-tracker-20261027-v1/accepted-baseline.json",
-      "status": "not_present_in_current_filesystem",
-      "role": "historical README pointer; require an explicit available actor checkpoint"
-    }
-  },
-  "environment_note": "Local additive workflow venv inherits the existing SuperMimic simulation libraries; original runtime untouched. Native pinned main installation remains separately reproducible from profiles.json."
+    "runtime_root": "../contactwm-data/stage2"
+  }
 }

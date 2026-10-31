@@ -153,7 +153,9 @@ def bootstrap(root: Path, data_root: Path | None = None) -> dict:
                     shutil.copyfileobj(source_stream, target_stream)
                 restored.append(relative.as_posix())
         # Verify the actual destination, including all composed payload files.
-        verified = contract.canonical_g1_asset_metadata()
+        verified = contract.build_g1_asset_metadata(destination / entry_name)
+        if verified["usd_bundle_sha256"] != expected_hash:
+            raise ValueError("Restored G1 USD bundle differs from the pinned fingerprint")
         if not _present(sidecar):
             with sidecar.open("x", encoding="utf-8") as stream:
                 json.dump(verified, stream, indent=2, sort_keys=True)

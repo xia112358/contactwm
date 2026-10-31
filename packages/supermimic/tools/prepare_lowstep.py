@@ -1,6 +1,6 @@
 """Import verified SomaForge step/climb tasks without altering their source files."""
 from __future__ import annotations
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path, workspace_root
 
 import argparse
 import hashlib
@@ -65,7 +65,7 @@ def write_terrain(source, destination, shape_count, boxes):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--somaforge", type=Path, default=ROOT.parent / "somaforge")
+    parser.add_argument("--somaforge", type=Path, default=workspace_root())
     parser.add_argument("--component", choices=tuple(COMPONENTS), default="motions-low-step")
     parser.add_argument("--output", type=Path, default=None)
     parser.add_argument("--contact_model", choices=("binary2", "force6"), default="binary2",

@@ -1,5 +1,8 @@
 # Install the native SomaForge runtime
 
+For a new ContactWM clone, use the [default workflow quick start](quickstart.md).
+This page is the optional native PPO/Predictor installation.
+
 For the existing local server, the validated additive venv is described in
 [current workflow](current-workflow.md#本机运行环境与启动验证). It currently
 serves both workflow interpreter entries. The fully pinned native installation
