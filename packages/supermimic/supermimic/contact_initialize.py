@@ -16,7 +16,7 @@ def main():
     p.add_argument('--slices',type=Path,help='Audited cases_validated.pt; preserve explicit starts, stops and original goals')
     p.add_argument('--output',type=Path,required=True)
     p.add_argument('--collision_profile',choices=('legacy_v1','surface_v2'),default='surface_v2')
-    p.add_argument('--contact_response',choices=('legacy','firm_v2','manifold_v1','manifold_v2','manifold_soft_v1','manifold_balanced_v1'),default='legacy')
+    p.add_argument('--contact_response',choices=('legacy','firm_v2','manifold_v1','manifold_v2','manifold_v3','newton_contacts_v1','newton_contacts_v2','manifold_soft_v1','manifold_balanced_v1'),default='legacy')
     p.add_argument('--num_envs',type=int,default=4096)
     p.add_argument('--seed',type=int,default=42)
     p.add_argument('--bc_steps',type=int,default=0)

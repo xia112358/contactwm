@@ -10,7 +10,6 @@ Run as a watcher: ``python supermimic/evaluate.py --run_dir logs/<run> --watch``
 from __future__ import annotations
 
 import argparse
-import glob
 import json
 import os
 import sys
@@ -37,7 +36,7 @@ parser.add_argument("--task_manifest", type=str, default=None)
 parser.add_argument("--contact_model", choices=("binary2", "force6", "original", "height_only", "force_only"), default=None)
 parser.add_argument("--terrain_transfer", action="store_true", help="explicitly test policy weights on corrected terrain; preserve robot, motions and observation schema")
 parser.add_argument("--collision_profile",choices=("legacy_v1","surface_v2"),default=None)
-parser.add_argument("--contact_response", choices=("legacy", "firm_v2", "manifold_v1", "manifold_v2", "manifold_soft_v1", "manifold_balanced_v1"), default=None)
+parser.add_argument("--contact_response", choices=("legacy", "firm_v2", "manifold_v1", "manifold_v2", "manifold_v3", "newton_contacts_v1", "newton_contacts_v2", "manifold_soft_v1", "manifold_balanced_v1"), default=None)
 add_launcher_args(parser)
 args = parser.parse_args()
 if args.iteration_interval is not None and args.iteration_interval < 1:
@@ -47,12 +46,22 @@ if args.stop_after is not None and args.stop_after < 1:
 if args.terrain_transfer and (not args.ckpt or not args.record or not args.task_manifest):
     parser.error("--terrain_transfer requires --ckpt, --record and an explicit --task_manifest")
 
+from supermimic.evaluation_queue import pending_checkpoints, wait_for_checkpoint
+
+if args.watch and not args.ckpt:
+    print("[eval] waiting for an eligible checkpoint before initializing CUDA/simulation", flush=True)
+    if not wait_for_checkpoint(args.run_dir, iteration_interval=args.iteration_interval,
+                               every=args.every, stop_after=args.stop_after):
+        print("[eval] stopped/completed run; no simulator initialized", flush=True)
+        sys.exit(0)
+
 task_metadata = {}
 run_args_path = os.path.join(args.run_dir, "args.json")
-run_args = json.load(open(run_args_path)) if os.path.isfile(run_args_path) else {}
+from somaforge_core.published_data import relocate_published_values
+run_args = relocate_published_values(json.load(open(run_args_path))) if os.path.isfile(run_args_path) else {}
 args.contact_model = args.contact_model or run_args.get("contact_model", "binary2")
 if not args.task_manifest and os.path.isfile(run_args_path):
-    args.task_manifest = json.load(open(run_args_path)).get("task_manifest")
+    args.task_manifest = run_args.get("task_manifest")
 if args.task_manifest:
     from supermimic.lowstep import checkpoint_metadata, install
     task_spec = install(args.task_manifest, contact_model=args.contact_model,
@@ -208,14 +217,8 @@ with launch_simulation(sim_cfg, args):
         if args.watch and os.path.isfile(os.path.join(args.run_dir, "invalid_transition.pt")):
             print("[eval] training saved an invalid transition; watcher exiting", flush=True)
             break
-        ckpts = sorted(glob.glob(os.path.join(args.run_dir, "ckpt_*.pt")))
-        todo = [c for c in ckpts if int(os.path.basename(c)[5:11]) not in done]
-        if args.iteration_interval is not None:
-            todo = [c for c in todo if int(os.path.basename(c)[5:11]) % args.iteration_interval == 0]
-        else:
-            todo = [c for c in todo if (int(os.path.basename(c)[5:11]) // 2000) % args.every == 0]
-        if args.stop_after is not None:
-            todo = [c for c in todo if int(os.path.basename(c)[5:11]) <= args.stop_after]
+        todo = pending_checkpoints(args.run_dir, done, iteration_interval=args.iteration_interval,
+                                   every=args.every, stop_after=args.stop_after)
         for c in todo:
             it = int(os.path.basename(c)[5:11])
             ck = torch.load(c, map_location=dev)

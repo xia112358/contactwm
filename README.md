@@ -32,6 +32,10 @@ and caches default to a sibling `contactwm-data/` directory; the environment and
 pinned dependencies are ignored under `runtime/`. No GPU index is forced:
 `CUDA_VISIBLE_DEVICES` is optional and respected when set.
 
+For the exact original12 experiment, `python3 scripts/original12.py prepare`
+installs the environment and downloads its data plus full initialization/resume
+checkpoints. See [the exact original12 recipe](docs/original12.md).
+
 Read [fresh installation and first run](docs/quickstart.md) for custom storage,
 data downloads and a one-step simulation check. Installation does not include
 trained policies or certify historical contact labels. The optional native
@@ -42,7 +46,7 @@ PPO/Predictor environment has its own [installation recipe](docs/install.md).
 - [Current workflow and commands](docs/current-workflow.md): tracking, collect, initialize, contact and Predictor
 - [Native PPO/Predictor installation](docs/install.md), [Python environment setup](docs/python-environments.md) and [compatibility](docs/environments.md)
 - [SuperMimic package and original runtime recipe](packages/supermimic/README.md)
-- [original12 task and complete input download](docs/original12.md)
+- [original12 complete original training setup: source, exact recipe, data and full checkpoints](docs/original12.md)
 - [Download training inputs, reference models and extracted demonstrations](docs/data-downloads.md)
 - [Read-only browser playback](packages/motion_edit/README.md)
 - [Predictor baseline and reproduction records](baselines/README.md)
