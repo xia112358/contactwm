@@ -3,9 +3,10 @@
 ## Native solver verification (2026-10-30)
 
 The sphere-free `surface_v2` geometry and contact response are separate versioned
-contracts. `manifold_v2` enables native mesh multi-contact CCD, uses ten 2 ms
-substeps per 20 ms control step, and preserves the original EPA normal when
-clipping a contact manifold. The patch does not replace native contact positions,
+contracts. `manifold_v3` enables native mesh multi-contact CCD, uses ten 2 ms
+substeps per 20 ms control step, and uses the EPA Minkowski face projection to orient the
+contact manifold. It avoids subtracting near-coincident world-space witnesses,
+which can cancel to zero in float32 even with a nonzero native penetration. The patch does not replace native contact positions,
 distances or activation. It checks the complete upstream factory source and must
 be installed in a fresh process before any CCD kernel is created. Switching
 between patched and upstream physics inside one process is rejected.
@@ -116,6 +117,17 @@ audit. Shared contracts and migration limits are documented in SomaForge's
 `docs/surface-contact-system.md`.
 
 ## Efficiency checks without training
+
+Surface-region guidance transforms only the parts participating in each event;
+the fixed atlas, area weights, scalar loss, and six-part output layout are unchanged.
+CPU regression tests compare both objective values and pose/target gradients
+against the dense all-part calculation.
+
+Tracking `supermimic.evaluate --watch` waits for an eligible, unevaluated checkpoint
+before loading task assets or initializing CUDA/simulation. Stopped, failed, or
+completed runs exit from this initial CPU wait. This is not an idle-GPU allocator:
+after the first evaluation the watcher still retains its simulation environment.
+Only launch it on an allocated idle GPU.
 
 The 2026-10-30 efficiency pass preserves contact criteria, duration selection,
 terminal targets, regularization, and BPTT boundaries. Checkpoints are loaded
@@ -399,3 +411,21 @@ with interior boundaries unchanged and original contact/reference goals retained
 The original tracking teacher succeeds 107/107 from both starts; mean first-action
 execution changes from 82.24 to 38.30 frames. Restore original reference clock and
 sensor history at warm starts. Existing baselines remain unchanged.
+
+### Newton contact generation with MuJoCo dynamics
+
+`--contact_response newton_contacts_v2` selects Newton's collision pipeline while
+retaining MJWarp dynamics, the Newton constraint algorithm, and the response
+parameters of `manifold_v3` (10 substeps, unchanged robot geometry, margins and
+gaps). Collision generation runs every 2 ms physics substep. The historical
+`newton_contacts_v1` generates collisions once per 20 ms control step and is a
+distinct physics contract. Neither profile installs the MJWarp EPA normal patch. Contact observations
+still read the actual constraints consumed by MJWarp, including activation and
+constraint allocation; Newton collision candidates alone are not contact truth.
+
+The contact-generation and collision-frequency changes have distinct checkpoint/data contracts. An old
+checkpoint can only initialize this physics through an explicit recorded
+transfer; rollout replay is rebuilt from new physical transitions. The original
+200 m floor remains usable for the collision regression and is not reduced as
+part of either profile. The 2 ms profile has passed isolated small-batch tests;
+it does not establish full-scale training stability or tracking success.

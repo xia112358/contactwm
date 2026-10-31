@@ -1,0 +1,43 @@
+{
+  "device": "cpu",
+  "gpu_training_started": false,
+  "tests_passed": 36,
+  "benchmarks": [
+    {
+      "parts": [
+        4
+      ],
+      "batch": 2048,
+      "nodes_per_part": 128,
+      "cpu_threads": 2,
+      "forward_ms": {
+        "dense": 104.39158929511905,
+        "sparse": 107.33537189662457
+      },
+      "speedup": 0.9725739749209543,
+      "transformed_nodes_before": 1572864,
+      "transformed_nodes_after": 262144
+    },
+    {
+      "parts": [
+        4,
+        5
+      ],
+      "batch": 2048,
+      "nodes_per_part": 128,
+      "cpu_threads": 2,
+      "forward_ms": {
+        "dense": 280.0109153613448,
+        "sparse": 216.3184229284525
+      },
+      "speedup": 1.294438594598846,
+      "transformed_nodes_before": 1572864,
+      "transformed_nodes_after": 524288
+    }
+  ],
+  "entrypoint_checks": [
+    "stopped run exits before simulator initialization",
+    "empty run waits without loading motion/creating eval.csv"
+  ],
+  "limitation": "CPU synthetic forward benchmark, not GPU training speed; evaluation retains simulator after its first evaluation"
+}

@@ -36,8 +36,14 @@ class SurfaceAtlas(nn.Module):
         digest.update(repr(self.parts).encode())
         self.fingerprint = digest.hexdigest()
 
-    def world(self, positions, rotations):
-        return positions[..., None, :] + torch.einsum("...pij,pkj->...pki", rotations, self.points_local)
+    def world(self, positions, rotations, *, parts=None):
+        """Transform all nodes, or only the requested parts for sparse objectives."""
+        nodes = self.points_local
+        if parts is not None:
+            positions = positions[..., parts, :]
+            rotations = rotations[..., parts, :, :]
+            nodes = nodes[parts]
+        return positions[..., None, :] + torch.einsum("...pij,pkj->...pki", rotations, nodes)
 
     @classmethod
     def from_surfaces(cls, triangles, spheres, *, parts, samples_per_part=128, provenance=None):

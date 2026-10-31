@@ -1,0 +1,165 @@
+{
+  "dt_s": 0.002,
+  "scenario": "same canonical foot convex hull; local 0.6x0.6x0.1m floor patch, top z=0; no whole-robot controller",
+  "mass_kg": 17.52657123672543,
+  "drop_height_m": 0.05,
+  "training": false,
+  "hydro_kh": 100000000000.0,
+  "hydro_sdf_target_m": 0.002,
+  "scope": "Isolated canonical foot; common ShapeConfig ke=1e7 kd=1e4 mu=.7, multiccd=True; MJWarp retains project normal patch. Not full-robot manifold_v3/newton_contacts_v2 response parameters.",
+  "results": {
+    "mjwarp": {
+      "landing_peak_mm": 2.808966897879175,
+      "sliding_peak_mm": 0.033232871154698855,
+      "steady_penetration_mean_mm": 0.004836578722640901,
+      "steady_force_mean_n": 171.93566913604735,
+      "steady_active_range": [
+        4,
+        4
+      ],
+      "steady_loaded_range": [
+        4,
+        4
+      ],
+      "point_mean_jump_max_mm": 1.3208389282272012e-05,
+      "cop_jump_max_mm": 1.9755252321325207e-05,
+      "finite": true,
+      "downward_normals": 0,
+      "steps": 700,
+      "solver_settings": {
+        "geom_solref": [
+          [
+            0.00019999999494757503,
+            1.5811387300491333
+          ],
+          [
+            0.00019999999494757503,
+            1.5811387300491333
+          ]
+        ],
+        "geom_solimp": [
+          [
+            0.9,
+            0.95,
+            0.001,
+            0.5,
+            2.0
+          ],
+          [
+            0.9,
+            0.95,
+            0.001,
+            0.5,
+            2.0
+          ]
+        ],
+        "disableflags": 8192,
+        "solver": 2,
+        "iterations": 100
+      },
+      "elapsed_seconds": 12.544761217664927
+    },
+    "hard": {
+      "landing_peak_mm": 0.031001441375724595,
+      "sliding_peak_mm": 0.028788979015931155,
+      "steady_penetration_mean_mm": 0.0019712166507831873,
+      "steady_force_mean_n": 171.93567442655564,
+      "steady_active_range": [
+        12,
+        15
+      ],
+      "steady_loaded_range": [
+        12,
+        15
+      ],
+      "point_mean_jump_max_mm": 10.742068189146854,
+      "cop_jump_max_mm": 0.013969797961262687,
+      "finite": true,
+      "downward_normals": 0,
+      "steps": 700,
+      "solver_settings": {
+        "geom_solref": [
+          [
+            0.00019999999494757503,
+            1.5811387300491333
+          ],
+          [
+            0.00019999999494757503,
+            1.5811387300491333
+          ]
+        ],
+        "geom_solimp": [
+          [
+            0.9,
+            0.95,
+            0.001,
+            0.5,
+            2.0
+          ],
+          [
+            0.9,
+            0.95,
+            0.001,
+            0.5,
+            2.0
+          ]
+        ],
+        "disableflags": 8192,
+        "solver": 2,
+        "iterations": 100
+      },
+      "elapsed_seconds": 10.814795106183738
+    },
+    "hydro": {
+      "landing_peak_mm": 1.5014673686351676,
+      "sliding_peak_mm": 0.056733708572438715,
+      "steady_penetration_mean_mm": 7.589137532048038e-05,
+      "steady_force_mean_n": 171.9356661954522,
+      "steady_active_range": [
+        41,
+        41
+      ],
+      "steady_loaded_range": [
+        41,
+        41
+      ],
+      "point_mean_jump_max_mm": 0.5807005537419178,
+      "cop_jump_max_mm": 0.0020731643439822786,
+      "finite": true,
+      "downward_normals": 0,
+      "steps": 700,
+      "solver_settings": {
+        "geom_solref": [
+          [
+            0.00019999999494757503,
+            1.5811387300491333
+          ],
+          [
+            0.00019999999494757503,
+            1.5811387300491333
+          ]
+        ],
+        "geom_solimp": [
+          [
+            0.9,
+            0.95,
+            0.001,
+            0.5,
+            2.0
+          ],
+          [
+            0.9,
+            0.95,
+            0.001,
+            0.5,
+            2.0
+          ]
+        ],
+        "disableflags": 8192,
+        "solver": 2,
+        "iterations": 100
+      },
+      "elapsed_seconds": 14.784421801101416
+    }
+  }
+}

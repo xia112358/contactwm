@@ -126,14 +126,14 @@ class SurfaceRegionObjective(CollisionSurface):
     def region_loss(self,S,target,parts,*,normals=None,normal_weight=1.,tangent_weight=1.):
         from somaforge_core.contact_system.objectives import smooth_region_loss
         p,R=self.geometry.poses(S)
-        candidates=self.atlas.world(p,R)
+        candidates=self.atlas.world(p,R,parts=parts)
         if normals is None:
             # For a zero-radius isotropic point target the normal cancels.
             if self.target_normal is None and (normal_weight!=tangent_weight or self.radius>0):
                 raise ValueError('Anisotropic/region losses require explicit target normals')
             normal=target.new_tensor([0.,0.,1.] if self.target_normal is None else self.target_normal)
             normals=normal.expand_as(target)
-        result=smooth_region_loss(candidates[:,parts],target[:,parts],normals[:,parts],
+        result=smooth_region_loss(candidates,target[:,parts],normals[:,parts],
             self.atlas.areas[parts],temperature=self.temperature,halfwidth=self.radius,
             normal_weight=normal_weight,tangent_weight=tangent_weight)
         # Keep the existing six-part result layout for replay/task masking.

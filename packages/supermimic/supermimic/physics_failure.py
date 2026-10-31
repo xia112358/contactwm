@@ -26,7 +26,7 @@ def _stash(qp: wp.array2d[float], qv: wp.array2d[float], warm: wp.array2d[float]
 @wp.kernel
 def _detect(qp: wp.array2d[float], qv: wp.array2d[float], qa: wp.array2d[float],
             smooth: wp.array2d[float], nq: int, nv: int, slot: int, phase: int,
-            first: wp.array[int]):
+            acceleration_limit: float, first: wp.array[int]):
     w = wp.tid()
     if first[0] >= 0:
         return
@@ -39,6 +39,8 @@ def _detect(qp: wp.array2d[float], qv: wp.array2d[float], qa: wp.array2d[float],
             mask = mask | 2
         if phase >= 5 and not wp.isfinite(qa[w, j]):
             mask = mask | 4
+        if phase >= 5 and acceleration_limit > 0.0 and wp.abs(qa[w, j]) > acceleration_limit:
+            mask = mask | 16
         if phase >= 4 and not wp.isfinite(smooth[w, j]):
             mask = mask | 8
     if mask != 0:
@@ -125,6 +127,8 @@ class PhysicsFailureRecorder:
               4: "unconstrained_acceleration", 5: "constraint_solve", 6: "implicit_integration"}
 
     def __init__(self, manager):
+        import os
+        self.acceleration_limit=float(os.environ.get('SOMAFORGE_DIAGNOSTIC_ACCELERATION_LIMIT','0'))
         self.manager = manager
         self.solver = manager._solver
         self.data = d = self.solver.mjw_data
@@ -188,7 +192,7 @@ class PhysicsFailureRecorder:
     def check(self, phase):
         d, c = self.data, self.data.contact
         wp.launch(_detect, dim=self.worlds, inputs=[d.qpos, d.qvel, d.qacc, d.qacc_smooth,
-                  self.nq, self.nv, self.slot, phase, self.first], device=self.device)
+                  self.nq, self.nv, self.slot, phase, self.acceleration_limit, self.first], device=self.device)
         wp.launch(_capture, dim=1, inputs=[self.first, self.slot, phase,
             d.qpos, d.qvel, d.qacc, d.qacc_smooth, d.qacc_warmstart, d.ctrl,
             d.M, d.qLD, d.qLDiagInv, d.nefc, d.solver_niter,
