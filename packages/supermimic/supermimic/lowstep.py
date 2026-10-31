@@ -85,7 +85,8 @@ def install(path, contact_model="binary2", reset_sampler="return_bins", probes_p
         if _SPEC.get("_contact_response", "legacy") != contact_response:
             raise RuntimeError("Cannot change contact response in a running process")
         return _SPEC
-    spec = json.loads(path.read_text())
+    from .task_manifest import load_task_manifest
+    spec = load_task_manifest(path)
     if spec["schema"] != "supermimic_somaforge_lowstep_v1" or not spec["tasks"]:
         raise ValueError("Unsupported or empty low-step experiment")
     if spec.get("terrain_layout", {}).get("collider_representation") != "primitive_box_pose_size_v1":

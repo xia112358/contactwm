@@ -1,5 +1,9 @@
 # Download training inputs and demonstrations
 
+For `original12` / `task_max76_with_walk.json`, use the separate
+[original12 component guide](original12.md). It includes the complete selected
+task inputs and migration mapping; the historical release below does not.
+
 Training data and fixed reference models are optional GitHub Release assets,
 separate from the source checkout:
 [data-20261022-v1](https://github.com/xia112358/somaforge/releases/tag/data-20261022-v1).

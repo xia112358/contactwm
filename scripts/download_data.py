@@ -16,6 +16,9 @@ import json
 import os
 from pathlib import Path, PurePosixPath
 import shutil
+import subprocess
+import urllib.error
+from urllib.parse import unquote, urlsplit
 import tarfile
 import urllib.request
 import uuid
@@ -82,6 +85,22 @@ def check_file(path, record):
     return path.is_file() and path.stat().st_size == record["size"] and sha256(path) == record["sha256"]
 
 
+def authenticated_github_asset(record, partial):
+    """Let gh handle credentials/redirects; never put a token in a URL or file."""
+    url = urlsplit(record["url"])
+    parts = url.path.strip("/").split("/")
+    if (url.scheme != "https" or url.netloc != "github.com" or len(parts) != 6
+            or parts[2:4] != ["releases", "download"] or unquote(parts[5]) != record["name"]
+            or any(character in record["name"] for character in "*?[]")):
+        raise ValueError("Authenticated downloads support exact github.com release asset URLs only")
+    gh = shutil.which("gh")
+    if gh is None:
+        raise RuntimeError("Private GitHub release: install GitHub CLI and run gh auth login with repository access, "
+                           "or use --local-archives")
+    subprocess.run([gh, "release", "download", unquote(parts[4]), "--repo", "/".join(parts[:2]),
+                    "--pattern", record["name"], "--output", str(partial)], check=True)
+
+
 def acquire(record, cache, local_archives=None):
     name = checked_relative(record["name"])
     if len(name.parts) != 1:
@@ -102,8 +121,13 @@ def acquire(record, cache, local_archives=None):
     partial = cache / f".partial-{uuid.uuid4().hex}"
     request = urllib.request.Request(record["url"], headers={"User-Agent": "SomaForge-data/1"})
     print(f"Downloading {name} ({record['size']:,} bytes)", flush=True)
-    with urllib.request.urlopen(request, timeout=60) as response, partial.open("xb") as stream:
-        shutil.copyfileobj(response, stream, length=1024 * 1024)
+    try:
+        with urllib.request.urlopen(request, timeout=60) as response, partial.open("xb") as stream:
+            shutil.copyfileobj(response, stream, length=1024 * 1024)
+    except urllib.error.HTTPError as error:
+        if error.code not in (401, 403, 404) or urlsplit(record["url"]).netloc != "github.com":
+            raise
+        authenticated_github_asset(record, partial)
     if not check_file(partial, record):
         raise ValueError(f"Download checksum mismatch; partial evidence retained: {partial}")
     partial.rename(path)

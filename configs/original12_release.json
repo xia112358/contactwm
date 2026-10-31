@@ -1,0 +1,53 @@
+{
+  "schema": "somaforge_data_release_catalog_v1",
+  "repository": "xia112358/contactwm",
+  "tag": "original12-20261031-v1",
+  "source_roots_aliases": [
+    {
+      "source": "/home/zhouxia/workspace/somaforge",
+      "target": "."
+    },
+    {
+      "source": "/home/zhouxia/workspace/somaforge-unified",
+      "target": "."
+    },
+    {
+      "source": "/home/zhouxia/workspace/somaforge-unified/runtime/supermimic/data/php_original_low_contact_20261030_v1",
+      "target": "runtime/current/workflow/original12"
+    },
+    {
+      "source": "/perception/workspace/zhouxia/supermimic_vibed/data/php_original_low_contact_20261030_v1",
+      "target": "runtime/current/workflow/original12"
+    }
+  ],
+  "repository_files": [],
+  "components": {
+    "original12": {
+      "purpose": "Twelve original step/climb<=76cm and walking references with paired terrain, canonical poses and provenance",
+      "status": "kinematic_references_fresh_native_contact_collection_required",
+      "dependencies": [],
+      "file_count": 54,
+      "bytes": 13289269,
+      "index": {
+        "name": "original12.files.json",
+        "url": "https://github.com/xia112358/contactwm/releases/download/original12-20261031-v1/original12.files.json",
+        "size": 26761,
+        "sha256": "865a7e2ec19008be5d54ac1d73818279f2a6af8da0b868f6ecebff17c4085ffd"
+      },
+      "archives": [
+        {
+          "name": "original12.part-001.tar.gz",
+          "url": "https://github.com/xia112358/contactwm/releases/download/original12-20261031-v1/original12.part-001.tar.gz",
+          "size": 11102716,
+          "sha256": "e6f6d9afb45c98c39889f46285cfeb87fe16fc6e6aa8d5de2359d2fa78f9ba03"
+        }
+      ],
+      "provenance_notes": [
+        "Original JSON/CSV/NPZ/USD/OBJ/XML bytes retained; manifest and input hashes unchanged.",
+        "Catalogue is retained as provenance inventory; only the twelve selected task execution inputs are distributed.",
+        "No policy, world-model checkpoint, contact recording, inferred labels or convergence claim is included.",
+        "Source PHP clips and terrain retain their upstream Apache-2.0 license and notice."
+      ]
+    }
+  }
+}
