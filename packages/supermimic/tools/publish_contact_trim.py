@@ -2,9 +2,13 @@
 from supermimic.paths import runtime_path, runtime_root
 import sys,json,subprocess,os
 from pathlib import Path
+import argparse
+_inputs_parser=argparse.ArgumentParser(description=__doc__)
+_inputs_parser.add_argument('--source-root',type=Path,required=True,help='Existing experiment directory containing the historical run inputs')
+_inputs=_inputs_parser.parse_args()
 from concurrent.futures import ThreadPoolExecutor
 import numpy as np,torch
-ROOT=Path(__file__).resolve().parents[1];base=runtime_path('tmp/contact-tracker-20261027-v1');tracking=bool(os.environ.get('TRIM_TRACKING_TEACHER'));web=runtime_path('results/mixed_comparison_web')/('contact-stationary-trim-tracking' if tracking else 'contact-stationary-trim');report=json.loads((base/('stationary-trim-tracking-v1' if tracking else 'stationary-trim-v1')/'trim-report.json').read_text());metadata=torch.load(base/'demo0-roles-v1/rollout.pt',map_location='cpu',weights_only=False)['metadata'];pool=ThreadPoolExecutor(max_workers=3);jobs=[];cards=[]
+ROOT=Path(__file__).resolve().parents[1];base=_inputs.source_root;tracking=bool(os.environ.get('TRIM_TRACKING_TEACHER'));web=runtime_path('results/mixed_comparison_web')/('contact-stationary-trim-tracking' if tracking else 'contact-stationary-trim');report=json.loads((base/('stationary-trim-tracking-v1' if tracking else 'stationary-trim-v1')/'trim-report.json').read_text());metadata=torch.load(base/'demo0-roles-v1/rollout.pt',map_location='cpu',weights_only=False)['metadata'];pool=ThreadPoolExecutor(max_workers=3);jobs=[];cards=[]
 labels={'demo-1-0':'第1段示范：原切分','demo-1-1':'第1段示范：裁剪后','demo-19-0':'第19段示范：原切分','demo-19-1':'第19段示范：裁剪后','policy-first-0':'冻结第40轮策略：原起点','policy-first-1':'冻结第40轮策略：新起点与相应缩短的时限'}
 if tracking:labels={k:v.replace('冻结第40轮策略','原始tracking teacher') for k,v in labels.items()}
 for stem,label in labels.items():

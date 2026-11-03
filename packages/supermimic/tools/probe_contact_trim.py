@@ -2,11 +2,16 @@
 from supermimic.paths import runtime_path, runtime_root
 import sys,json,runpy,subprocess,os
 from pathlib import Path
+import argparse
+_inputs_parser=argparse.ArgumentParser(description=__doc__)
+_inputs_parser.add_argument('--source-root',type=Path,required=True,help='Existing experiment directory containing the historical run inputs')
+_inputs,_forwarded=_inputs_parser.parse_known_args()
+sys.argv=[sys.argv[0],*_forwarded]
 ROOT=Path(__file__).resolve().parents[1]
 import torch,numpy as np
 from supermimic.contact_task import ContactTask
 native_step=ContactTask.step
-base=runtime_path('tmp/contact-tracker-20261027-v1');tracking_mode=bool(os.environ.get('TRIM_TRACKING_TEACHER'));out=base/('stationary-trim-tracking-v1' if tracking_mode else 'stationary-trim-v1');web=runtime_path('results/mixed_comparison_web')/('contact-stationary-trim-tracking' if tracking_mode else 'contact-stationary-trim')
+base=_inputs.source_root;tracking_mode=bool(os.environ.get('TRIM_TRACKING_TEACHER'));out=base/('stationary-trim-tracking-v1' if tracking_mode else 'stationary-trim-v1');web=runtime_path('results/mixed_comparison_web')/('contact-stationary-trim-tracking' if tracking_mode else 'contact-stationary-trim')
 def probe(task):
     from supermimic.contact_control import observation
     from supermimic.mdp import unflatten_state

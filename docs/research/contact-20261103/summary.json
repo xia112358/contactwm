@@ -54,6 +54,10 @@
       "traces": 12
     },
     "browser": "passed short/long lists, frame step, scrub, playback, navigation and mobile overflow",
-    "gpu_training_started": false
+    "gpu_training_started": false,
+    "repository_audit": "passed; 1248 Python files parsed",
+    "diagnostic_cli_help_checks": 11,
+    "additional_input_and_release_tests": 73,
+    "new_input_validation": "--cuda diagnostic requires explicit --source-root; CPU mode remains independent of saved experiment data"
   }
 }

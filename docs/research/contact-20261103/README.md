@@ -80,3 +80,9 @@ subtests），源资产与提交版资源配置检查通过。仓库版导出工
 - [全部 197 段清单](cases.csv)
 - [32 个短段与 5 个长段的源帧和切点](length-review.json)
 - [双脚原生接触缺口审计](locomotion-flight-audit.json)（包含全部 12 条，行走结论限于 walk_*）
+
+历史诊断工具现在显式接收输入路径：contact-tracker 诊断使用 `--source-root`，
+Stage 1 发布清单使用 `--prepared` / `--evaluation`，旧 WM dashboard 使用 `--runs`。
+`check_contact_dmo_efficiency.py` 的纯 CPU 检查不需要实验文件；只有请求 `--cuda`
+时要求 `--source-root`。这是运行诊断所需输入的 CLI 边界检查，未增加训练准入条件。
+11 个诊断入口的 `--help` 检查通过；临时输入与数据发布回归另有 73 项通过。

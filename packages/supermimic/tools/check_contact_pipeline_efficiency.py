@@ -15,6 +15,7 @@ ROOT=Path(__file__).resolve().parents[1]
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--reference-dir',type=Path,required=True,help='Pre-change source snapshot')
+    p.add_argument('--source-root',type=Path,required=True,help='Existing experiment inputs')
     p.add_argument('--output',type=Path,required=True)
     p.add_argument('--repeats',type=int,default=8)
     a=p.parse_args()
@@ -50,7 +51,7 @@ def main():
         row['speedup']=row['before']['median_ms']/row['after']['median_ms']
         report['results'][name]=row;print(json.dumps({name:row}),flush=True)
 
-    base=runtime_path('tmp/contact-tracker-20261027-v1')
+    base=a.source_root
     checkpoint=load_checkpoint_cpu(base/'dmo-continuous-aligned-band-100-resume-v1/checkpoint_000140.pt')
     wm=networks.WorldModel().cuda();wm.load_state_dict(checkpoint['wm']);del checkpoint
     demo=torch.load(base/'demo0-roles-v1/rollout.pt',map_location='cuda',weights_only=False)['data']

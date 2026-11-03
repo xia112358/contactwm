@@ -20,9 +20,9 @@ def alive(record):
     except OSError:return False
 
 
-def snapshot(root):
-    stream=root/'tmp/contact-wm/stream-4096-v2'
-    if not stream.exists():stream=root/'tmp/contact-wm/stream-4096-v1'
+def snapshot(root, runs):
+    stream=runs/'stream-4096-v2'
+    if not stream.exists():stream=runs/'stream-4096-v1'
     current=read_json(stream/'status.json')
     if current:
         metrics=[]
@@ -35,7 +35,7 @@ def snapshot(root):
             training_status='running' if current['status'] in ('starting','running') and alive(read_json(root/'tmp/contact-wm-stream-4096-process.json')) else 'completed' if current['status']=='completed' else 'stopped',
             evaluation_status='waiting',metrics=metrics,checkpoints=checkpoints,native_rows=[],native_summary=None,
             training_done=current['status']=='completed',evaluation_done=False,stream=current)
-    base=root/'tmp/contact-wm';train=base/'policy-multitarget-v2';evaluation=base/'multitarget-native-evaluation-v2'
+    base=runs;train=base/'policy-multitarget-v2';evaluation=base/'multitarget-native-evaluation-v2'
     online_root=base/'online-contact-long-v1';online=read_json(online_root/'status.json')
     metric_dirs=[train]
     if online:
@@ -87,13 +87,14 @@ def snapshot(root):
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--root',type=Path,required=True);parser.add_argument('--output',type=Path,required=True)
+    parser.add_argument('--runs',type=Path,required=True,help='Existing contact-wm run directory')
     parser.add_argument('--once',action='store_true');args=parser.parse_args()
     args.output.mkdir(parents=True,exist_ok=True)
     shutil.copyfile(Path(__file__).with_name('dashboard.html'),args.output/'index.html')
     shutil.copyfile(Path(__file__).with_name('native_player.html'),args.output/'native.html')
     while True:
-        run=args.root/'tmp/contact-wm/stream-4096-v2'
-        if not run.exists():run=args.root/'tmp/contact-wm/stream-4096-v1'
+        run=args.runs/'stream-4096-v2'
+        if not run.exists():run=args.runs/'stream-4096-v1'
         native=run/'native-latest.json'
         if native.exists():
             shutil.copyfile(native,args.output/'native.json.tmp');(args.output/'native.json.tmp').replace(args.output/'native.json')
@@ -101,7 +102,7 @@ def main():
         baseline=native.with_name('native-baseline.json')
         if baseline.exists():shutil.copyfile(baseline,args.output/'native-baseline.json')
         elif (args.output/'native-baseline.json').exists():(args.output/'native-baseline.json').unlink()
-        value=snapshot(args.root)
+        value=snapshot(args.root,args.runs)
         value['watch_complete']=(value['online']['status']!='running') if 'online' in value else value['evaluation_done'] or (value['training_status']=='stopped' and value['evaluation_status']=='stopped')
         temp=args.output/'data.json.tmp';temp.write_text(json.dumps(value,ensure_ascii=False,allow_nan=False));temp.replace(args.output/'data.json')
         if args.once or value['watch_complete']:break

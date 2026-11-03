@@ -2,11 +2,16 @@
 from supermimic.paths import runtime_path, runtime_root
 import sys,os,json,runpy,subprocess,html
 from pathlib import Path
+import argparse
+_inputs_parser=argparse.ArgumentParser(description=__doc__)
+_inputs_parser.add_argument('--source-root',type=Path,required=True,help='Existing experiment directory containing the historical run inputs')
+_inputs,_forwarded=_inputs_parser.parse_known_args()
+sys.argv=[sys.argv[0],*_forwarded]
 ROOT=Path(__file__).resolve().parents[1]
 import torch,numpy as np
 from supermimic.contact_task import ContactTask
 original_step=ContactTask.step
-source=runtime_path('tmp/contact-tracker-20261027-v1/dmo-continuous-aligned-band-100-resume-v1')
+source=_inputs.source_root/'dmo-continuous-aligned-band-100-resume-v1'
 oldweb=runtime_path('results/mixed_comparison_web/aligned-failure-videos-v1')
 web=runtime_path('results/mixed_comparison_web/aligned-failure-extension-v1')
 

@@ -11,7 +11,7 @@ from pathlib import Path
 import numpy as np
 
 
-def build(root, php_checkout):
+def build(root, php_checkout, prepared, evaluation):
     root = root.resolve()
     runtime = (root / 'runtime/current').resolve()
     destination_root = Path('runtime/current/motions/php_stage1_20261025_v1')
@@ -59,7 +59,7 @@ def build(root, php_checkout):
     deps = component('php-stage1-runtime-inputs', 'Original low-climb teacher 03600, its 40-task manifest inputs, and upstream attribution')
     refs = component('php-stage1-native-references', '40 canonical native references, native point-pair labels, 775 action segments and provenance', [deps['id']])
     student = component('php-stage1-checkpoint', 'Unmodified student 07000 checkpoint, native configuration and 40-task evaluation reports', [refs['id']])
-    prepared = root / 'tmp/php_action_segments_20261024/segments_all40_v1'
+    prepared = prepared.resolve()
     bind(prepared, destination_root / 'prepared')
     tree(refs, prepared)
     manifest = json.loads((prepared / 'train.json').read_text())
@@ -97,7 +97,7 @@ def build(root, php_checkout):
     model = root / 'runtime/current/models/php_continuous/low_climb_20261024_112654/PHPSegmentDistill/20261024_112701-low_climb_continuous_20261024_112654-locomotion'
     add(student, model / 'model_07000.pt')
     add(student, model / 'holosoma_config.yaml')
-    evaluation = root / 'tmp/php_continuous_20261024'
+    evaluation = evaluation.resolve()
     bind(evaluation, destination_root / 'evaluation')
     add(student, evaluation / 'stage1_7000_acceptance_20261025.json')
     for name in ('eval7000_20261025_v1', 'eval7000_20261025_contacts_v1'):
@@ -112,9 +112,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--prepared', type=Path, required=True, help='Existing Stage 1 native reference directory')
+    parser.add_argument('--evaluation', type=Path, required=True, help='Existing Stage 1 evaluation directory')
     parser.add_argument('--php-checkout', type=Path, default=Path.home() / 'php_parkour')
     args = parser.parse_args()
-    inventory = build(args.root, args.php_checkout)
+    inventory = build(args.root, args.php_checkout, args.prepared, args.evaluation)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open('x') as stream:
         json.dump(inventory, stream, indent=2)

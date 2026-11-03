@@ -1,13 +1,17 @@
 """Check the FK/material surrogate derivative against finite differences."""
 import sys,json
 from pathlib import Path
+import argparse
+_inputs_parser=argparse.ArgumentParser(description=__doc__)
+_inputs_parser.add_argument('--source-root',type=Path,required=True,help='Existing experiment directory containing the historical run inputs')
+_inputs=_inputs_parser.parse_args()
 import torch
 from supermimic.lowstep import install
 install('data/lowclimb_boxes/task.json',contact_model='force6')
 from supermimic.contact_control import ContactGeometry,ContactClock
 from supermimic.mdp import unflatten_state
 torch.set_num_threads(4);torch.manual_seed(19)
-p=Path('tmp/contact-tracker-20261027-v1/dmo-segment7-onlinewm-adaptive-v1');cfg=json.loads((p/'config.json').read_text());d=torch.load(cfg['recording'],map_location='cpu',weights_only=False)['data'];geo=ContactGeometry(d,'cpu').double();clock=ContactClock(d,hold=1,role_aware=True)
+p=_inputs.source_root/'dmo-segment7-onlinewm-adaptive-v1';cfg=json.loads((p/'config.json').read_text());d=torch.load(cfg['recording'],map_location='cpu',weights_only=False)['data'];geo=ContactGeometry(d,'cpu').double();clock=ContactClock(d,hold=1,role_aware=True)
 b=torch.load(p/'replay.pt',map_location='cpu',weights_only=False);rows=(b['ptr']-54+torch.arange(54))%b['T'];v={k:x[rows,:64] for k,x in b['data'].items()};S=unflatten_state(v['s1'][45].double());point=v['point'][45,:,0].double();target=d['point'][clock.event_ends[6]-1,0].double()
 with torch.no_grad():pos,rot=geo.poses(S);local=(rot[:,0].transpose(-1,-2)@(point-pos[:,0]).unsqueeze(-1)).squeeze(-1)
 p0=S[0].detach().requires_grad_();q0=S[4].detach().requires_grad_()
