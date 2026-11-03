@@ -1,8 +1,6 @@
 """Frozen on-policy audit: direct/continuation entries, cutoff/native endpoints, gradients."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import sys,json,runpy,inspect
 from pathlib import Path
-pass
 import torch
 import supermimic.contact_sequence as seq
 from supermimic.contact_dmo import replay_loss

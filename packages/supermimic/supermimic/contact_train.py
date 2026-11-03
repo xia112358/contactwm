@@ -14,7 +14,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--task_manifest',required=True)
     parser.add_argument('--collision_profile',choices=('legacy_v1','surface_v2'),default='surface_v2')
-    parser.add_argument('--contact_response',choices=('legacy','firm_v2','manifold_v1','manifold_v2','manifold_v3','newton_contacts_v1','newton_contacts_v2','manifold_soft_v1','manifold_balanced_v1'),default='legacy')
+    parser.add_argument('--contact_response',choices=('legacy','firm_v2','manifold_v1','manifold_v2','manifold_v3','newton_contacts_v1','newton_contacts_v2','newton_contacts_v3','manifold_soft_v1','manifold_balanced_v1'),default='legacy')
     parser.add_argument('--allow_collision_transfer',action='store_true',help='Use legacy tracker weights as an unvalidated initialization; recordings and resumes must match current physics')
     parser.add_argument('--checkpoint',required=True,help='Original tracking teacher checkpoint')
     parser.add_argument('--recording',type=Path,required=True)
@@ -38,6 +38,7 @@ def main():
     parser.add_argument('--wm_window',type=int,default=16)
     parser.add_argument('--wm_batches',type=int,default=2)
     parser.add_argument('--wm_batch',type=int,default=512)
+    parser.add_argument('--wm_diagnostic_every',type=int,default=8,help='Measure paired pre/post WM fit every N updates; optimizer budget is unchanged')
     parser.add_argument('--wm_learning_rate',type=float,default=2e-5)
     parser.add_argument('--learning_rate',type=float,default=1e-5)
     parser.add_argument('--adaptive_lr',action='store_true')
@@ -45,11 +46,14 @@ def main():
     parser.add_argument('--adam_beta1',type=float,default=.9)
     parser.add_argument('--update_diagnostics',action='store_true')
     parser.add_argument('--contact_position_loss',choices=('measured_material','collision_surface','surface_region'),default='surface_region')
+    parser.add_argument('--stable_contact_frames',type=int,default=2,help='Consecutive native active observations plus stable support pair before loss/completion; zero restores onset behavior')
     parser.add_argument('--surface_samples_per_part',type=int,default=128)
     parser.add_argument('--surface_temperature',type=float,default=.02,help='Dimensionless scalar-cost soft minimum temperature')
     parser.add_argument('--contact_region_radius',type=float,default=0.,help='Explicit target disk radius in metres; zero retains point targets')
     parser.add_argument('--contact_target_normal',type=float,nargs=3,help='Explicit unit world normal for disk targets')
     parser.add_argument('--collision_model',type=Path,help='Optional fingerprinted model; default exports the current solver model')
+    parser.add_argument('--target_grid_span',type=float,default=0.,help='World-XY 3x3 offsets for one validated source segment')
+    parser.add_argument('--target_grid_segment',type=int,help='1-based source segment for nine-point comparison')
     parser.add_argument('--pose_weight',type=float,default=1.)
     parser.add_argument('--prior_weight',type=float,default=1.)
     parser.add_argument('--segment_grace_steps',type=int,default=10,help='Extra control frames beyond each demonstrated segment length')
@@ -73,9 +77,12 @@ def main():
     parser.add_argument('--profile_collection',action='store_true',help='Profile one frozen warmup collection then exit without optimization/checkpoint writes')
     parser.add_argument('--audit_contacts',action='store_true',help='One same-solve comparison against original CPU reader')
     parser.add_argument('--contact_evidence_every',type=int,default=1000,help='Export owned full solver evidence every N collected steps; zero disables')
+    parser.add_argument('--cache_reset_contacts',action=argparse.BooleanOptionalAction,default=True,help='Reuse per-world native evidence only for identical fixed reference starts on static terrain; disable after model changes until revalidated')
     parser.add_argument('--freeze_wm',action='store_true',help='Freeze the resumed WM; update only the actor')
     parser.add_argument('--freeze_actor',action='store_true',help='Keep the resumed actor unchanged for a matched collection control')
     add_launcher_args(parser);args=parser.parse_args()
+    if args.target_grid_span and (not args.slices or args.target_grid_segment is None or args.segment is not None or args.sequence_length!=1 or args.policy_gradient!='dmo'):
+        raise ValueError('Target grid requires explicit slices, a source segment, and independent DMO')
     if args.continuous_random:args.sequence_length=19
     if args.adaptive_lr and (args.policy_gradient!='dmo' or args.freeze_actor):raise ValueError('Native LR scheduling requires DMO actor updates')
     if not 0<args.min_learning_rate<=args.learning_rate:raise ValueError('Invalid LR floor')
@@ -85,7 +92,13 @@ def main():
     if args.progress_interval_seconds<0:raise ValueError('Progress interval must be nonnegative')
     if args.contact_region_radius and args.contact_position_loss!='surface_region':
         raise ValueError('Region radius requires the surface_region objective')
-    if min(args.utd,args.iterations,args.wm_batches,args.log_every,args.save_every)<=0:raise ValueError('Positive training budgets required')
+    if args.stable_contact_frames and args.contact_position_loss!='surface_region':
+        raise ValueError('Stable contact scoring requires surface_region terminal guidance')
+    if args.stable_contact_frames < 0:
+        raise ValueError('Stable contact frames must be nonnegative')
+    if args.stable_contact_frames and (args.policy_gradient!='dmo' or args.sequence_length>1):
+        raise ValueError('Stable contact start currently requires independent single-segment DMO')
+    if min(args.utd,args.iterations,args.wm_batches,args.wm_diagnostic_every,args.log_every,args.save_every)<=0:raise ValueError('Positive training budgets required')
     if args.completion_mode=='accumulated_target' and not args.freeze_actor and args.policy_gradient!='dmo':raise ValueError('Accumulated-target learning requires DMO')
     if args.probe_update_path and not (args.freeze_actor and args.freeze_wm):raise ValueError('Update probe requires both networks frozen')
     if args.profile_collection and not (args.freeze_actor and args.freeze_wm):raise ValueError('Collection profiling requires both networks frozen')
@@ -122,6 +135,9 @@ def main():
     from supermimic.contact_library import build_contact_clock,load_slice_clock,segment_ranges,case_world_counts
     demo=recording['data'];clock=load_slice_clock(recording,args.slices) if args.slices else build_contact_clock(recording,hold=1,role_aware=True)
     case_starts,case_stops=segment_ranges(clock)
+    if getattr(clock,'source_evidence_contract',None) is not None:
+        from supermimic.contact_library import require_source_replay_capacity
+        require_source_replay_capacity(clock,args.buffer_steps,args.segment_grace_steps,args.segment)
     if args.continuous_random:args.sequence_length=len(clock.event_ends)
     contact_tolerances=load_contact_tolerances(clock,recording['metadata'],args.contact_criteria)
     if args.contact_region_radius>min(contact_tolerances):
@@ -137,7 +153,8 @@ def main():
     validate_checkpoint(resumed.get('source_metadata',{}),metadata)
     if resumed['schema']!='supermimic_contact_demo_v1' or Path(resumed['config']['recording']).resolve()!=args.recording.resolve():
         raise ValueError('Resume must be from this exact recorded task')
-    if bool(demo['term'].any()):raise ValueError('Failed source demonstration')
+    if bool(demo['term'].any()) and getattr(clock,'source_evidence_contract',None) is None:
+        raise ValueError('Legacy source termination requires migration to per-slice native source-evidence admission')
     actor=ContactActor().to(device);actor.load_state_dict(resumed['actor'])
     frozen_actor_state=None
     if args.freeze_actor:
@@ -161,7 +178,21 @@ def main():
     if args.freeze_wm:
         wm.requires_grad_(False)
         frozen_wm_state={k:v.detach().cpu().clone() for k,v in wm.state_dict().items()}
-    geometry=ContactGeometry(demo,device);geometry.load_state_dict(resumed['geometry'])
+    geometry=ContactGeometry(demo,device)
+    resumed_grid=resumed['config'].get('target_grid_span',0.)
+    if original_resume and (resumed_grid!=args.target_grid_span or resumed['config'].get('target_grid_segment')!=args.target_grid_segment):
+        raise ValueError('Resume must retain its target grid')
+    if resumed_grid:geometry.local_by_frame=geometry.local_by_frame.repeat(9,1,1)
+    geometry.load_state_dict(resumed['geometry'])
+    if args.target_grid_span:
+        from supermimic.contact_target_grid import expand_target_grid
+        selected=args.target_grid_segment-1
+        clock=expand_target_grid(clock,args.target_grid_span,selected)
+        demo=clock.data
+        if not resumed_grid:geometry.local_by_frame=geometry.local_by_frame.repeat(9,1,1)
+        case_starts,case_stops=segment_ranges(clock)
+        contact_tolerances=[contact_tolerances[selected]]*9
+
     default_q=torch.tensor(default_joint_pos_list(),device=device)
     kin=G1Kinematics(device);motion=MotionLib.from_dir(spec['motion_dir'],kin,device);mdp=MDP(kin,motion,default_q)
     teacher_hist=source['args'].get('hist',10);goal_frames=source['args'].get('goal_frames',10)
@@ -183,12 +214,16 @@ def main():
             for group in actor_opt.param_groups:group['lr']=resumed['actor_optimizer']['param_groups'][0]['lr']
     wm_opt=torch.optim.Adam(wm.parameters(),lr=args.wm_learning_rate)
     if original_resume:wm_opt.load_state_dict(resumed['wm_optimizer'])
+    if args.segment is not None and not 1<=args.segment<=len(clock.event_ends):raise ValueError('Segment out of range')
     if hasattr(clock,'segment_motion'):
         if args.sequence_length!=1:raise ValueError('Multi-motion contact transfers must use independent episodes')
-        counts=case_world_counts(clock,len(spec['tasks']),args.num_envs)
-        task_policy_worlds=sum(counts[i] for i in clock.segment_motion.unique().tolist())
-        for source_motion in clock.segment_motion.unique().tolist():
-            if counts[source_motion]<int((clock.segment_motion==source_motion).sum()):raise ValueError('Insufficient worlds per source motion')
+        counts=case_world_counts(clock,len(spec['tasks']),args.num_envs,
+            None if args.segment is None else args.segment-1)
+        selected_motions=clock.segment_motion.unique().tolist() if args.segment is None else [int(clock.segment_motion[args.segment-1])]
+        task_policy_worlds=sum(counts[i] for i in selected_motions)
+        if args.segment is None:
+            for source_motion in selected_motions:
+                if counts[source_motion]<int((clock.segment_motion==source_motion).sum()):raise ValueError('Insufficient worlds per source motion')
     else:
         counts=[1]*len(spec['tasks']);counts[recording['metadata']['motion']]=args.num_envs-len(counts)+1
         task_policy_worlds=counts[recording['metadata']['motion']]
@@ -196,13 +231,17 @@ def main():
     if min(counts)<1 or (not hasattr(clock,'segment_motion') and task_policy_worlds<(1 if args.segment else len(clock.event_ends))):raise ValueError('Insufficient worlds for selected segments')
     config=dict(vars(args),independent_segments=True,separate_native_evaluation=False,initialization_transfer=initialization_transfer,
         start_iteration=int(resumed['iteration']),
-        task_world_counts=counts,contact_bounds=clock.bounds,arrival_time_input=False,
+        task_world_counts=counts,student_worlds=task_policy_worlds,background_worlds=args.num_envs-task_policy_worlds,contact_bounds=clock.bounds,arrival_time_input=False,
         segment_start='exact recorded segment start; no randomized start/no target offsets',
         replay_implementation='supermimic.buffer.ReplayBuffer',
-        native_contact_selector='direct MJWarp allocated-contact rows; nearest actual witness per part; no face classification',
+        native_contact_selector='allocated native rows; shared primary horizontal upward face eligibility; nearest actual witness per part',
         training_loop='collect -> WM fit -> policy BPTT; existing UTD scheduling',
         contact_tolerances_m=contact_tolerances,contact_loss_scale_m=.05,
         completion=f'actual contact inside per-segment target radius ({radius_description}; native contact; no face matching), root <{args.root_tolerance*100:g}cm/<0.4rad; no historical keep veto; no dwell')
+    config['target_grid']=getattr(clock,'target_grid',None)
+    if args.target_grid_span:config['segment_start']='nine commands from identical recorded start; world XY target offsets only'
+    config['physical_failure_rule']='nonfinite state, root z < 0.15 m, or pelvis up-axis points downward (Rzz <= 0)'
+    config['nonfinite_replay_policy']='save offending transition and preceding context, then abort; never sanitize into valid data'
     config['contact_face_matching']=False
     if hasattr(clock,'segment_motion'):
         config['case_source_motions']=clock.segment_motion.tolist()
@@ -210,7 +249,7 @@ def main():
     config['contact_force_source']='existing force6 sensors; diagnostic only, unused in contact/root success'
     config['wm_implementation']='original_tracking'
     config['wm_source']=str(Path(args.checkpoint).resolve())
-    config['policy_objective']='full-segment BPTT from exact reset to observed native stop; contact/root errors only at terminal state; process action/DAgger regularization only'
+    config['policy_objective']='DMO from exact reset; contact error at first native onset with endpoint fallback if missing; root error at endpoint; process action/DAgger regularization'
     config['horizon']=int((case_stops-case_starts)[args.segment-1] if args.segment else (case_stops-case_starts).max())+args.segment_grace_steps
     if args.slices:config.update(slices_sha256=slices_sha,case_ids=clock.case_ids.tolist(),case_starts=case_starts.tolist(),case_stops=case_stops.tolist(),case_goal_indices=(clock.event_ends-1).tolist())
     if args.sequence_length>1:
@@ -319,12 +358,13 @@ def main():
     cfg=make_sim(device,args)
     with launch_simulation(cfg,args):
         env=TrackingSim(cfg,args.num_envs,motion,mdp,eval_mode=True,task_world_counts=counts)
-        reader=NativeContacts(env,direct=True)
+        config['solver_numerics']=getattr(env,'contact_solver_numerics',{}).get('contract','upstream')
+        reader=NativeContacts(env,direct=True,primary_faces=True)
         (args.output/'contact_binding.json').write_text(json.dumps(dict(
             **reader.evidence_binding.metadata(),provenance=reader.evidence_provenance),indent=2))
         task=ContactTask(env,actor,teacher,motion,mdp,clock,demo,context,default_q,reader,teacher_hist,goal_frames,args.segment_grace_steps,
                          None if args.segment is None else args.segment-1,args.root_tolerance,args.completion_mode,contact_tolerances,
-                         sequential=args.sequence_length>1,sequence_length=args.sequence_length if args.sequence_length>1 else None,continuous_random=args.continuous_random)
+                         sequential=args.sequence_length>1,sequence_length=args.sequence_length if args.sequence_length>1 else None,continuous_random=args.continuous_random,cache_reset_contacts=args.cache_reset_contacts,stable_contact_frames=args.stable_contact_frames)
         task.skip_student_tracking=args.continuous_random and not args.full_tracking_diagnostics
         config['native_tracking_diagnostics']='background worlds only; unused student tracking rewards are zero and not optimized' if task.skip_student_tracking else 'all worlds'
         if fixed_budgets is not None:
@@ -352,11 +392,23 @@ def main():
                     normals_local=surface.atlas.normals_local.cpu().numpy(),
                     areas=surface.atlas.areas.cpu().numpy(),parts=np.asarray(surface.atlas.parts),
                     fingerprint=np.asarray(surface.atlas.fingerprint))
+        if args.stable_contact_frames:
+            from supermimic.contact_phase import VERSION
+            from supermimic.contact_stability import CONTRACT
+            config['contact_phase_contract']=dict(version=VERSION,support_qualification=CONTRACT,
+                reference_release_starts=clock.contact_phase_release_starts.cpu().tolist(),
+                confirmation_frames=args.stable_contact_frames,
+                release='known inactive after demonstrated target release boundary',
+                witness='same first phase-confirmed native point for loss, completion and metrics',
+                missing='terminal surface-region guidance reported separately')
+            config['duration_loss_scope']='duration band selects attempts; selected attempts retain their real terminal to preserve landing confirmation'
         config['target_faces_by_segment']=None if task.target_faces_by_segment is None else task.target_faces_by_segment.cpu().tolist()
         (args.output/'config.json').write_text(json.dumps(config,default=str,indent=2))
         extra=dict(contact_goal=(6,torch.bool),contact_first=(6,torch.bool),next_xi=(demo['xi'].shape[-1],torch.float32),goal_index=((),torch.long),term=((),torch.bool),
             active=(6,torch.bool),known=(6,torch.bool),surface_local=(6,torch.long),point=((6,3),torch.float32),force=((6,3),torch.float32),load=(6,torch.float32),
             paired_force_w=((6,3),torch.float32),contact_count=(6,torch.long))
+        if args.stable_contact_frames:
+            extra.update(contact_stable=(6,torch.bool),contact_row_stable=(6,torch.bool),contact_material_speed=(6,torch.float32),contact_load=(6,torch.float32),contact_load_stable=(6,torch.bool))
         if args.sequence_length>1:extra.update(stage_step=((),torch.long),stage_done=((),torch.bool),stage_success=((),torch.bool),sequence_live=((),torch.bool))
         buffer=ReplayBuffer(args.buffer_steps,task.N,device,extra_fields=extra)
         profiler=None
@@ -389,7 +441,17 @@ def main():
                                       for key,value in features.items() if isinstance(value,torch.Tensor)})
                     np.savez_compressed(args.output/f'contact-evidence-{sim_steps//task.N:08d}.npz',
                                         **audit)
-                if not bool(torch.isfinite(transition['s1']).all()):raise FloatingPointError('Invalid native state; refusing replay insertion')
+                if not bool(torch.isfinite(transition['s1']).all()):
+                    bad=(~torch.isfinite(transition['s1']).all(-1)).nonzero().flatten()
+                    fields=('s','s1','a','a_prev','xi','next_xi','f','ep_step','goal_index','term','done','active','known','point')
+                    trace=dict(schema='native_nonfinite_transition_v1',iteration=iteration,collection_step=k,
+                        world_ids=task.ids[bad].cpu(),first_attempt_completed=completed_first[bad].cpu(),
+                        source_metadata=metadata,
+                        transition={key:transition[key][bad].detach().cpu() for key in fields},
+                        preceding={key:value[:,bad].detach().cpu() for key,value in
+                            buffer.recent(min(buffer.size,30),fields).items()})
+                    torch.save(trace,args.output/'native-nonfinite.pt')
+                    raise FloatingPointError('Invalid native state; saved native-nonfinite.pt; refusing replay insertion')
                 buffer.add(transition);sim_steps+=task.N;collected+=1
                 completed_first|=transition['done']
                 if args.audit_contacts and not audited:
@@ -452,7 +514,7 @@ def main():
             t0=time.perf_counter()
             fit_fn=wm_one_step_loss if args.policy_gradient=='dmo' else wm_loss
             loss=None;wm_fit_before=[];wm_fit_after=[]
-            for _ in range(0 if args.freeze_wm else args.wm_batches):
+            for wm_batch_index in range(0 if args.freeze_wm else args.wm_batches):
                 wm_fields=('s','s1','a','xi','next_xi')+(('sequence_live',) if args.sequence_length>1 else ())
                 wm_window=buffer.sample_windows(args.wm_batch,1 if args.policy_gradient=='dmo' else args.wm_window,fields=wm_fields)
                 if args.sequence_length>1:
@@ -460,10 +522,12 @@ def main():
                     if not valid.any():continue
                     wm_window={k:v[valid] for k,v in wm_window.items()}
                 loss=fit_fn(wm,wm_window,normalize_xi)
-                wm_fit_before.append(loss.detach())
+                measure_fit=(wm_batch_index+1)%args.wm_diagnostic_every==0 or wm_batch_index+1==args.wm_batches
+                if measure_fit:wm_fit_before.append(loss.detach())
                 wm_opt.zero_grad(set_to_none=True);loss.backward()
                 torch.nn.utils.clip_grad_norm_(wm.parameters(),1.,error_if_nonfinite=True);wm_opt.step();wm_updates+=1
-                with torch.no_grad():wm_fit_after.append(fit_fn(wm,wm_window,normalize_xi).detach())
+                if measure_fit:
+                    with torch.no_grad():wm_fit_after.append(fit_fn(wm,wm_window,normalize_xi).detach())
             if wm_fit_before:
                 wm_means=torch.stack((torch.stack(wm_fit_before).mean(),torch.stack(wm_fit_after).mean())).cpu().tolist()
             else:wm_means=[None,None]
@@ -493,7 +557,10 @@ def main():
                     torch.cuda.synchronize()
                     if duration_filter is not None:duration_filter['seconds']=time.perf_counter()-filter_begin
                 else:
-                    native_batch=native_attempt_metrics(buffer.recent(collected,('done','term','s1','goal_index','active','known','surface_local','point')),clock,task.target_faces_by_segment)
+                    native_batch=native_attempt_metrics(buffer.recent(collected,('done','term','s1','goal_index','active','known','surface_local','point','contact_first')),clock,task.target_faces_by_segment,first_contact=args.stable_contact_frames>0 or args.completion_mode=='onset')
+                if args.stable_contact_frames and args.sequence_length==1:
+                    native_batch.update(contact_metric='reference_stable_support_native_point',
+                        scope='first confirmed native point in demonstrated landing phase; same witness as contact loss and completion')
                 if args.duration_halfwidth is not None and args.sequence_length==1:
                     from supermimic.contact_duration import select_duration_batch
                     torch.cuda.synchronize();filter_begin=time.perf_counter()
@@ -501,6 +568,9 @@ def main():
                         buffer.recent(collected,('done','term','goal_index')),
                         args.duration_halfwidth,args.duration_min_success,args.duration_min_mass)
                     torch.cuda.synchronize();duration_filter['seconds']=time.perf_counter()-filter_begin
+            if args.stable_contact_frames and duration_stops is not None:
+                done=buffer.recent(collected,('done',))['done']
+                duration_stops=done.long().argmax(0)+1
             if not args.freeze_actor and len(selected):
                 actor_opt.zero_grad(set_to_none=True)
                 if args.policy_gradient=='dmo':
@@ -511,6 +581,7 @@ def main():
                         for offset in range(0,len(selected),args.dmo_microbatch):
                             slots=selected[offset:offset+args.dmo_microbatch]
                             needed=('s','s1','xi','next_xi','a','a_prev','ep_step','goal_index','done','contact_goal','contact_first','active','known','point')
+                            if args.stable_contact_frames:needed+=('contact_stable',)
                             replay_rows=rows[:,None];replay_slots=slots[None,:]
                             batch={k:buffer.data[k][replay_rows,replay_slots] for k in needed}
                             entry=None if collection_initial_history is None else collection_initial_history[slots]
@@ -526,7 +597,8 @@ def main():
                         part,details=replay_loss(actor,wm,clock,geometry,context,normalize_xi,default_q,batch,
                             pose_weight=args.pose_weight,prior_actor=prior,prior_weight=args.prior_weight,
                             check=args.check_dmo and iteration==start+1,completion_mode=args.completion_mode,
-                            stop_steps=cutoffs,stage_plan=batch_plan,initial_history=entry_history,per_attempt_losses=attempt_losses,contact_surface=surface)
+                            stop_steps=cutoffs,stage_plan=batch_plan,initial_history=entry_history,per_attempt_losses=attempt_losses,contact_surface=surface,
+                            stable_contact_frames=args.stable_contact_frames)
                         processed+=len(batch['goal_index'][0])
                         if attempt_losses is not None:
                             contact=attempt_losses['contact'].detach()
@@ -540,9 +612,9 @@ def main():
                         (part*weight).backward();objective_value+=float(part.detach())*weight
                         for key,value in details.items():
                             if value is None:continue
-                            if key in ('terminal_contact','terminal_body','process_regularization'):
+                            if key in ('terminal_contact','terminal_body','process_regularization','stable_contact_loss','terminal_guidance_loss','contact_supervision_coverage'):
                                 objective_parts[key]=objective_parts.get(key,0.)+weight*value
-                            elif key in ('trajectories','missing_contact_proxy_terms','geometric_unobserved_terms','truncated_trajectories'):
+                            elif key in ('trajectories','missing_contact_proxy_terms','geometric_unobserved_terms','truncated_trajectories','required_contact_terms','stable_contact_terms','terminal_guidance_terms'):
                                 objective_parts[key]=objective_parts.get(key,0)+value
                             else:objective_parts[key]=max(objective_parts.get(key,0),value)
                     if args.continuous_random:

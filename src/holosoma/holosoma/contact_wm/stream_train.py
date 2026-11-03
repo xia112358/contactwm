@@ -24,6 +24,7 @@ class Options:
     recording: Path
     atlas: Path
     output_dir: Path
+    collision_profile: Literal['surface_v2'] = 'surface_v2'
     num_envs: int = 4096
     panorama: bool = False
     planned_contact_points: Path | None = None
@@ -34,8 +35,11 @@ class Options:
     warmup_steps: int = 64
     wm_batches: int = 10
     wm_schedule: Literal['alternating','frozen'] = 'alternating'
+    policy_gradient: Literal['imagination','dmo'] = 'dmo'
+    policy_objective: Literal['legacy_hold','single_segment'] = 'single_segment'
     freeze_policy: bool = False
     export_native_replay: bool = False
+    export_dmo_batch: bool = False
     spatial_contact_slots: int = 0
     policy_learning_rate: float | None = None
     wm_dynamics_lr: float | None = None
@@ -93,6 +97,8 @@ def main():
         raise ValueError('Policy learning rate must be finite and positive')
     if o.wm_dynamics_lr is not None and (not math.isfinite(o.wm_dynamics_lr) or o.wm_dynamics_lr<=0):
         raise ValueError('WM dynamics learning rate must be finite and positive')
+    if o.policy_gradient=='dmo' and o.panorama:
+        raise ValueError('Nine-target DMO currently uses the original height-conditioned policy')
     if o.panorama and o.fixed_probe_every:
         raise ValueError('Fixed reference probe currently requires height observations')
     from holosoma.contact_wm.train_policy import Options as LearnerOptions, build_training
@@ -110,18 +116,18 @@ def main():
     from holosoma.utils.wbt_contacts import measured_contacts
     from holosoma.php_contact.terms import rotate, yaw
     torch.set_num_threads(1)
-    torch.set_float32_matmul_precision('high')
+    torch.set_float32_matmul_precision('highest' if o.policy_gradient=='dmo' else 'high')
     out=o.output_dir.resolve();out.mkdir(parents=True,exist_ok=False)
     def status(**fields):
         payload=dict(num_envs=o.num_envs,wm_schedule=o.wm_schedule,
             wm_updates_per_iteration=fields.pop('wm_updates_this_iteration',0),
-            policy_updates_per_iteration=int(fields.get('policy_updated',False)),policy_updates_per_iteration_max=int(not o.freeze_policy),policy_batch=o.policy_groups*9,
-            native_steps_per_iteration=[2,3],perception='historical_panorama_depth_128x64' if o.panorama else 'oracle_height',updated_at=time.time(),**fields)
+            policy_updates_per_iteration=int(fields.get('policy_updated',False)),policy_updates_per_iteration_max=int(not o.freeze_policy),policy_batch=(o.num_envs-9-o.wm_holdout_envs-o.wm_motion_envs)//9*9 if o.policy_gradient=='dmo' else o.policy_groups*9,
+            native_steps_per_iteration=40 if o.policy_gradient=='dmo' else [2,3],perception='historical_panorama_depth_128x64' if o.panorama else 'oracle_height',updated_at=time.time(),**fields)
         p=out/'status.tmp';p.write_text(json.dumps(payload,indent=2));p.replace(out/'status.json')
     status(status='starting',phase='initialization',iteration=0)
     (out/'config.json').write_text(json.dumps(asdict(o),default=str,indent=2))
     cfg=build_config(TrainOptions(manifest=o.manifest,teacher_spec=o.teacher_spec,num_envs=o.num_envs,
-        segment_mode='continuous',pure_distill_iters=200,regularizer_mse_coef=.1))
+        segment_mode='continuous',pure_distill_iters=200,regularizer_mse_coef=.1,collision_profile=o.collision_profile))
     cfg=cfg.get_eval_config(EvaluationConfig(num_envs=o.num_envs))
     term=cfg.command.setup_terms['motion_command']
     motion=replace(term.params['motion_config'],start_at_timestep_zero_prob=1.,fixed_motion_assignment_in_eval=True,
@@ -145,7 +151,7 @@ def main():
         device=env.device;n=env.num_envs
         if n!=o.num_envs:raise RuntimeError(f'Actual environment count {n} differs from requested {o.num_envs}')
         l=build_training(LearnerOptions(recording=o.recording,atlas=o.atlas,wm_checkpoint=o.wm_checkpoint,
-            output_dir=out/'policy',device=str(device),source_wm=True,multi_target=True,panorama=o.panorama,
+            output_dir=out/'policy',prior_checkpoint=Path(o.checkpoint),device=str(device),source_wm=True,multi_target=True,panorama=o.panorama,
             learning_rate=1e-6,target_tangent_scale=o.target_tangent_scale,goal_offset=(0.,0.,0.) if o.planned_contact_points is not None else (.05,0.,0.),
             planned_contact_points=o.planned_contact_points,arrival=o.reference_contact_frame,
             arrival_delay=o.contact_deadline_delay,
@@ -177,6 +183,10 @@ def main():
         if o.resume is not None:
             resumed=torch.load(o.resume,map_location=device,weights_only=False)
             if resumed['schema']!='contact_wm_stream_v1':raise ValueError('Invalid stream checkpoint')
+            if o.policy_objective=='single_segment':
+                from holosoma.contact_wm.stable_contact import CONTRACT
+                if resumed.get('contact_loss_contract')!=CONTRACT:
+                    raise ValueError('Stream resume requires the same stable-contact loss contract; start a fresh run for the new objective')
             from somaforge_core.robot_assets import validate_g1_asset_metadata
             validate_g1_asset_metadata(resumed.get('robot_asset'),context='Contact WM stream checkpoint')
             require_profile(resumed.get('robot_asset'),execution_profile(env),context='Stream resume versus actual physics')
@@ -212,7 +222,32 @@ def main():
             frozen_policy_state={k:v.detach().clone() for k,v in policy.state_dict().items()}
             policy.requires_grad_(False)
         from holosoma.contact_wm.batched_learner import BatchedLearner
-        learner=BatchedLearner(l,o.atlas,compile_kernels=o.compile_kernels,wm_window=o.wm_window)
+        learner=BatchedLearner(l,o.atlas,compile_kernels=o.compile_kernels,wm_window=o.wm_window,hand_surface=o.policy_gradient=='dmo')
+        if o.policy_objective=='single_segment':
+            if o.policy_gradient!='dmo':raise ValueError('Single-segment native events require DMO')
+            import mujoco,hashlib
+            from holosoma.contact_wm.single_segment import SurfacePoses
+            from holosoma.contact_wm.stable_contact import CONTRACT
+            from supermimic.contact_surface import SurfaceRegionObjective
+            from somaforge_core.robot_assets import canonical_g1_asset_metadata
+            measured_contacts(env)
+            model_path=out/'solver-collision.mjb'
+            mujoco.mj_saveModel(env._wbt_measured_contact_reader.solver.mj_model,str(model_path))
+            model_path.with_suffix('.mjb.json').write_text(json.dumps(dict(
+                schema='somaforge_solver_collision_model_v1',
+                model_sha256=hashlib.sha256(model_path.read_bytes()).hexdigest(),
+                robot_asset=canonical_g1_asset_metadata(collision_profile=o.collision_profile),
+                source='actual_running_solver_collision_geometry')))
+            learner.segment_surface=SurfaceRegionObjective(model_path,SurfacePoses(l['geometry']),device,
+                collision_profile=o.collision_profile,samples_per_part=128,temperature=.02,radius=0.)
+            reference_frame=266+learner.horizon-1
+            learner.register_buffer('segment_reference',torch.tensor(l['z']['next_state'][reference_frame],device=device))
+            (out/'objective.json').write_text(json.dumps(dict(mode=o.policy_objective,
+                completion='stable_native_contact',contact_loss='latched_material_point',contact_scale_m=.05,
+                stable_contact=CONTRACT,
+                missing_contact='terminal_surface_region',duration='fixed_35_steps_no_time_loss',
+                pose_weight=1.,root_orientation_weight=0.,prior_weight=.01,reference_frame=reference_frame,
+                surface=learner.segment_surface.contract),indent=2))
         cmd=env.command_manager.get_state('motion_command')
         original_init=cmd.init_buffers
         def init_buffers():
@@ -242,7 +277,7 @@ def main():
             frame='recording world frame; environment origins translated together',
             position_w=(goal.position_w[:9]-shifts[:9,None]).cpu().tolist(),
             establish=goal.establish[:9].cpu().tolist(),
-            objective='absolute contact position during arrival/hold; no response loss'),indent=2))
+            objective='stable native material-point error; exclude switching; terminal guidance if no stable contact' if o.policy_objective=='single_segment' else 'absolute contact position during arrival/hold; no response loss'),indent=2))
         hint=l['hint'][:1].expand(n,-1)
         perception=None
         original_reset=env.reset_envs_idx
@@ -315,6 +350,12 @@ def main():
             '/home/zhouxia/sites/acp-history-player-20261025/dist/robot.json',o.atlas)
         policy_version=resumed_iteration
         pending={};captured={};native_steps=0;fixed_pano=None
+        dmo_rows=[]
+        if o.policy_objective=='single_segment':
+            from holosoma.contact_wm.stable_contact import StableContactTracker,CONTRACT
+            stable_tracker=StableContactTracker(n,device)
+        dmo_ids=(~motion_env & (torch.arange(n,device=device)>=holdout_end)).nonzero().flatten()
+        dmo_ids=dmo_ids[:len(dmo_ids)//9*9]
         if o.panorama:
             from holosoma.contact_wm.panorama_sensor import NativePanorama
             from holosoma.contact_wm.panorama_policy import PanoramaReplay,relative_view
@@ -346,6 +387,14 @@ def main():
             finite&=torch.where(data['known'][...,None],torch.isfinite(data['force_w']),True).all((1,2))
             captured.clear();captured.update(next_state=next_state,active=data['active'].clone(),known=data['known'].clone(),
                 force_w=data['force_w'].clone(),valid=finite)
+            if o.policy_gradient=='dmo':captured['point']=points.clone()
+            if o.policy_objective=='single_segment':
+                from holosoma.contact_wm.world_contact_field import pack_native_contacts
+                packed=pack_native_contacts(data['snapshot'],selected,shifts,n,CONTRACT['row_slots'])
+                position,rotation=learner.segment_surface.geometry.poses(next_state)
+                captured.update(stable_tracker.update(position,rotation,packed['spatial_points_w'],
+                    packed['spatial_forces_w'],packed['spatial_mask'],goal.normal_w,
+                    data['active'],data['known'],age<=5))
             if o.spatial_contact_slots:
                 from holosoma.contact_wm.world_contact_field import pack_native_contacts
                 captured.update(pack_native_contacts(data['snapshot'],selected,shifts,n,o.spatial_contact_slots))
@@ -395,7 +444,7 @@ def main():
                         features=actor_encode(perception.image)
                         action=policy.forward_encoded(value,extra,features,relative_view(s,perception.view))
                     else:action=policy(value,extra)
-                    action=(action+o.noise*torch.randn_like(action)).clamp(-10,10)
+                    action=(action+(0. if o.policy_gradient=='dmo' else o.noise)*torch.randn_like(action)).clamp(-10,10)
                     if o.panorama:
                         action[:9]=eval_policy(value[:9],extra[:9],panorama=perception.image[:9],state=s[:9],view_pose=perception.view[:9])
                     else:action[:9]=eval_policy(value[:9],extra[:9])
@@ -409,6 +458,8 @@ def main():
                         previous_active=evidence['active'].clone(),
                         motion_replay=motion_env.clone(),
                         support=support.clone()-shifts[:,None],age=age.clone())
+                    if o.policy_gradient=='dmo':
+                        pending.update(policy_observation=value.clone(),policy_extra=extra.clone())
                     if o.panorama:
                         pending.update(pano_frame=torch.full((n,),image_bank.frame,dtype=torch.long,device=device),
                             pano_view=perception.view.clone(),env_id=torch.arange(n,device=device))
@@ -424,6 +475,9 @@ def main():
                         if not torch.allclose(restored,expected,atol=1e-5,rtol=0):
                             raise RuntimeError(f'Post-reset joint state overwritten: {float((restored-expected).abs().max())}')
                     row={**pending,**captured}
+                    if o.policy_gradient=='dmo' and native_steps%40>=5:
+                        dmo_rows.append({k:v[dmo_ids].detach().clone() for k,v in row.items()})
+                    row={k:v for k,v in row.items() if not k.startswith('stable_contact_')}
                     heldout.add({k:v[9:holdout_end] for k,v in row.items()})
                     row={**row,'valid':row['valid'].clone()}
                     row['valid'][:holdout_end]=False  # Evaluation and WM validation never enter training.
@@ -458,6 +512,18 @@ def main():
             return loss.detach()
         def update_policy():
             from holosoma.contact_wm.core import frozen_parameters
+            if o.policy_gradient=='dmo':
+                from holosoma.contact_wm.dmo import native_policy_loss
+                data={k:torch.stack([r[k] for r in dmo_rows]) for k in dmo_rows[0]}
+                opt.zero_grad(set_to_none=True)
+                with frozen_parameters(wm):
+                    values,valid,diagnostics=native_policy_loss(learner,data,goal.position_w[dmo_ids]-shifts[dmo_ids,None])
+                    if not bool(valid):raise RuntimeError('Nonfinite native DMO loss or invalid terrain query')
+                    values[0].backward()
+                grad=torch.nn.utils.clip_grad_norm_(policy.parameters(),1.,error_if_nonfinite=True)
+                opt.step()
+                return dict(zip(learner.names,values.detach().cpu().tolist()),policy_grad_norm=float(grad),
+                    **diagnostics,**getattr(learner,'segment_metrics',{}))
             sample=replay.starts(o.policy_groups)
             if o.panorama:sample['panorama']=image_bank.gather(sample['pano_frame'],sample['env_id'])
             opt.zero_grad(set_to_none=True)
@@ -509,6 +575,7 @@ def main():
                 del result
             # No solver snapshot: resume must reset physics and warm up replay normally.
             torch.save(dict(schema='contact_wm_stream_v1',iteration=iteration,native_steps=native_steps,
+                contact_loss_contract=CONTRACT if o.policy_objective=='single_segment' else None,
                 policy=policy.state_dict(),wm=wm.state_dict(),optimizer=opt.state_dict(),wm_optimizer=wmopt.state_dict(),
                 torch_rng_state=torch.get_rng_state(),cuda_rng_state=torch.cuda.get_rng_state_all(),
                 options=asdict(o),prior=l['provenance'],robot_asset=l['provenance']['robot_asset'],
@@ -517,6 +584,11 @@ def main():
                 native_success_verified=False),out/f'checkpoint_{iteration:06d}.pt')
         status(status='running',phase='native_warmup',iteration=0,actual_num_envs=n)
         collect(o.warmup_steps);save(resumed_iteration)
+        if o.export_dmo_batch:
+            if o.policy_gradient!='dmo' or len(dmo_rows)!=35:
+                raise ValueError('DMO diagnostic export needs one fresh 40-step warmup')
+            torch.save(dict(data={k:torch.stack([r[k] for r in dmo_rows]) for k in dmo_rows[0]},
+                targets=goal.position_w[dmo_ids]-shifts[dmo_ids,None]),out/'dmo-batch.pt')
         if o.freeze_policy:audit(resumed_iteration)
         status(status='running',phase='alternating',iteration=resumed_iteration,actual_num_envs=n)
         begin=time.time();iteration=resumed_iteration;steady_times=[]
@@ -527,7 +599,7 @@ def main():
                 # Controlled comparisons: changing WM minibatch count must not
                 # change collection noise or policy-start sampling randomness.
                 if o.sampling_seed is not None:torch.manual_seed(o.sampling_seed+3*iteration)
-                collect(2+iteration%2)
+                if o.policy_gradient!='dmo':collect(2+iteration%2)
                 torch.cuda.synchronize();collected=time.perf_counter()
                 probing=probe is not None and (iteration-resumed_iteration)%o.fixed_probe_every==0
                 before_wm=fixed_probe() if probing else None
@@ -539,7 +611,12 @@ def main():
                 torch.cuda.synchronize();modeled=time.perf_counter()
                 if (iteration-resumed_iteration)%o.wm_audit_every==0:audit(iteration)
                 torch.cuda.synchronize();audited=time.perf_counter()
-                updated=gate['allowed'] and not o.freeze_policy
+                updated=(o.policy_gradient=='dmo' or gate['allowed']) and not o.freeze_policy
+                if o.policy_gradient=='dmo':
+                    # Fit WM first, then collect one complete fresh on-policy batch.
+                    reset(torch.arange(n,device=device));obs=observations()
+                    native_steps+=(-native_steps)%40
+                    dmo_rows.clear();collect(40)
                 if o.sampling_seed is not None:torch.manual_seed(o.sampling_seed+3*iteration+2)
                 metrics=update_policy() if updated else {name:None for name in learner.names}
                 if probing:

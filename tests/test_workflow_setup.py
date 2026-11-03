@@ -41,7 +41,7 @@ def test_default_install_has_no_base_environment_and_uses_exact_upstream_lock(ch
     assert any(row[-1] == setup.LAB_COMMIT for row in plan['commands'])
     assert not (checkout / 'runtime').exists()
     assert not (checkout.parent / 'contactwm-data').exists()
-    assert not any('/perception/' in arg or '/home/zhouxia/' in arg.replace(str(checkout), '')
+    assert not any('/perception/' in arg.replace(str(checkout.parent), '') or '/home/zhouxia/' in arg.replace(str(checkout.parent), '')
                    for command in plan['commands'] for arg in command)
 
 
@@ -87,7 +87,8 @@ def test_existing_interpreter_symlink_is_preserved_for_explicit_overlay(checkout
     assert any('--system-site-packages' in command for command in plan['commands'])
 
 
-def test_existing_unowned_environment_is_not_overwritten(checkout):
+def test_existing_unowned_environment_is_not_overwritten(checkout, monkeypatch):
+    monkeypatch.setattr(setup.shutil, "which", lambda name: "/test-tools/uv")
     plan = setup.make_plan(options(), root=checkout, environ={})
     prefix = Path(plan['prefix'])
     prefix.mkdir(parents=True)

@@ -1,8 +1,6 @@
 """Rolling geometry, bounded history and CPU-image replay checks on GPU."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import sys
 from pathlib import Path
-pass
 import torch
 import warp as wp
 from supermimic.rolling_panorama import RollingPanorama

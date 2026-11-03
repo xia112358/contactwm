@@ -1,11 +1,11 @@
 """Audit exact contact-loss witnesses in saved native replay, without simulation."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path
 import sys,json
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[1];pass
+ROOT=Path(__file__).resolve().parents[1]
 import torch
 torch.set_num_threads(4)
-b=runtime_path('tmp/contact-tracker-20261027-v1');run=b/'dmo-continuous-aligned-band-100-resume-v1';cfg=json.loads((run/'config.json').read_text());spec=json.loads((runtime_path(cfg['task_manifest'])).read_text());pass
+b=runtime_path('tmp/contact-tracker-20261027-v1');run=b/'dmo-continuous-aligned-band-100-resume-v1';cfg=json.loads((run/'config.json').read_text());spec=json.loads((runtime_path(cfg['task_manifest'])).read_text())
 from supermimic.contact_control import ContactClock,ContactGeometry
 from supermimic.mdp import unflatten_state
 from supermimic.rotations import rot_angle_sq

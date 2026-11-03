@@ -1,0 +1,1908 @@
+{
+  "sampling": "50 Hz final native solve sample per control frame; not all substeps",
+  "scope": "All 12 traces listed; walk_* treated as walking locomotion, step and climb reported separately",
+  "traces": [
+    {
+      "name": "step_original",
+      "frames": 107,
+      "unknown_foot_frames": 0,
+      "raw_no_feet": [
+        {
+          "start": 22,
+          "stop": 24,
+          "frames": 2,
+          "nominal_ms": 40,
+          "cases": [
+            2
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 46,
+          "stop": 47,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            3
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 48,
+          "stop": 49,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            3
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 63,
+          "stop": 77,
+          "frames": 14,
+          "nominal_ms": 280,
+          "cases": [
+            4
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 93,
+          "stop": 94,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            6
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        }
+      ],
+      "gap_bridged_no_feet": [
+        {
+          "start": 22,
+          "stop": 24,
+          "frames": 2,
+          "nominal_ms": 40,
+          "cases": [
+            2
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 46,
+          "stop": 47,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            3
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 48,
+          "stop": 49,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            3
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 63,
+          "stop": 77,
+          "frames": 14,
+          "nominal_ms": 280,
+          "cases": [
+            4
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        }
+      ]
+    },
+    {
+      "name": "step_mirror",
+      "frames": 107,
+      "unknown_foot_frames": 0,
+      "raw_no_feet": [
+        {
+          "start": 19,
+          "stop": 20,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            8
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 22,
+          "stop": 24,
+          "frames": 2,
+          "nominal_ms": 40,
+          "cases": [
+            8
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 28,
+          "stop": 29,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            8
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 49,
+          "stop": 50,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            9
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 56,
+          "stop": 57,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            9
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 63,
+          "stop": 68,
+          "frames": 5,
+          "nominal_ms": 100,
+          "cases": [
+            10
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 69,
+          "stop": 77,
+          "frames": 8,
+          "nominal_ms": 160,
+          "cases": [
+            10
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 85,
+          "stop": 86,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            10
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        }
+      ],
+      "gap_bridged_no_feet": [
+        {
+          "start": 19,
+          "stop": 20,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            8
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 22,
+          "stop": 24,
+          "frames": 2,
+          "nominal_ms": 40,
+          "cases": [
+            8
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 49,
+          "stop": 50,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            9
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 63,
+          "stop": 68,
+          "frames": 5,
+          "nominal_ms": 100,
+          "cases": [
+            10
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 69,
+          "stop": 77,
+          "frames": 8,
+          "nominal_ms": 160,
+          "cases": [
+            10
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        }
+      ]
+    },
+    {
+      "name": "climb_58_original",
+      "frames": 301,
+      "unknown_foot_frames": 0,
+      "raw_no_feet": [
+        {
+          "start": 106,
+          "stop": 108,
+          "frames": 2,
+          "nominal_ms": 40,
+          "cases": [
+            17
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 109,
+          "stop": 159,
+          "frames": 50,
+          "nominal_ms": 1000,
+          "cases": [
+            17,
+            18,
+            19,
+            20,
+            21
+          ],
+          "other_parts_active": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "start": 236,
+          "stop": 237,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            24
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 251,
+          "stop": 252,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            25
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 253,
+          "stop": 257,
+          "frames": 4,
+          "nominal_ms": 80,
+          "cases": [
+            25
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 258,
+          "stop": 259,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            25
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 260,
+          "stop": 268,
+          "frames": 8,
+          "nominal_ms": 160,
+          "cases": [
+            25
+          ],
+          "other_parts_active": [
+            false,
+            true,
+            false,
+            false
+          ]
+        }
+      ],
+      "gap_bridged_no_feet": [
+        {
+          "start": 106,
+          "stop": 108,
+          "frames": 2,
+          "nominal_ms": 40,
+          "cases": [
+            17
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 109,
+          "stop": 159,
+          "frames": 50,
+          "nominal_ms": 1000,
+          "cases": [
+            17,
+            18,
+            19,
+            20,
+            21
+          ],
+          "other_parts_active": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "start": 236,
+          "stop": 237,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            24
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 253,
+          "stop": 257,
+          "frames": 4,
+          "nominal_ms": 80,
+          "cases": [
+            25
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 258,
+          "stop": 259,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            25
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 260,
+          "stop": 268,
+          "frames": 8,
+          "nominal_ms": 160,
+          "cases": [
+            25
+          ],
+          "other_parts_active": [
+            false,
+            true,
+            false,
+            false
+          ]
+        }
+      ]
+    },
+    {
+      "name": "climb_58_mirror",
+      "frames": 301,
+      "unknown_foot_frames": 0,
+      "raw_no_feet": [
+        {
+          "start": 87,
+          "stop": 88,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            32
+          ],
+          "other_parts_active": [
+            true,
+            true,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 109,
+          "stop": 159,
+          "frames": 50,
+          "nominal_ms": 1000,
+          "cases": [
+            33,
+            34,
+            35,
+            36
+          ],
+          "other_parts_active": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "start": 161,
+          "stop": 162,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            36
+          ],
+          "other_parts_active": [
+            true,
+            true,
+            false,
+            true
+          ]
+        },
+        {
+          "start": 171,
+          "stop": 172,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            37
+          ],
+          "other_parts_active": [
+            true,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 248,
+          "stop": 249,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            40
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 250,
+          "stop": 251,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            40
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 254,
+          "stop": 259,
+          "frames": 5,
+          "nominal_ms": 100,
+          "cases": [
+            40
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 260,
+          "stop": 268,
+          "frames": 8,
+          "nominal_ms": 160,
+          "cases": [
+            40
+          ],
+          "other_parts_active": [
+            true,
+            false,
+            false,
+            false
+          ]
+        }
+      ],
+      "gap_bridged_no_feet": [
+        {
+          "start": 109,
+          "stop": 159,
+          "frames": 50,
+          "nominal_ms": 1000,
+          "cases": [
+            33,
+            34,
+            35,
+            36
+          ],
+          "other_parts_active": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "start": 248,
+          "stop": 249,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            40
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 254,
+          "stop": 259,
+          "frames": 5,
+          "nominal_ms": 100,
+          "cases": [
+            40
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 260,
+          "stop": 268,
+          "frames": 8,
+          "nominal_ms": 160,
+          "cases": [
+            40
+          ],
+          "other_parts_active": [
+            true,
+            false,
+            false,
+            false
+          ]
+        }
+      ]
+    },
+    {
+      "name": "climb_76_mirror",
+      "frames": 468,
+      "unknown_foot_frames": 0,
+      "raw_no_feet": [
+        {
+          "start": 74,
+          "stop": 186,
+          "frames": 112,
+          "nominal_ms": 2240,
+          "cases": [
+            46,
+            47,
+            48,
+            49,
+            50,
+            51,
+            52
+          ],
+          "other_parts_active": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "start": 192,
+          "stop": 195,
+          "frames": 3,
+          "nominal_ms": 60,
+          "cases": [
+            52
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            true
+          ]
+        },
+        {
+          "start": 198,
+          "stop": 199,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            53
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 229,
+          "stop": 230,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            54
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 231,
+          "stop": 232,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            54
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 233,
+          "stop": 237,
+          "frames": 4,
+          "nominal_ms": 80,
+          "cases": [
+            54
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 239,
+          "stop": 240,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            54
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 299,
+          "stop": 300,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            57
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 308,
+          "stop": 309,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            58
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 404,
+          "stop": 405,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            65
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 406,
+          "stop": 426,
+          "frames": 20,
+          "nominal_ms": 400,
+          "cases": [
+            65,
+            66
+          ],
+          "other_parts_active": [
+            true,
+            false,
+            false,
+            false
+          ]
+        }
+      ],
+      "gap_bridged_no_feet": [
+        {
+          "start": 74,
+          "stop": 186,
+          "frames": 112,
+          "nominal_ms": 2240,
+          "cases": [
+            46,
+            47,
+            48,
+            49,
+            50,
+            51,
+            52
+          ],
+          "other_parts_active": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "start": 404,
+          "stop": 405,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            65
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 406,
+          "stop": 426,
+          "frames": 20,
+          "nominal_ms": 400,
+          "cases": [
+            65,
+            66
+          ],
+          "other_parts_active": [
+            true,
+            false,
+            false,
+            false
+          ]
+        }
+      ]
+    },
+    {
+      "name": "walk_03600_original",
+      "frames": 399,
+      "unknown_foot_frames": 0,
+      "raw_no_feet": [
+        {
+          "start": 38,
+          "stop": 39,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            69
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 179,
+          "stop": 180,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            75
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 184,
+          "stop": 185,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            75
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 228,
+          "stop": 229,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            77
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 279,
+          "stop": 280,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            79
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 281,
+          "stop": 282,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            79
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        }
+      ],
+      "gap_bridged_no_feet": [
+        {
+          "start": 179,
+          "stop": 180,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            75
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 279,
+          "stop": 280,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            79
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 281,
+          "stop": 282,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            79
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        }
+      ]
+    },
+    {
+      "name": "walk_07800_original",
+      "frames": 399,
+      "unknown_foot_frames": 0,
+      "raw_no_feet": [
+        {
+          "start": 148,
+          "stop": 149,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            90
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 363,
+          "stop": 364,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            99
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 367,
+          "stop": 368,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            99
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 389,
+          "stop": 390,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            100
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        }
+      ],
+      "gap_bridged_no_feet": [
+        {
+          "start": 367,
+          "stop": 368,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            99
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 389,
+          "stop": 390,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            100
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        }
+      ]
+    },
+    {
+      "name": "walk_05400_original",
+      "frames": 399,
+      "unknown_foot_frames": 0,
+      "raw_no_feet": [
+        {
+          "start": 4,
+          "stop": 5,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            102
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 31,
+          "stop": 32,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            103
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 71,
+          "stop": 72,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            105
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 311,
+          "stop": 312,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            114
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        }
+      ],
+      "gap_bridged_no_feet": [
+        {
+          "start": 31,
+          "stop": 32,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            103
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        }
+      ]
+    },
+    {
+      "name": "walk_03600_mirror",
+      "frames": 399,
+      "unknown_foot_frames": 0,
+      "raw_no_feet": [
+        {
+          "start": 1,
+          "stop": 2,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            119
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 9,
+          "stop": 10,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            119
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 53,
+          "stop": 54,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            121
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 179,
+          "stop": 180,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            126
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 199,
+          "stop": 200,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            127
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 228,
+          "stop": 229,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            128
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 279,
+          "stop": 280,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            130
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 302,
+          "stop": 303,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            131
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 321,
+          "stop": 322,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            132
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 347,
+          "stop": 348,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            133
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        }
+      ],
+      "gap_bridged_no_feet": [
+        {
+          "start": 179,
+          "stop": 180,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            126
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        }
+      ]
+    },
+    {
+      "name": "walk_07800_mirror",
+      "frames": 399,
+      "unknown_foot_frames": 0,
+      "raw_no_feet": [
+        {
+          "start": 48,
+          "stop": 49,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            137
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 71,
+          "stop": 72,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            138
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 151,
+          "stop": 152,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            141
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 388,
+          "stop": 389,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            151
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        }
+      ],
+      "gap_bridged_no_feet": []
+    },
+    {
+      "name": "walk_05400_mirror",
+      "frames": 399,
+      "unknown_foot_frames": 0,
+      "raw_no_feet": [
+        {
+          "start": 263,
+          "stop": 264,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            163
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 311,
+          "stop": 312,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            165
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 395,
+          "stop": 396,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            169
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        }
+      ],
+      "gap_bridged_no_feet": []
+    },
+    {
+      "name": "climb_76_original",
+      "frames": 468,
+      "unknown_foot_frames": 0,
+      "raw_no_feet": [
+        {
+          "start": 0,
+          "stop": 1,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            170
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 73,
+          "stop": 129,
+          "frames": 56,
+          "nominal_ms": 1120,
+          "cases": [
+            174,
+            175,
+            176,
+            177
+          ],
+          "other_parts_active": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "start": 137,
+          "stop": 138,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            178
+          ],
+          "other_parts_active": [
+            true,
+            false,
+            false,
+            true
+          ]
+        },
+        {
+          "start": 140,
+          "stop": 141,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            178
+          ],
+          "other_parts_active": [
+            true,
+            true,
+            false,
+            true
+          ]
+        },
+        {
+          "start": 142,
+          "stop": 157,
+          "frames": 15,
+          "nominal_ms": 300,
+          "cases": [
+            178,
+            179,
+            180
+          ],
+          "other_parts_active": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "start": 158,
+          "stop": 180,
+          "frames": 22,
+          "nominal_ms": 440,
+          "cases": [
+            180,
+            181
+          ],
+          "other_parts_active": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "start": 181,
+          "stop": 182,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            181
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            true,
+            false
+          ]
+        },
+        {
+          "start": 190,
+          "stop": 199,
+          "frames": 9,
+          "nominal_ms": 180,
+          "cases": [
+            182
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            true,
+            false
+          ]
+        },
+        {
+          "start": 400,
+          "stop": 401,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            193
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 405,
+          "stop": 406,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            193
+          ],
+          "other_parts_active": [
+            false,
+            true,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 407,
+          "stop": 426,
+          "frames": 19,
+          "nominal_ms": 380,
+          "cases": [
+            194
+          ],
+          "other_parts_active": [
+            false,
+            true,
+            false,
+            false
+          ]
+        }
+      ],
+      "gap_bridged_no_feet": [
+        {
+          "start": 0,
+          "stop": 1,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            170
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 73,
+          "stop": 129,
+          "frames": 56,
+          "nominal_ms": 1120,
+          "cases": [
+            174,
+            175,
+            176,
+            177
+          ],
+          "other_parts_active": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "start": 142,
+          "stop": 157,
+          "frames": 15,
+          "nominal_ms": 300,
+          "cases": [
+            178,
+            179,
+            180
+          ],
+          "other_parts_active": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "start": 158,
+          "stop": 180,
+          "frames": 22,
+          "nominal_ms": 440,
+          "cases": [
+            180,
+            181
+          ],
+          "other_parts_active": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "start": 190,
+          "stop": 199,
+          "frames": 9,
+          "nominal_ms": 180,
+          "cases": [
+            182
+          ],
+          "other_parts_active": [
+            false,
+            false,
+            true,
+            false
+          ]
+        },
+        {
+          "start": 405,
+          "stop": 406,
+          "frames": 1,
+          "nominal_ms": 20,
+          "cases": [
+            193
+          ],
+          "other_parts_active": [
+            false,
+            true,
+            false,
+            false
+          ]
+        },
+        {
+          "start": 407,
+          "stop": 426,
+          "frames": 19,
+          "nominal_ms": 380,
+          "cases": [
+            194
+          ],
+          "other_parts_active": [
+            false,
+            true,
+            false,
+            false
+          ]
+        }
+      ]
+    }
+  ],
+  "dataset_id": "native-release-v5"
+}

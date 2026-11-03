@@ -1,8 +1,8 @@
 """Matched numerical and timing check for shared WM state/context encoding."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path
 import sys,json,time
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[1];pass
+ROOT=Path(__file__).resolve().parents[1]
 import torch
 torch.set_num_threads(4);torch.backends.cuda.matmul.allow_tf32=False
 from supermimic.lowstep import install

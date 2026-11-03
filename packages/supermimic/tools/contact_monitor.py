@@ -1,5 +1,4 @@
 """Publish a bounded training run's live status to the existing static server."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import argparse
 import json
 from pathlib import Path

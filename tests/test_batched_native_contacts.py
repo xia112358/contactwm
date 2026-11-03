@@ -206,3 +206,19 @@ def test_gpu_reader_respects_the_callers_nondefault_cuda_stream():
         assert result['eligible'].is_cuda
         expected=select_support_contacts(snapshot,binding,labels)
         assert np.array_equal(result['eligible'].cpu().numpy(),expected['eligible'])
+
+
+def test_gpu_overlapping_shapes_use_only_the_native_external_shape():
+    # Overlapping world geometry must not enter another native pair's search.
+    import copy
+    geometry=faces();other=copy.deepcopy(geometry)
+    for face in other:
+        face['surface']+=100
+        face['triangles_w']=(np.asarray(face['triangles_w'])+[0.,0.,.25]).tolist()
+    snapshot,binding,labels=snapshot_fixture()
+    binding['shape_surface'][207]=other
+    binding['surface_catalog']=geometry+other
+    snapshot['shape1'][0]=207
+    snapshot['position_w'][0]=[.2,.2,0.]  # Shape 100 is closer, but pair says 207.
+    assert_device_selection(device_selector(binding,labels),snapshot,
+                            select_support_contacts(snapshot,binding,labels))

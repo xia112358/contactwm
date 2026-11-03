@@ -66,7 +66,12 @@ def observation(S, previous_action, xi, default_q, context):
 
 class ContactClock:
     """Original demonstrated contact endpoints; no perturbation or target offset."""
-    def __init__(self, data, hold=8, minimum_segment=20, stable_support=False, role_aware=False):
+    def __init__(self, data, hold=8, minimum_segment=20, stable_support=False, role_aware=False, boundary_policy="legacy_v1"):
+        if boundary_policy not in ('legacy_v1','event_preserving_v2'):
+            raise ValueError('Unknown contact boundary policy')
+        if boundary_policy=='event_preserving_v2' and not role_aware:
+            raise ValueError('Event-preserving boundaries require role-aware targets')
+        suppressed=[]
         active = data['active'].cpu().numpy()
         surface=data['surface'].cpu().numpy() if 'surface' in data else None
         n = len(active)
@@ -83,6 +88,8 @@ class ContactClock:
                     if onset-previous-1<=6 and surface[onset,part]==surface[previous,part]:
                         # Boundary selection only: suppress a short same-face
                         # interruption, without smoothing the observed truth.
+                        suppressed.append(dict(frame=int(onset),part=part,gap_frames=int(onset-previous-1),
+                            reason='short same-face interruption; raw observations unchanged'))
                         continue
                     transfer=surface[onset,part]!=surface[previous,part]
                 if not stable_support:
@@ -126,6 +133,17 @@ class ContactClock:
                 if all(abs(end-b)>=minimum_segment for b in bounds):
                     bounds.append(end)
             bounds.sort()
+            if boundary_policy=='event_preserving_v2':
+                # Every coherent arrival is a boundary, even when adjacent
+                # transfers are shorter than the old twenty-frame preference.
+                bounds=sorted({0,n,*(group[-1][0] for group in groups)})
+        self.boundary_audit=dict(policy=boundary_policy,
+            minimum_segment_frames=None if boundary_policy=='event_preserving_v2' else minimum_segment,
+            suppressed_recontacts=suppressed,
+            arrival_groups=[dict(boundary=int(group[-1][0]),retained=group[-1][0] in bounds,
+                events=[dict(frame=int(t-1),part=int(part),surface_transfer=priority==2) for t,part,priority in group]) for group in groups],
+            departures=[dict(frame=int(t),part=part) for part in range(6)
+                for t in np.flatnonzero(active[:-1,part]&~active[1:,part])+1])
         # Consecutive endpoint goals span the whole example, including its tail.
         end_for_frame = np.empty(n,np.int64)
         previous = 0
@@ -156,7 +174,8 @@ class ContactClock:
             for end in bounds[1:]:
                 for _,part,_ in by_end.get(end,[]):
                     self.target_masks[end-1,part]=True
-            self.target_masks[n-1]=data['active'][n-1]&~self.keep_masks[n-1]
+            if boundary_policy=='legacy_v1':
+                self.target_masks[n-1]=data['active'][n-1]&~self.keep_masks[n-1]
         if stable_support:
             for end in bounds[1:]:
                 first=end-1;stop=min(first+hold,n)

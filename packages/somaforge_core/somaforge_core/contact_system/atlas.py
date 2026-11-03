@@ -129,6 +129,12 @@ class SurfaceAtlas(nn.Module):
         evidence_mass = positions.new_zeros(nenv*npart, self.areas.shape[1])
         force.index_add_(0, view.groups, weights[..., None]*view.force_w[:, None])
         evidence_mass.index_add_(0, view.groups, weights)
+        # Compression is measured along EACH native contact normal. The net
+        # world-Z force is a different quantity when friction/normals vary.
+        raw = view.evidence.rows
+        compression = (raw['force_on_body1_w'][view.rows]*raw['frame_w'][view.rows,0]).sum(-1).clamp_min(0)
+        node_load = positions.new_zeros(nenv*npart, self.areas.shape[1])
+        node_load.index_add_(0,view.groups,weights*compression[:,None])
         raw_moment = positions.new_zeros(nenv*npart, 3)
         point_moment = torch.linalg.cross(view.position_w-center[view.groups], view.force_w)
         if view.torque_w is not None:
@@ -138,6 +144,9 @@ class SurfaceAtlas(nn.Module):
         # Carry the residual explicitly: summing node forces alone cannot in
         # general preserve the contact wrench on a finite surface quadrature.
         return dict(force_w=force.reshape(nenv, npart, -1, 3),
+                    node_position=world.reshape(nenv,npart,-1,3),
+                    node_load=node_load.reshape(nenv,npart,-1),
+                    normal_load=node_load.sum(-1).reshape(nenv,npart),
                     evidence_mass=evidence_mass.reshape(nenv, npart, -1),
                     known=view.evidence.known, active=view.reduce()["active"],
                     moment_residual_w=(raw_moment-grid_moment).reshape(nenv, npart, 3),

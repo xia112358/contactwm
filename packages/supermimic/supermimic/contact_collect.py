@@ -21,14 +21,17 @@ def main():
     p.add_argument('--all_motions',action='store_true',help='Record each paired motion separately in one native run')
     p.add_argument('--selection_manifest',type=Path,help='Select original task indices without changing the checkpoint scene contract')
     p.add_argument('--steps', type=int, default=800)
+    p.add_argument('--capture_substeps', action='store_true', help='Save every native solver contact solve for stable-region supervision')
     p.add_argument('--seed', type=int, default=0)
     p.add_argument('--noise', type=float, default=0.)
     p.add_argument('--collision_profile',choices=('legacy_v1','surface_v2'),default='surface_v2')
-    p.add_argument('--contact_response', choices=('legacy','firm_v2','manifold_v1','manifold_v2','manifold_v3','newton_contacts_v1','newton_contacts_v2','manifold_soft_v1','manifold_balanced_v1'), default='legacy')
+    p.add_argument('--contact_response', choices=('legacy','firm_v2','manifold_v1','manifold_v2','manifold_v3','newton_contacts_v1','newton_contacts_v2','newton_contacts_v3','manifold_soft_v1','manifold_balanced_v1'), default='legacy')
     p.add_argument('--allow_collision_transfer',action='store_true',help='Use legacy policy only as an unvalidated initialization in surface-v2 physics')
     p.add_argument('--headless', action='store_true')
     add_launcher_args(p)
     a = p.parse_args()
+    if a.capture_substeps and not a.all_motions:
+        p.error('--capture_substeps currently requires --all_motions; no partial capture is written')
     if a.headless:
         a.visualizer = None
     import torch

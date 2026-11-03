@@ -1,8 +1,6 @@
 """Isolated full-resolution depth timing; no simulation or replay mutation."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import sys,time,json
 from pathlib import Path
-pass
 import torch
 from supermimic import networks
 from supermimic.panorama import PanoramaContext,encoder,encode_depth

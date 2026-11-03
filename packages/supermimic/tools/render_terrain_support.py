@@ -1,5 +1,4 @@
 """Two-view playback of actual solver collision model/qpos; no reference ghost."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import argparse
 import json
 import os

@@ -1,8 +1,6 @@
 """Audit saved native batches without collecting or updating networks."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import argparse,json,sys
 from pathlib import Path
-pass
 import torch
 from supermimic.contact_control import ContactClock
 p=argparse.ArgumentParser();p.add_argument('--run',type=Path,required=True);a=p.parse_args()

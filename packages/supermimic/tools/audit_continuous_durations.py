@@ -1,9 +1,7 @@
 """Measure successful versus failed stage durations directly from native rollout."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import sys,json,inspect,runpy,os
 import torch
 from pathlib import Path
-pass
 import supermimic.contact_sequence as seq
 out=Path(sys.argv[sys.argv.index('--output')+1])
 def audit(buffer,rows,plan,actor,context,default_q,batch_size):

@@ -1,7 +1,5 @@
 """Check that state() reflects a reset immediately (no stale data)."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import argparse, os, sys
-pass
 from isaaclab.app import add_launcher_args, launch_simulation
 parser = argparse.ArgumentParser(); add_launcher_args(parser); args = parser.parse_args()
 import torch

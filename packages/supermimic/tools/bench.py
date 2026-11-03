@@ -1,7 +1,5 @@
 """Offline benchmark/diagnostics of world-model and policy updates on a synthetic buffer (no simulator)."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import os, sys, time
-pass
 import torch
 from supermimic.kinematics import G1Kinematics
 from supermimic.motion import MotionLib

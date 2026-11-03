@@ -1,5 +1,4 @@
 """Prepare diagnostic alternatives to one saved Adam step; no training update."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import argparse
 import copy
 import json
@@ -9,7 +8,6 @@ from pathlib import Path
 
 import torch
 
-pass
 from supermimic.contact_control import ContactActor
 
 p = argparse.ArgumentParser()

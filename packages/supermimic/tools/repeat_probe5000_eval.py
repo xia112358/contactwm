@@ -1,5 +1,5 @@
 """Repeat hybrid 5000 on GPU3, matching the existing 6000 evaluation protocol."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path, runtime_root
 import json
 import os
 from pathlib import Path

@@ -3,7 +3,6 @@
 Backward-only force ablation preserves every recorded forward value. This is
 not a simulated force ablation and cannot establish which gradient is correct.
 """
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import argparse
 import copy
 import json
@@ -12,7 +11,6 @@ from pathlib import Path
 
 import torch
 
-pass
 parser = argparse.ArgumentParser()
 parser.add_argument('--run', type=Path, required=True)
 args = parser.parse_args()

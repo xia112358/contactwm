@@ -191,3 +191,47 @@ This is a geometry check, not Newton/MJWarp contact truth or control acceptance.
 The migration has not run GPU trajectories or trained a surface-v2 policy. Fresh
 native collection, force/support checks and matched gradient/control evaluation
 remain required before claiming reduced online loss jumps or policy success.
+
+
+## Contact WM stable-contact scoring (2026-11-02)
+
+The Contact WM stream defaults to DMO and `single_segment`. This objective now
+scores stable contact rather than first touchdown. Native activation still uses
+the allocated Newton constraint and upward-primary-face contract above.
+
+The scoring gate requires known, active contact in consecutive control frames,
+normal load above 30 N in both frames, load change at most 10 N per control frame,
+and unchanged loaded rows. A loaded row has normal force above 1 N. Row matching
+uses part-local solver points: nearest assignments must form a bijection within
+1 cm. This is conservative: ambiguous nearest assignments are excluded even if
+another possible matching exists. Reordering rows alone does not change the gate.
+Three consecutive passing comparisons are required before scoring or resuming.
+These are initial scoring thresholds, not new contact activation thresholds.
+
+At the first qualifying frame of a contact episode, latch the normal-force-weighted
+local centroid of loaded rows. Keep that material anchor until contact is lost,
+unknown or reset. Row switching and load transients pause scoring and reset the
+streak, but do not move the anchor. FK continues to transform the fixed local
+anchor, so body movement and slip remain visible after stable scoring resumes.
+Solver points are from the last solve; poses are post integration. Local matching
+uses that recorded convention and does not claim strict same-state sampling.
+
+For each required part, average squared position error divided by (5 cm)^2 over
+qualifying frames, then average required parts and trajectories equally. New parts
+use the fixed task target; maintained parts use their entry support target. If a
+part has no qualifying frame in the entire episode, use terminal collision-surface
+region guidance. This separate term supplies a learning signal without scoring
+unstable raw contact coordinates. Root endpoint and action regularizers retain
+their existing definitions. Logs expose `stable_contact_loss`,
+`terminal_guidance_loss`, `stable_contact_frames` and `missing_stable_parts`.
+
+Raw rows are processed during collection with a 32-row-per-part capacity contract;
+overflow fails instead of truncating. Replay stores only the scoring mask and local
+anchor for DMO, not the padded raw rows in the WM buffer. `objective.json` and stream
+checkpoints record `stable_material_contact_v1`; full resume rejects older loss
+contracts. Historical first-touch monitor metrics remain explicitly first-touch
+diagnostics and are not the stable-contact training loss.
+
+Validation: synthetic CPU tests cover permutation, row appearance/disappearance,
+load jumps, unknown/reset boundaries, anchor retention and zero position-loss
+gradients on excluded transition frames. This change has not run GPU training.

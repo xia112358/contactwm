@@ -1,10 +1,8 @@
 """Synthetic regression of whole-transfer clocks and matching-terrain routing."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import sys
 from pathlib import Path
 import torch
 
-pass
 from supermimic.contact_control import ContactClock
 from supermimic.contact_library import build_contact_clock,case_world_assignment,dagger_case_worlds,initial_contact_indices
 

@@ -1,0 +1,105 @@
+--- a/newton/_src/geometry/mpr.py
++++ b/newton/_src/geometry/mpr.py
+@@ -34,6 +34,8 @@
+ from typing import Any
+ 
+ import warp as wp
++
++from .types import GeoType
+ 
+ from .support_function import (
+     _has_verified_hull,
+@@ -585,6 +587,33 @@
+                 geom_a, geom_b, orientation_b, position_b, 0.0, data_provider, wp.vec3(0.0)
+             )
+             resolved = physical_hit
++            # Experimental local box face reconstruction. A support-map corner
++            # is not a contact witness when the box face is much larger than A.
++            if physical_hit and geom_b.shape_type == int(GeoType.BOX):
++                anchor = wp.quat_rotate_inv(orientation_b, point_a - position_b)
++                size = geom_b.scale
++                inside = wp.abs(anchor[0]) <= size[0] and wp.abs(anchor[1]) <= size[1] and wp.abs(anchor[2]) <= size[2]
++                if inside:
++                    clearance = size - wp.abs(anchor)
++                    axis = 0
++                    if clearance[1] < clearance[axis]: axis = 1
++                    if clearance[2] < clearance[axis]: axis = 2
++                    outward_b = wp.vec3(0.0)
++                    outward_b[axis] = 1.0 if anchor[axis] >= 0.0 else -1.0
++                    candidate_normal = -wp.quat_rotate(orientation_b, outward_b)
++                    candidate_a = support_func(geom_a, candidate_normal, data_provider)
++                    candidate_b_local = wp.quat_rotate_inv(orientation_b, candidate_a - position_b)
++                    depth = size[axis] - candidate_b_local[axis] * outward_b[axis]
++                    face_valid = depth >= 0.0
++                    for k in range(3):
++                        if k != axis and wp.abs(candidate_b_local[k]) > size[k]: face_valid = False
++                    if face_valid:
++                        candidate_b_local[axis] = size[axis] * outward_b[axis]
++                        candidate_b = wp.quat_rotate(orientation_b, candidate_b_local) + position_b
++                        point_a = candidate_a + candidate_normal * (0.5 * extend)
++                        point_b = candidate_b - candidate_normal * (0.5 * extend)
++                        normal = candidate_normal
++                        penetration = depth + extend
+         return point_a, point_b, normal, penetration, resolved
+ 
+     @wp.func
+--- a/newton/_src/geometry/collision_convex.py
++++ b/newton/_src/geometry/collision_convex.py
+@@ -18,6 +18,7 @@
+ import warp as wp
+ 
+ from .contact_data import ContactData
++from .types import GeoType
+ from .mpr import create_solve_mpr, create_support_map_function
+ from .multicontact import create_build_manifold
+ from .simplex_solver import GJK_CUTOFF_TOLERANCE, coordinate_scale, create_solve_closest_distance
+@@ -66,6 +67,41 @@
+         The specialized manifold and contact writer.
+     """
+     support_funcs = create_support_map_function(support_func, use_precomputed_center)
++
++    @wp.func
++    def repair_far_box_witness(geom_a: Any, geom_b: Any, orientation_b: wp.quat, position_b: wp.vec3,
++                               result: ConvexQueryResult, provider: Any) -> ConvexQueryResult:
++        # Only a verified overlapping cylinder vs box. A valid contact witness
++        # cannot be hundreds of cylinder radii away from its other witness.
++        r = wp.sqrt(geom_a.scale[0]*geom_a.scale[0] + geom_a.scale[1]*geom_a.scale[1])
++        if (geom_a.shape_type == int(GeoType.CYLINDER) and geom_b.shape_type == int(GeoType.BOX)
++                and result.signed_distance <= 0.0 and wp.length(result.point_b-result.point_a) > 4.0*r):
++            q = wp.quat_rotate_inv(orientation_b,result.point_a-position_b)
++            size = geom_b.scale
++            tolerance = 0.0001
++            inside = (wp.abs(q[0])<=size[0]+tolerance and wp.abs(q[1])<=size[1]+tolerance and wp.abs(q[2])<=size[2]+tolerance)
++            if inside:
++                clearance=size-wp.abs(q);axis=0
++                if clearance[1]<clearance[axis]:axis=1
++                if clearance[2]<clearance[axis]:axis=2
++                outward=wp.vec3(0.0);outward[axis]=1.0 if q[axis]>=0.0 else -1.0
++                n=-wp.quat_rotate(orientation_b,outward)
++                pa=support_func(geom_a,n,provider)
++                qb=wp.quat_rotate_inv(orientation_b,pa-position_b)
++                depth=size[axis]-qb[axis]*outward[axis]
++                # Preserve the signed separation: the 0.1 mm MPR inflate can
++                # admit physical separation. The native writer applies the
++                # real margin/gap and does not turn separation into contact.
++                face_valid=depth>=-tolerance
++                for k in range(3):
++                    if k!=axis and wp.abs(qb[k])>size[k]:face_valid=False
++                if face_valid:
++                    qb[axis]=size[axis]*outward[axis]
++                    result.point_a=pa
++                    result.point_b=wp.quat_rotate(orientation_b,qb)+position_b
++                    result.normal=n
++                    result.signed_distance=-depth
++        return result
+ 
+     @wp.func
+     def write_convex_query_result(
+@@ -83,6 +119,7 @@
+         writer_data: Any,
+         contact_template: ContactData,
+     ) -> int:
++        result = repair_far_box_witness(geom_a,geom_b,relative_orientation_b,relative_position_b,result,data_provider)
+         if skip_multi_contact:
+             point = 0.5 * (result.point_a + result.point_b)
+             point = wp.quat_rotate(orientation_a, point) + position_a

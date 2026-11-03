@@ -1,8 +1,8 @@
 """Restore saved failure endpoints and histories; extend frozen latest policy ten frames."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path, runtime_root
 import sys,os,json,runpy,subprocess,html
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[1];pass
+ROOT=Path(__file__).resolve().parents[1]
 import torch,numpy as np
 from supermimic.contact_task import ContactTask
 original_step=ContactTask.step

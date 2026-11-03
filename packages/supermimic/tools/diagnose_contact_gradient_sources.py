@@ -1,8 +1,6 @@
 """Read-only gradient and feedback audit on frozen-policy native replay."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import argparse,json,sys,copy
 from pathlib import Path
-pass
 import torch
 p=argparse.ArgumentParser();p.add_argument('--run',type=Path,required=True);a=p.parse_args()
 cfg=json.loads((a.run/'config.json').read_text())

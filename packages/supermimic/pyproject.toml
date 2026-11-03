@@ -16,4 +16,4 @@ where = ["."]
 include = ["supermimic*"]
 
 [tool.setuptools.package-data]
-supermimic = ["resources/experiments/*.json"]
+supermimic = ["resources/experiments/*.json", "resources/contact_role_review/*"]

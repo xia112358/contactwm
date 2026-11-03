@@ -1,5 +1,4 @@
 """Exclude long validated contact slices without truncating or changing their goals."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import argparse
 from collections import Counter
 import hashlib

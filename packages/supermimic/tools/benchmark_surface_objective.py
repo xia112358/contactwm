@@ -1,5 +1,4 @@
 """Measure the GPU geometry component only, separate from WM/BPTT and simulation."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import argparse
 import json
 from pathlib import Path
@@ -9,7 +8,6 @@ import time
 import torch
 
 ROOT=Path(__file__).resolve().parents[1]
-pass
 
 
 def main():

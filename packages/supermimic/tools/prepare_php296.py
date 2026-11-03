@@ -1,6 +1,6 @@
 """Prepare all five canonical PHP groups, preserving source motions and terrains."""
 from __future__ import annotations
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path, workspace_root
 import argparse
 from collections import Counter
 import copy
@@ -10,7 +10,6 @@ import sys
 import numpy as np
 
 ROOT=Path(__file__).resolve().parents[1]
-pass
 from prepare_lowstep import digest,write_terrain
 
 COMPONENTS={'locomotion':('motions-locomotion',100),'lowstep':('motions-low-step',56),

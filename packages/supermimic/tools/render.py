@@ -3,7 +3,7 @@
 The simulated robot is drawn solid; the reference motion is a translucent ghost.
 Usage: MUJOCO_GL=egl python tools/render.py traj.npz out.mp4 --clips dance1_subject1 jumps1_subject1 --seconds 12
 """
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path
 
 import argparse
 import os

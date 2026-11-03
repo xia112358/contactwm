@@ -1,0 +1,94 @@
+{
+  "status": "four_architecture_short_regression_passed",
+  "baseline_version": "1.8.0.dev0",
+  "contract": "cylinder_box_exact_face_shared_writer_v4",
+  "files": {
+    "_src/geometry/mpr.py": {
+      "baseline_sha256": "2f8d138190d028903d2804c6175d98631b7fc4e1bb8b236c5315a33766cd5a21",
+      "patched_sha256": "7ca2ea090db87b69e955645c6be488b037f4e00fe286eab121f03695c01f5c54"
+    },
+    "_src/geometry/collision_convex.py": {
+      "baseline_sha256": "b32bb4567b0c8fead3850f737fc873dfc10ba4a58ea848339c750d402159decb",
+      "patched_sha256": "41a9cfd07d8c896e35bf2648486c7024779e42a739fdb6319a15cc5436b847f4"
+    }
+  },
+  "changes": [
+    "Certified cylinder-box face-interior analytic witnesses, including positive separation",
+    "One corrected writer used by split, fused multi-contact and fused single-contact routes",
+    "Existing local-box retry for uncertified edge cases"
+  ],
+  "physics": {
+    "collision_assets": "unchanged",
+    "substep_dt": 0.002,
+    "constraint_solver": "newton",
+    "margin_gap_solref_solimp": "unchanged"
+  },
+  "validation": {
+    "fused_geometry_cases": 2400,
+    "far_points_old": 15,
+    "far_points_new": 0,
+    "separated_6um_false_contacts_old": 4,
+    "separated_6um_false_contacts_new": 0,
+    "native_runs": [
+      {
+        "variant": "baseline",
+        "path": "tmp/contact-solver-fix-20261101/baseline-1793545625",
+        "phase": "complete",
+        "iteration": 20,
+        "physics_audit": {
+          "far_contact_worlds": 0,
+          "nonfinite_factor_worlds": 0
+        },
+        "sim_steps": 6291456,
+        "initial_success": 0.715576171875,
+        "final_success": 0.828369140625
+      },
+      {
+        "variant": "large_mlp",
+        "path": "tmp/contact-solver-fix-20261101/large_mlp-1793545625",
+        "phase": "complete",
+        "iteration": 20,
+        "physics_audit": {
+          "far_contact_worlds": 0,
+          "nonfinite_factor_worlds": 0
+        },
+        "sim_steps": 6250496,
+        "initial_success": 0.751953125,
+        "final_success": 0.64404296875
+      },
+      {
+        "variant": "part_mlp",
+        "path": "tmp/contact-solver-fix-20261101/part_mlp-1793545625",
+        "phase": "complete",
+        "iteration": 20,
+        "physics_audit": {
+          "far_contact_worlds": 0,
+          "nonfinite_factor_worlds": 0
+        },
+        "sim_steps": 6266880,
+        "initial_success": 0.78173828125,
+        "final_success": 0.907958984375
+      },
+      {
+        "variant": "part_transformer",
+        "path": "tmp/contact-solver-fix-20261101/part_transformer-1793545536",
+        "phase": "complete",
+        "iteration": 20,
+        "physics_audit": {
+          "far_contact_worlds": 0,
+          "nonfinite_factor_worlds": 0
+        },
+        "sim_steps": 6078464,
+        "initial_success": 0.703369140625,
+        "final_success": 0.8037109375
+      }
+    ],
+    "workflow_launcher_tests": "22 passed",
+    "newton_unittest_cpu": "15 tests: 13 passed, 2 skipped",
+    "installed_runtime_geometry": "2400 deterministic cases passed"
+  },
+  "limits": [
+    "Fix targets cylinder-box witness generation, not arbitrary convex geometry",
+    "At one-micrometre overlaps, upstream query can still miss contacts before the shared writer"
+  ]
+}

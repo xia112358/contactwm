@@ -133,6 +133,12 @@ def build_launch(options: argparse.Namespace, backend_args: list[str], *,
         environment.update(ISAACLAB_PATH=str(lab), SOMAFORGE_ISAACLAB_PATH=str(lab))
         python_paths.extend(str(path) for path in sorted((lab / "source").glob("*"))
                             if path.is_dir() and ((path / "pyproject.toml").is_file() or (path / path.name).is_dir()))
+    # Project-local contact fixes precede shared packages without mutating them.
+    if section.get("newton_pythonpath"):
+        overlay = _path(section["newton_pythonpath"], root)
+        if not (overlay / "newton/__init__.py").is_file():
+            raise ValueError(f"Configured Newton runtime is missing: {overlay}")
+        python_paths.insert(0, str(overlay))
     environment["PYTHONPATH"] = os.pathsep.join(python_paths)
     environment.update({name: str(runtime / relative) for name, relative in CACHE_DIRS.items()})
     prefix = Path(executable).parent.parent

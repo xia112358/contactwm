@@ -1,13 +1,11 @@
-import pytest
 import torch
 from holosoma.contact_wm.surface_geometry import HandPlaneContact
 from somaforge_core import G1_29DOF_JOINT_ORDER
 
 
-@pytest.mark.parametrize("profile",["legacy_v1","surface_v2"])
-def test_hand_surface_translation_gradient_and_plane_midpoint(profile):
-    model=HandPlaneContact(G1_29DOF_JOINT_ORDER,collision_profile=profile).double()
-    if profile=="surface_v2":assert model.radius is None and len(model.links)==1
+def test_hand_surface_translation_gradient_and_plane_midpoint():
+    model=HandPlaneContact(G1_29DOF_JOINT_ORDER,collision_profile="surface_v2").double()
+    assert len(model.links)==1
     s=torch.zeros(1,71,dtype=torch.float64);s[:,6]=1;s[:,2]=1
     n=torch.tensor([[0.,0.,1.]],dtype=torch.float64);plane=torch.tensor([[0.,0.,.7]],dtype=torch.float64)
     s.requires_grad_(True);point=model(s,n,plane)
@@ -19,10 +17,9 @@ def test_hand_surface_translation_gradient_and_plane_midpoint(profile):
     assert torch.isfinite(grad).all()
 
 
-@pytest.mark.parametrize("profile",["legacy_v1","surface_v2"])
-def test_hand_surface_orientation_gradient_matches_finite_difference(profile):
-    model=HandPlaneContact(G1_29DOF_JOINT_ORDER,collision_profile=profile).double()
-    if profile=="surface_v2":assert model.radius is None and len(model.links)==1
+def test_hand_surface_orientation_gradient_matches_finite_difference():
+    model=HandPlaneContact(G1_29DOF_JOINT_ORDER,collision_profile="surface_v2").double()
+    assert len(model.links)==1
     s=torch.zeros(1,71,dtype=torch.float64);s[:,6]=1;s[:,2]=1;s[:,13:42]=.13
     s.requires_grad_(True);n=torch.tensor([[0.,0.,1.]],dtype=torch.float64);p=torch.tensor([[0.,0.,.7]],dtype=torch.float64)
     loss=model(s,n,p)[0,0];g=torch.autograd.grad(loss,s)[0]

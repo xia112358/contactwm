@@ -25,7 +25,68 @@ def swap(predicted, actual):
     return SimulatorForward.apply(predicted, actual)
 
 
-def _replay_events(data, clock, event, stop, truncated, completion_mode, stage_plan):
+def stable_contact_state(active, known, frames):
+    """True after a continuously observed contact has been established."""
+    if frames <= 0:
+        return torch.zeros_like(active, dtype=torch.bool)
+    live = active & known
+    streak = torch.zeros_like(live, dtype=torch.long)
+    run = torch.zeros_like(live[0], dtype=torch.long)
+    for t in range(live.shape[0]):
+        run = torch.where(live[t], run + 1, torch.zeros_like(run))
+        streak[t] = run
+    return live & (streak >= frames)
+
+
+def stable_contact_start(active, known, frames):
+    """Rising edge of a continuously observed, established contact.
+
+    ``frames`` is an establishment confirmation window, not a contact
+    threshold.  A part contributes only once per active interval; an interval
+    shorter than the window contributes nothing.
+    """
+    established = stable_contact_state(active, known, frames)
+    previous = torch.cat((torch.zeros_like(established[:1]), established[:-1]), 0)
+    return established & ~previous
+
+
+def stable_target(points, evaluate, fallback):
+    """Gather each part's point at its own stable-start frame."""
+    has = evaluate.any(0)
+    index = evaluate.long().argmax(0)
+    part = torch.arange(points.shape[1], device=points.device)[None, :].expand_as(index)
+    taken = points[index, part]
+    return torch.where(has[..., None], taken, fallback), has
+
+
+def stable_demo_target(clock, event, frames, fallback):
+    """Gather the demonstration point at the DEMO's own stable start.
+
+    The student attempt and the demonstration need not establish contact on the
+    same frame.  Using the student index into demonstration time silently
+    compares the wrong two instants.
+    """
+    from .contact_library import segment_ranges
+    starts = segment_ranges(clock)[0]
+    result = fallback.clone()
+    has = torch.zeros(event.shape + (6,), dtype=torch.bool, device=event.device)
+    for value in event.unique().tolist():
+        gap = event == value
+        begin = int(starts[value])
+        end = int(clock.event_ends[value])
+        active = clock.data['active'][begin:end]
+        known = clock.data['known'][begin:end]
+        stable = stable_contact_start(active, known, frames)
+        index = stable.long().argmax(0)
+        present = stable.any(0)
+        part = torch.arange(6, device=stable.device)
+        values = clock.data['point'][begin:end][index, part]
+        result[gap] = torch.where(present[None, :, None], values[None], fallback[gap])
+        has[gap] = present[None]
+    return result, has
+
+
+def _replay_events(data, clock, event, stop, truncated, completion_mode, stage_plan, first_contact_targets=False, contact_window_frames=1, native_events=None, stable_contact_frames=0):
     """Resolve immutable native event/terminal indices before rebuilding the graph.
 
     One compact CPU transfer replaces per-event nonzero/readbacks inside BPTT.
@@ -33,7 +94,14 @@ def _replay_events(data, clock, event, stop, truncated, completion_mode, stage_p
     """
     T=int(stop.max());device=stop.device
     frames=torch.arange(T,device=device)[:,None];live=frames<stop[None]
-    raw=data['contact_goal' if completion_mode=='accumulated_target' else 'contact_first'][:T]
+    if stable_contact_frames:
+        from .contact_phase import landing_phase_events
+        end=clock.event_ends[event]-1
+        required=clock.target_masks[end]&~clock.keep_masks[end]
+        raw=landing_phase_events(data['active'][:T],data['known'][:T],
+            clock.contact_phase_release_starts[event],required,stable_contact_frames,live,data['contact_stable'][:T])
+    else:
+        raw=data['contact_first' if first_contact_targets or completion_mode!='accumulated_target' else 'contact_goal'][:T]
     evaluate=torch.zeros_like(raw);terminal=torch.zeros_like(live)
     length=1 if stage_plan is None else stage_plan['length']
     for k in range(length):
@@ -46,11 +114,21 @@ def _replay_events(data, clock, event, stop, truncated, completion_mode, stage_p
         end=clock.event_ends[event+k]-1
         new=clock.target_masks[end]&~clock.keep_masks[end]
         eligible=live&selected&enabled[None]&(frames<endpoint[None])
-        hits=raw&new[None]&eligible[...,None]&~cut[None,:,None]
+        hits=raw&new[None]&eligible[...,None]
+        if first_contact_targets and contact_window_frames > 1 and not stable_contact_frames:
+            from .contact_arrival import arrival_indices
+            subset={key:data[key][:T] for key in ('done','known','active','point','contact_first')}
+            index,_=arrival_indices(subset,clock.data['point'][end],frames=contact_window_frames,live=eligible)
+            hits=(frames[...,None]==index[None])&new[None]&eligible[...,None]
+        if not first_contact_targets and not stable_contact_frames:hits &= ~cut[None,:,None]
+        if native_events is not None:
+            native_events['mask']=native_events.get('mask',torch.zeros_like(raw))|hits
         seen=hits.to(torch.int8).cummax(0).values.bool()
         before=torch.cat((torch.zeros_like(seen[:1]),seen[:-1]),0)
         final=(frames+1==endpoint[None])&enabled[None]&live&selected
         terminal|=final
+        # Every required part is supervised once. Unconfirmed parts use
+        # terminal collision-surface guidance, never unstable measured points.
         evaluate|=(hits|final[...,None]&new[None])&~before
     # Part 6 denotes a root endpoint. Coordinates are sorted time/world/part.
     coordinates=torch.cat((evaluate,terminal[...,None]),-1).nonzero().cpu().tolist()
@@ -72,10 +150,18 @@ def _replay_events(data, clock, event, stop, truncated, completion_mode, stage_p
 
 
 def replay_loss(actor,wm,clock,geometry,context,normalize,default_q,data,*,
-                prior_actor=None,prior_weight=1.,pose_weight=1.,check=False,completion_mode='onset',component_losses=None,endpoint_probe=None,detailed_losses=None,per_attempt_losses=None,stop_steps=None,stage_plan=None,initial_history=None,goal_normals=None,normal_weight=1.,tangent_weight=1.,contact_surface=None):
+                prior_actor=None,prior_weight=1.,pose_weight=1.,check=False,completion_mode='onset',component_losses=None,endpoint_probe=None,detailed_losses=None,per_attempt_losses=None,stop_steps=None,stage_plan=None,initial_history=None,goal_normals=None,normal_weight=1.,tangent_weight=1.,contact_surface=None,body_position_tolerance=0.,body_angle_tolerance=0.,body_angle_weight=1.,first_contact_targets=False,contact_window_frames=1,continuous_arrival=None,initial_contact_active=None,stable_contact_frames=0):
     """Rebuild complete first-attempt graphs; input tensors are [time,batch,...]."""
     assert initial_history is not None or (data['ep_step'][0]==0).all(), 'DMO requires reset or explicit real entry history'
     assert data['done'].any(0).all(), 'Incomplete native attempts'
+    if continuous_arrival is not None and initial_contact_active is None:
+        raise ValueError('Continuous arrival needs native reset support, before the first action')
+    if continuous_arrival is not None and stage_plan is not None:
+        raise ValueError('Continuous arrival currently requires independent single-segment attempts')
+    if stable_contact_frames and (stage_plan is not None or continuous_arrival is not None):
+        raise ValueError('Stable contact start currently requires independent single-segment attempts')
+    if stable_contact_frames and not callable(getattr(contact_surface,'region_loss',None)):
+        raise ValueError('Stable contact loss requires collision-surface region guidance for unconfirmed parts')
     event=data['goal_index'][0];B=len(event);device=event.device
     from .contact_library import segment_ranges
     start=segment_ranges(clock)[0][event];end=clock.event_ends[event]
@@ -97,19 +183,31 @@ def replay_loss(actor,wm,clock,geometry,context,normalize,default_q,data,*,
             endpoint=clock.event_ends[event+k]-1
             expected+=(clock.target_masks[endpoint]&~clock.keep_masks[endpoint]).long()*stage_plan['enabled'][k,:,None]
     surface_parts=((clock.target_masks&~clock.keep_masks).any(0) if stage_plan is not None else new.any(0)).nonzero().flatten().tolist() if contact_surface is not None and not hasattr(contact_surface,'region_loss') else None
+    arrival_state=None if continuous_arrival is None else continuous_arrival.begin(S,initial_contact_active)
     initial_event=event.clone()
     pair_probe=None;pair_root=None
     if check and stage_plan is not None:
         eligible=stage_plan['enabled'][-1]&((data['goal_index']==initial_event[None]+stage_plan['length']-1)&(torch.arange(len(data['done']),device=device)[:,None]<stop[None])).any(0)
         if eligible.any():pair_probe=int(eligible.nonzero()[0])
-    evaluations,terminals,schedule=_replay_events(data,clock,event,stop,truncated,completion_mode,stage_plan)
+    native_events={}
+    evaluations,terminals,schedule=_replay_events(data,clock,event,stop,truncated,completion_mode,stage_plan,first_contact_targets,contact_window_frames,native_events,stable_contact_frames)
+    if check and stable_contact_frames:
+        live=torch.arange(len(evaluations),device=device)[:,None]<stop[None]
+        collected=data['contact_first'][:len(evaluations)]&live[...,None]&new[None]
+        if not torch.equal(native_events['mask'],collected):
+            raise AssertionError('Online and replay landing-phase events disagree')
     count=evaluations.sum(0)
     if not torch.equal(count,expected):raise AssertionError('Each target part must contribute once')
+    stable_evaluations=evaluations&native_events['mask'] if stable_contact_frames else torch.zeros_like(evaluations)
+    guidance_evaluations=evaluations&~stable_evaluations if stable_contact_frames else torch.zeros_like(evaluations)
+    stable_total=target.new_zeros(B);guidance_total=target.new_zeros(B)
     contact_total=target.new_zeros(B);body_total=contact_total.clone();regular_total=contact_total.clone()
     diagnostic_totals={k:target.new_zeros(B) for k in ('root_position','root_orientation','root_velocity','dagger_prior','action_smoothness','action_magnitude')} if detailed_losses is not None or per_attempt_losses is not None else None
     action_error=target.new_zeros(());forward_error=target.new_zeros(())
     normal_total=target.new_zeros(B);tangent_total=normal_total.clone()
-    missing=(evaluations&~(data['known'][:len(evaluations)]&data['active'][:len(evaluations)])).sum()
+    measured_mask=data['known'][:len(evaluations)]&data['active'][:len(evaluations)]
+    if first_contact_targets:measured_mask &= native_events['mask']
+    missing=(evaluations&~measured_mask).sum()
     early_action=None;last_root=None
     unroll=int(stop.max())
     pair_stop=int(stop[pair_probe]) if pair_probe is not None else None
@@ -145,10 +243,23 @@ def replay_loss(actor,wm,clock,geometry,context,normalize,default_q,data,*,
                 for p,r in zip(S1,actual):forward_error=torch.maximum(forward_error,(p.detach()-r).abs().max())
                 forward_error=torch.maximum(forward_error,(xi1.detach()-data['next_xi'][t]).abs().max())
             evaluate=evaluations[t];scheduled=schedule.get(t)
-            if scheduled is not None and len(scheduled['contact']):
+            if arrival_state is not None:
+                points=continuous_arrival.material_points(S1)
+                if arrival_state.phase_mode=='load':
+                    # Measured forces and fixed nodes belong to the same solve,
+                    # not the post-integration state. Preserve those forward
+                    # coordinates while using WM/FK position derivatives.
+                    points=swap(points,data['node_position'][t])
+                gap=continuous_arrival.gaps(points)
+                arrival_result=arrival_state.update(points,gap,target,dt=continuous_arrival.dt,
+                    live=live[:,None]&new,
+                    normal_load=data['normal_load'][t] if 'normal_load' in data else None,
+                    node_load=data['node_load'][t] if 'node_load' in data else None)
+                contact_total=(arrival_result['loss']*new).sum(-1)/new.sum(-1).clamp_min(1)
+            if arrival_state is None and scheduled is not None and len(scheduled['contact']):
                 # A measured contact uses its measured body-local material point.
                 # With no contact, retain the established FK endpoint proxy.
-                observed=data['known'][t]&data['active'][t]
+                observed=measured_mask[t]
                 region=None
                 if contact_surface is not None and hasattr(contact_surface,'region_loss'):
                     # Sparse native event times need only their participating
@@ -168,6 +279,23 @@ def replay_loss(actor,wm,clock,geometry,context,normalize,default_q,data,*,
                     measured_proxy=p+(R@local.unsqueeze(-1)).squeeze(-1)
                     point=torch.where(observed[...,None],swap(measured_proxy,measured),geometry(S1,end-1))
                 if region is not None:
+                    if stable_contact_frames:
+                        # Same native witness as online completion and metrics;
+                        # only its fixed body-local derivative comes from FK/WM.
+                        p,R=geometry.poses(S1)
+                        measured=data['point'][t]
+                        local=(R.detach().transpose(-1,-2)@(measured-p.detach()).unsqueeze(-1)).squeeze(-1)
+                        point=swap(p+(R@local.unsqueeze(-1)).squeeze(-1),measured)
+                        delta=(point-target)/.05
+                        measured_cost=delta.square().sum(-1)
+                        if goal_normals is None:
+                            measured_normal=measured_cost;measured_tangent=torch.zeros_like(measured_cost)
+                        else:
+                            measured_normal=(delta*goal_normals).sum(-1).square()
+                            measured_tangent=(measured_cost-measured_normal).clamp_min(0.)
+                            measured_cost=normal_weight*measured_normal+tangent_weight*measured_tangent
+                        region={key:torch.where(stable_evaluations[t],value,region[key])
+                            for key,value in [('loss',measured_cost),('normal',measured_normal),('tangent',measured_tangent)]}
                     errors=region['loss']
                     normal_total+=(region['normal']*evaluate).sum(-1)/new.sum(-1).clamp_min(1)
                     tangent_total+=(region['tangent']*evaluate).sum(-1)/new.sum(-1).clamp_min(1)
@@ -181,10 +309,15 @@ def replay_loss(actor,wm,clock,geometry,context,normalize,default_q,data,*,
                     tangent_total+=(tangent_error*evaluate).sum(-1)/new.sum(-1).clamp_min(1)
                     errors=normal_weight*normal_error+tangent_weight*tangent_error
                 contact_total=contact_total+(errors*evaluate).sum(-1)/new.sum(-1).clamp_min(1)
+                if stable_contact_frames:
+                    stable_total+=(errors*stable_evaluations[t]).sum(-1)/new.sum(-1).clamp_min(1)
+                    guidance_total+=(errors*guidance_evaluations[t]).sum(-1)/new.sum(-1).clamp_min(1)
             if scheduled is not None and len(scheduled['root']):
                 slots=scheduled['root']
-                root_position=((reference[0][slots]-S1[0][slots])/.1).square().mean(-1)
-                root_orientation=rot_angle_sq(S1[1][slots],reference[1][slots])/.4**2
+                position_distance=(reference[0][slots]-S1[0][slots]).norm(dim=-1)
+                root_position=(position_distance.sub(body_position_tolerance).clamp_min(0)/.1).square()/3
+                angle=rot_angle_sq(S1[1][slots],reference[1][slots]).sqrt()
+                root_orientation=body_angle_weight*(angle.sub(body_angle_tolerance).clamp_min(0)/.4).square()
                 root_velocity=.1*((S1[2][slots]-reference[2][slots]).square().mean(-1)+(S1[3][slots]-reference[3][slots]).square().mean(-1))
                 body_total=body_total.index_add(0,slots,root_position+root_orientation+root_velocity)
                 if diagnostic_totals is not None:
@@ -236,7 +369,20 @@ def replay_loss(actor,wm,clock,geometry,context,normalize,default_q,data,*,
         missing_contact_proxy_terms=int(values[5]) if contact_surface is None else 0,
         geometric_unobserved_terms=int(values[5]) if contact_surface is not None else 0,
         trajectories=B,truncated_trajectories=int(values[6]))
-    if goal_normals is not None:
+    if stable_contact_frames:
+        details.update(required_contact_terms=int(expected.sum()),stable_contact_terms=int(stable_evaluations.sum()),
+            terminal_guidance_terms=int(guidance_evaluations.sum()),
+            contact_supervision_coverage=float(count.sum()/expected.sum().clamp_min(1)),
+            stable_contact_loss=float(stable_total.mean().detach()),
+            terminal_guidance_loss=float(guidance_total.mean().detach()))
+    if arrival_state is not None:
+        details.update(continuous_landing_process_load_v2=arrival_state.phase_mode=='load',
+            native_contact_metric_unchanged=True,
+            soft_arrival_mass=float((((1-arrival_state.survival)*new).sum()/new.sum().clamp_min(1)).detach()),
+            soft_landing_process_seconds=float(((arrival_state.duration*new).sum()/new.sum().clamp_min(1)).detach()),
+            soft_landing_proximity_seconds=float(((arrival_state.proximity_time*new).sum()/new.sum().clamp_min(1)).detach()),
+            missing_contact_proxy_terms=0,geometric_unobserved_terms=0)
+    if goal_normals is not None and arrival_state is None:
         details.update(contact_normal=values[7],contact_tangent=values[8],normal_weight=normal_weight,tangent_weight=tangent_weight)
     if check:
         grad=torch.autograd.grad(last_root,early_action,retain_graph=True)[0]
@@ -252,7 +398,7 @@ def replay_loss(actor,wm,clock,geometry,context,normalize,default_q,data,*,
 
 
 @torch.no_grad()
-def native_attempt_metrics(data,clock,target_faces_by_segment):
+def native_attempt_metrics(data,clock,target_faces_by_segment,*,first_contact=False,contact_window_frames=1):
     """Real first-attempt signals; never turn missing contact coordinates into error."""
     end_index=data['done'].long().argmax(0)
     B=len(end_index);device=end_index.device;batch=torch.arange(B,device=device)
@@ -262,6 +408,12 @@ def native_attempt_metrics(data,clock,target_faces_by_segment):
     target=clock.data['point'][ends-1]
     matching=torch.ones_like(data['active']) if target_faces_by_segment is None else (data['surface_local']==target_faces_by_segment[event][None])&(target_faces_by_segment[event][None]>=0)
     valid=data['active']&data['known']&matching&live[...,None]
+    if first_contact:
+        if contact_window_frames > 1:
+            from .contact_arrival import arrival_indices
+            index,_=arrival_indices(data,target,frames=contact_window_frames,eligible=matching,live=live)
+            valid &= torch.arange(len(live),device=device)[:,None,None]==index[None]
+        else:valid &= data['contact_first']
     distance=(data['point']-target[None]).norm(dim=-1)
     best=distance.masked_fill(~valid,float('inf')).amin(0)
     fully_observed=((~new)|torch.isfinite(best)).all(-1)
@@ -293,4 +445,7 @@ def native_attempt_metrics(data,clock,target_faces_by_segment):
         contact_error_samples=int(observed),root_error_cm=root/count,
         orientation_error_rad=angle,
         mean_terminal_step=steps/count,
-        scope='fresh first attempts before update; closest observed native contact per target part',face_matching=target_faces_by_segment is not None)
+        contact_window_frames=contact_window_frames,
+        contact_metric=('first_native_arrival_window' if contact_window_frames>1 else 'first_native_onset') if first_contact else 'closest_observed_contact',
+        first_contact_error_cm=distance/observed if first_contact and observed else None,
+        scope=f'fresh first attempts before update; first contiguous native contact episode, up to {contact_window_frames} frames per target part' if first_contact else 'fresh first attempts before update; closest observed native contact per target part',face_matching=target_faces_by_segment is not None)

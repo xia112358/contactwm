@@ -1,5 +1,5 @@
 """Render already-collected trimming comparison; no new simulation."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path, runtime_root
 import sys,json,subprocess,os
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor

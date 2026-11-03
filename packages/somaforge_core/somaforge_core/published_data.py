@@ -21,6 +21,8 @@ _EMPTY_RULES = (MappingProxyType({}), ())
 
 
 def _mapping_path() -> Path:
+    if override := os.environ.get("SOMAFORGE_PUBLISHED_DATA_PATHS"):
+        return Path(override)
     root = Path(os.environ.get("SOMAFORGE_ROOT", Path(__file__).resolve().parents[3]))
     return root / "runtime/current/manifests/published_data_paths.json"
 

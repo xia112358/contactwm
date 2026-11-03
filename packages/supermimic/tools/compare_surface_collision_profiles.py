@@ -6,7 +6,7 @@ to the production objective loader; no runtime artifact or alternate URDF is
 created. The fixture changes I/O only, not geometry, losses or derivatives.
 """
 from __future__ import annotations
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path
 
 import argparse
 from contextlib import contextmanager, redirect_stdout
@@ -21,7 +21,6 @@ import numpy as np
 import torch
 
 ROOT=Path(__file__).resolve().parents[1]
-pass
 
 
 def build_surface_model():

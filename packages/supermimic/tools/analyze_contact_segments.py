@@ -1,5 +1,5 @@
 """Audit complete frozen-policy replay and publish first-attempt segment videos."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_root
 import argparse
 import html
 import json
@@ -8,7 +8,6 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-pass
 
 
 def main():

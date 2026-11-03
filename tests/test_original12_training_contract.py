@@ -65,14 +65,14 @@ def test_checkpoint_contract_cannot_substitute_old_physics_or_incomplete_weights
 
 
 def test_portable_recipe_contains_complete_recorded_flags_and_published_paths():
-    args = SimpleNamespace(resources=None, output=None, command='tracking',resume_state='initialization',startup_check=False)
+    args = SimpleNamespace(resources=ROOT/'configs/workflow_resources.json', output=None, command='tracking',resume_state='initialization',startup_check=False)
     result = original12.plan(args,environ={})
     argv = result['launch'].argv
     assert argv[argv.index('--contact_response')+1]=='newton_contacts_v2'
     assert '--no_reset_noise' in argv
     assert argv[argv.index('--num_envs')+1]=='4096'
     assert argv[argv.index('--resume')+1]==str(ROOT/'runtime/current/models/original12/initialization.pt')
-    assert not any('/perception/' in x or '/home/zhouxia/workspace/' in x for x in argv)
+    assert not any('/perception/' in x.replace(str(ROOT.parent), '') or '/home/zhouxia/workspace/' in x.replace(str(ROOT.parent), '') for x in argv)
     assert 'CUDA_VISIBLE_DEVICES' not in result['launch'].environment
     args.command='prepare';args.skip_environment=False;args.assets=None
     preparation=original12.plan(args,environ={})

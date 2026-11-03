@@ -3,6 +3,15 @@ import unittest
 from supermimic.contact_response import contract, metadata, validate_identity
 
 class ContactResponseTest(unittest.TestCase):
+    def test_cg_numerics_are_explicit_and_do_not_relabel_old_newton_runs(self):
+        old,new=contract('newton_contacts_v2'),contract('newton_contacts_v3')
+        self.assertEqual(new['constraint_solver'],'cg')
+        for key in ('substeps','solref','solimp','collision_decimation','geometry','margins','gaps'):
+            self.assertEqual(old[key],new[key])
+        with self.assertRaises(ValueError):
+            validate_identity({'contact_response_contract':metadata('newton_contacts_v2')},
+                              {'contact_response_contract':metadata('newton_contacts_v3')})
+
     def test_legacy_identity(self):
         validate_identity({}, {})
         validate_identity({}, {'contact_response_contract': metadata('legacy')})

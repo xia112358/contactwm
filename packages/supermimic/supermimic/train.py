@@ -44,8 +44,9 @@ parser.add_argument("--log_dir", type=str, default=os.path.join(REPO, "logs", "r
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--task_manifest", type=str, default=None, help="verified terrain-conditioned task experiment")
 parser.add_argument("--contact_model", choices=("binary2", "force6", "original", "height_only", "force_only"), default="binary2")
+parser.add_argument("--wm_contact_architecture",choices=("independent","shared"),default="independent")
 parser.add_argument("--collision_profile",choices=("legacy_v1","surface_v2"),default="surface_v2")
-parser.add_argument("--contact_response", choices=("legacy", "firm_v2", "manifold_v1", "manifold_v2", "manifold_v3", "newton_contacts_v1", "newton_contacts_v2", "manifold_soft_v1", "manifold_balanced_v1"), default="manifold_v3")
+parser.add_argument("--contact_response", choices=("legacy", "firm_v2", "manifold_v1", "manifold_v2", "manifold_v3", "newton_contacts_v1", "newton_contacts_v2", "newton_contacts_v3", "manifold_soft_v1", "manifold_balanced_v1"), default="manifold_v3")
 parser.add_argument("--policy_force_observation", choices=("measured", "none"), default="measured")
 parser.add_argument("--perception", choices=("heightmap", "panorama_asymmetric", "panorama_rolling", "panorama_oracle"), default="heightmap")
 parser.add_argument("--depth_encoder", choices=("cnn", "mlp"), default="cnn")
@@ -74,7 +75,7 @@ if args.task_manifest:
                         reset_sampler=args.reset_sampler, probes_per_motion=args.probes_per_motion,
                         probe_mode=args.probe_mode, policy_force_observation=args.policy_force_observation,
                         perception=args.perception, perception_buffer_steps=args.buffer_steps, depth_layout=args.depth_layout, depth_encoder=args.depth_encoder,
-                        collision_profile=args.collision_profile, contact_response=args.contact_response)
+                        collision_profile=args.collision_profile, contact_response=args.contact_response,wm_contact_architecture=args.wm_contact_architecture)
     args.motion_dir = task_spec["motion_dir"]
     task_metadata = checkpoint_metadata(task_spec)
 
@@ -126,6 +127,8 @@ opt_v = torch.optim.Adam(critic.parameters(), lr=args.lr)
 start_it, wall_offset, sim_steps = 0, 0.0, 0
 if args.resume:
     ck = torch.load(args.resume, map_location=dev)
+    if ck["args"].get("wm_contact_architecture", "independent") != args.wm_contact_architecture:
+        raise ValueError("Resume must preserve WM contact architecture; use a fresh comparison")
     if ck["args"].get("reset_sampler", "return_bins") != args.reset_sampler:
         raise ValueError("Resume must preserve the reset sampler; use a fresh experiment")
     if ck["args"].get("probe_mode", "all_long") != args.probe_mode:
@@ -167,7 +170,7 @@ def _wm_err(S_hat, s1, mask):
 
 def _imag_step(S, o_hist, a_prev, f, xi, xi_n, g, visual_features=None):
     a = pi(o_hist, g) if visual_features is None else pi.forward_features(o_hist, g, visual_features)
-    if args.perception in ("panorama_rolling", "panorama_oracle"):
+    if args.perception in ("panorama_rolling", "panorama_oracle") or (args.task_manifest and args.contact_model in ("force6","force_only") and args.perception=="heightmap"):
         S1, xi1 = wm.joint_step(S, a, xi, xi_n)
     else:
         xi1 = wm.next_context(S, a, xi, xi_n) if args.task_manifest and args.contact_model != "original" else xi
@@ -217,14 +220,17 @@ def wm_update():
     w = buffer.sample_windows(args.wm_batch, args.wm_window)
     S_hat = wm_rollout(w["s"], w["a"], w["xi"])
     loss, e_last = wm_err(S_hat, w["s1"], w["mask"])
+    state_loss=loss.detach()/args.wm_window
+    force_loss=loss.new_zeros(())
     if args.task_manifest and args.contact_model != "original":
-        loss = loss + 0.1 * wm.contact_loss(w)
+        force_loss=wm.contact_loss(w)
+        loss = loss + 0.1 * force_loss
     opt_wm.zero_grad(set_to_none=True)
     loss.backward()
     nn.utils.clip_grad_norm_(wm.parameters(), 1.0, error_if_nonfinite=args.check_numerics)
     opt_wm.step()
     m = w["mask"][:, -1]
-    return loss.detach() / args.wm_window, (e_last.detach() * m).sum() / m.sum().clamp(min=1)
+    return loss.detach() / args.wm_window, (e_last.detach() * m).sum() / m.sum().clamp(min=1), state_loss, force_loss.detach()
 
 
 def sample_valid_starts(B: int):
@@ -345,7 +351,7 @@ with launch_simulation(sim_cfg, args):
                 raise FloatingPointError("Nonfinite tracking startup transition")
         report = dict(stage="tracking", num_envs=env.N, physics_steps=1,
                       optimizer_updates=0, checkpoint_written=False,
-                      collision_profile=args.collision_profile, contact_response=args.contact_response)
+                      collision_profile=args.collision_profile, contact_response=args.contact_response,wm_contact_architecture=args.wm_contact_architecture)
         Path(args.log_dir, "startup-check.json").write_text(json.dumps(report, indent=2) + "\n")
         print(json.dumps(report), flush=True)
         raise SystemExit(0)
@@ -428,7 +434,7 @@ with launch_simulation(sim_cfg, args):
     t_start = time.time() - wall_offset
     t_log = time.time()
     step_acc = 0.0
-    agg = {"wm": [], "wm8": [], "pi": [], "v": [], "ir": [], "gn": [], "surv": []}
+    agg = {"wm": [], "wm8": [], "pi": [], "v": [], "ir": [], "gn": [], "surv": [], "wm_state": [], "wm_force": []}
     for it in range(start_it, args.iterations):
         lr = lr_at(it)
         for o in (opt_wm, opt_pi, opt_v):
@@ -444,12 +450,13 @@ with launch_simulation(sim_cfg, args):
         if prof:
             torch.cuda.synchronize(); tp1 = time.time()
         for _ in range(args.wm_batches):
-            l, e8 = wm_update()
+            l, e8, state_loss, force_loss = wm_update()
         if prof:
             torch.cuda.synchronize(); tp2 = time.time()
             if it < args.wm_only_iters:
                 print(f"[prof] collect {1e3*(tp1-tp0):.0f} ms ({n} steps) | wm {1e3*(tp2-tp1):.0f} ms", flush=True)
         agg["wm"].append(l), agg["wm8"].append(e8)
+        agg["wm_state"].append(state_loss);agg["wm_force"].append(force_loss)
         if it >= args.wm_only_iters:
             pl, vl, ir, gn, surv = policy_update()
             if prof:
@@ -466,6 +473,10 @@ with launch_simulation(sim_cfg, args):
                    mean(agg["gn"]), mean(agg["surv"]), mean(stats["r"]), mean(stats["ep_len"]), mean(stats["ep_ret"]), term_frac, ips, lr]  # fmt: skip
             log_f.write(",".join(f"{x:.6g}" if isinstance(x, float) else str(x) for x in row) + "\n")
             log_f.flush()
+            with open(os.path.join(args.log_dir,"wm_diagnostics.jsonl"),"a") as diagnostic:
+                diagnostic.write(json.dumps(dict(iteration=it+1,architecture=args.wm_contact_architecture,
+                    state_loss=mean(agg["wm_state"]),force_loss=mean(agg["wm_force"]),
+                    force_loss_weight=.1,wm_window=args.wm_window,iterations_per_second=ips))+"\n")
             if args.perception.startswith("panorama_"):
                 perception_path = os.path.join(args.log_dir, "perception_stats.json")
                 perception_stats = (dict(schema=task_metadata["observation_schema"],resolution=json.loads(task_metadata["perception_contract"])["resolution"],

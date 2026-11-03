@@ -1,8 +1,6 @@
 """Shared visual encoding preserves the parallel motion/force predictions."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import sys
 from pathlib import Path
-pass
 import torch
 from supermimic.lowstep import install
 install('data/mixed_terrain_walk/task.json',contact_model='force6',policy_force_observation='none',perception='panorama_rolling',perception_buffer_steps=10)

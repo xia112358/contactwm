@@ -1,5 +1,5 @@
 """Compare continuous stage planning/extraction revisions; no training updates."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path
 import argparse
 import importlib.util
 import json
@@ -10,7 +10,7 @@ import time
 from types import SimpleNamespace
 from unittest.mock import patch
 
-ROOT=Path(__file__).resolve().parents[1];pass
+ROOT=Path(__file__).resolve().parents[1]
 import torch
 from supermimic import contact_sequence as sequence,contact_duration as duration
 

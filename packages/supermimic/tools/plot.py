@@ -1,5 +1,4 @@
 """Success curves for a run: evaluation return, failed clips, and training return vs wall-clock time."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 
 import argparse
 import csv

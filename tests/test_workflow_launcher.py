@@ -198,3 +198,16 @@ def test_native_help_does_not_create_runtime_directories(workspace, monkeypatch)
     workflow.execute(plan, environ={})
     assert len(calls) == 1
     assert not runtime.exists()
+
+
+def test_project_newton_runtime_precedes_shared_packages(workspace):
+    root, registry, _ = workspace
+    overlay = root / 'runtime/dependencies/newton-fixed'
+    (overlay / 'newton').mkdir(parents=True)
+    (overlay / 'newton/__init__.py').write_text('')
+    data = json.loads(registry.read_text())
+    data['supermimic']['newton_pythonpath'] = 'runtime/dependencies/newton-fixed'
+    registry.write_text(json.dumps(data))
+    plan = launch(workspace, ['contact'])
+    assert plan.environment['PYTHONPATH'].split(os.pathsep)[0] == str(overlay)
+    assert str(overlay) not in launch(workspace, ['tracking', '--backend', 'ppo']).environment['PYTHONPATH']

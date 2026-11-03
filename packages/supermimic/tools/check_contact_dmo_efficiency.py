@@ -4,7 +4,7 @@ Provide a pre-change contact_dmo.py with --reference-source to compare revisions
 The optional CUDA check tiles six retained real trajectories; it is a component
 benchmark, not a new simulation or estimate of a complete training iteration.
 """
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path
 import argparse
 import importlib.util
 import json
@@ -17,7 +17,6 @@ from unittest.mock import patch
 import warnings
 
 ROOT=Path(__file__).resolve().parents[1]
-pass
 import torch
 from supermimic import contact_dmo as current
 

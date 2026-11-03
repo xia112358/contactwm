@@ -1,10 +1,10 @@
 """Check collision-surface consistency, native FK and finite-difference gradients."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path
 import sys,json,argparse
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[1];pass
+ROOT=Path(__file__).resolve().parents[1]
 import torch,numpy as np
-spec=json.loads((runtime_path('data/lowclimb_boxes/task.json')).read_text());pass
+spec=json.loads((runtime_path('data/lowclimb_boxes/task.json')).read_text())
 from supermimic.contact_surface import nearest_triangle,CollisionSurface
 from supermimic.contact_control import ContactGeometry,ContactClock,LINKS
 from supermimic.mdp import unflatten_state

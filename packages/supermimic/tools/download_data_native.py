@@ -1,5 +1,5 @@
 """Download the upstream motion/robot assets without Docker; resume existing files."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path
 import concurrent.futures
 import json
 from pathlib import Path

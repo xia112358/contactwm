@@ -134,7 +134,7 @@ class TrackingSim:
         f = start + (torch.rand(n, device=self.device) * (end - start).float()).long()
         return f, bins
 
-    def reset(self, env_ids: torch.Tensor, frames: torch.Tensor | None = None):
+    def reset(self, env_ids: torch.Tensor, frames: torch.Tensor | None = None, *, state=None):
         if len(env_ids) == 0:
             return
         n = len(env_ids)
@@ -143,24 +143,28 @@ class TrackingSim:
             frames, bins = self.sample_frames(n)
         else:
             bins = self.motion.frame_bin[frames]
-        m = self.motion
-        p, R, v, w, q, qd = (x.clone() for x in m.ref_state(frames))
-        if self.reset_noise:
-            p = p + torch.stack(
-                (torch.empty(n, device=dev).uniform_(-0.05, 0.05), torch.empty(n, device=dev).uniform_(-0.05, 0.05),
-                 torch.empty(n, device=dev).uniform_(-0.01, 0.01)), -1)  # fmt: skip
-            rv = torch.stack(
-                (torch.empty(n, device=dev).uniform_(-0.1, 0.1), torch.empty(n, device=dev).uniform_(-0.1, 0.1),
-                 torch.empty(n, device=dev).uniform_(-0.2, 0.2)), -1)  # fmt: skip
-            R = so3_exp(rv) @ R
-            v = v + torch.stack(
-                (torch.empty(n, device=dev).uniform_(-0.5, 0.5), torch.empty(n, device=dev).uniform_(-0.5, 0.5),
-                 torch.empty(n, device=dev).uniform_(-0.2, 0.2)), -1)  # fmt: skip
-            w = w + torch.stack(
-                (torch.empty(n, device=dev).uniform_(-0.52, 0.52), torch.empty(n, device=dev).uniform_(-0.52, 0.52),
-                 torch.empty(n, device=dev).uniform_(-0.78, 0.78)), -1)  # fmt: skip
-            q = q + torch.empty_like(q).uniform_(-0.1, 0.1)
-        q = torch.clamp(q, self.mdp.kin.q_lo, self.mdp.kin.q_hi)
+        if state is None:
+            m = self.motion
+            p, R, v, w, q, qd = (x.clone() for x in m.ref_state(frames))
+            if self.reset_noise:
+                p = p + torch.stack(
+                    (torch.empty(n, device=dev).uniform_(-0.05, 0.05), torch.empty(n, device=dev).uniform_(-0.05, 0.05),
+                     torch.empty(n, device=dev).uniform_(-0.01, 0.01)), -1)  # fmt: skip
+                rv = torch.stack(
+                    (torch.empty(n, device=dev).uniform_(-0.1, 0.1), torch.empty(n, device=dev).uniform_(-0.1, 0.1),
+                     torch.empty(n, device=dev).uniform_(-0.2, 0.2)), -1)  # fmt: skip
+                R = so3_exp(rv) @ R
+                v = v + torch.stack(
+                    (torch.empty(n, device=dev).uniform_(-0.5, 0.5), torch.empty(n, device=dev).uniform_(-0.5, 0.5),
+                     torch.empty(n, device=dev).uniform_(-0.2, 0.2)), -1)  # fmt: skip
+                w = w + torch.stack(
+                    (torch.empty(n, device=dev).uniform_(-0.52, 0.52), torch.empty(n, device=dev).uniform_(-0.52, 0.52),
+                     torch.empty(n, device=dev).uniform_(-0.78, 0.78)), -1)  # fmt: skip
+                q = q + torch.empty_like(q).uniform_(-0.1, 0.1)
+            q = torch.clamp(q, self.mdp.kin.q_lo, self.mdp.kin.q_hi)
+        else:
+            # Exact recorded/pool state: do not randomize or clamp it to the reference.
+            p, R, v, w, q, qd = state
         quat = mat_to_quat(R)
         pose = torch.cat((p + self.scene.env_origins[env_ids], quat[:, 1:4], quat[:, 0:1]), -1)
         self.robot.write_root_link_pose_to_sim_index(root_pose=pose, env_ids=env_ids)

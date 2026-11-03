@@ -1,5 +1,5 @@
 """Matched replay/WM/metrics microbenchmarks; no simulator or optimizer steps."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path
 import argparse
 import importlib.util
 import json
@@ -10,7 +10,6 @@ import time
 from types import SimpleNamespace
 
 ROOT=Path(__file__).resolve().parents[1]
-pass
 
 
 def main():

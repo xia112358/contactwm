@@ -1,5 +1,4 @@
 """Compile the G1 URDF to an MJCF with a free-floating pelvis (same kinematics and inertias)."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 
 import os
 import re

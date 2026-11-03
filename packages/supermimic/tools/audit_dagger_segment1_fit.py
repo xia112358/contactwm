@@ -1,8 +1,6 @@
 """Fixed-data segment-one regression probe; keeps accepted policies untouched."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import argparse,json,sys,time
 from pathlib import Path
-pass
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)

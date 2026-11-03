@@ -1,8 +1,6 @@
 """Check the FK/material surrogate derivative against finite differences."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import sys,json
 from pathlib import Path
-pass
 import torch
 from supermimic.lowstep import install
 install('data/lowclimb_boxes/task.json',contact_model='force6')

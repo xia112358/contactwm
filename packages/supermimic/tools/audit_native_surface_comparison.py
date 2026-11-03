@@ -4,7 +4,7 @@ Within-run loss comparisons hold states/targets fixed. Between-profile native
 metrics include trajectory changes of the same frozen policy. Goal-window
 coverage is a diagnostic, not the full contact actor's completion criterion.
 """
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_root
 import argparse
 import json
 from pathlib import Path
@@ -14,7 +14,6 @@ import numpy as np
 import torch
 
 ROOT=Path(__file__).resolve().parents[1]
-pass
 
 
 def main():

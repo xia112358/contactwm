@@ -1,8 +1,8 @@
 """Independent DMO refinement of recorded no-contact failure entries."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path
 import sys,json,runpy,copy,signal,time,os
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[1];pass
+ROOT=Path(__file__).resolve().parents[1]
 import torch
 from supermimic.contact_task import ContactTask
 native_step=ContactTask.step

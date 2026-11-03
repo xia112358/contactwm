@@ -1,5 +1,4 @@
 """Summarize native penetration and unlabelled body contacts; do not redefine contact."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import argparse,json
 from collections import Counter
 from pathlib import Path

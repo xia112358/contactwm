@@ -4,7 +4,6 @@ Use --output for an explicit project runtime path, or read the JSON on stdout.
 The fixed target is declared by --segment; physical contacts stay native data.
 """
 from __future__ import annotations
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 
 import argparse
 import json
@@ -14,7 +13,6 @@ import sys
 import torch
 
 ROOT = Path(__file__).resolve().parents[1]
-pass
 
 
 def main():

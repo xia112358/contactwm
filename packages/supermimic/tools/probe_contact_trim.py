@@ -1,8 +1,8 @@
 """Frozen comparison of original versus stationary-prefix-trimmed segment starts."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path, runtime_root
 import sys,json,runpy,subprocess,os
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[1];pass
+ROOT=Path(__file__).resolve().parents[1]
 import torch,numpy as np
 from supermimic.contact_task import ContactTask
 native_step=ContactTask.step

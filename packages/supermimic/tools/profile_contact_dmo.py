@@ -1,8 +1,6 @@
 """Memory-only DMO backward profile by tiling a saved on-policy native batch."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import argparse,json,sys,time
 from pathlib import Path
-pass
 p=argparse.ArgumentParser();p.add_argument('--run',type=Path,required=True);p.add_argument('--batch',type=int,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args()
 import torch
 from supermimic.lowstep import install

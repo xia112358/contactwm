@@ -3,7 +3,6 @@
 Use contact_train arguments with --profile_collection --freeze_actor --freeze_wm.
 Only diagnostic JSON is written; existing checkpoints are read-only inputs.
 """
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import inspect
 import json
 from pathlib import Path
@@ -12,7 +11,6 @@ import sys
 import time
 
 ROOT=Path(__file__).resolve().parents[1]
-pass
 import torch
 from supermimic import contact_profile
 

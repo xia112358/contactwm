@@ -140,3 +140,39 @@ class SurfaceRegionObjective(CollisionSurface):
         return {key:target.new_zeros(target.shape[:2]).index_copy(1,
                     torch.as_tensor(parts,device=target.device,dtype=torch.long),result[key])
                 for key in ('loss','normal','tangent','entropy_cost','hard_loss')}
+
+
+class ContinuousArrivalSurface:
+    """Fixed-node geometry for a soft landing process on a shared finite terrain.
+
+    ``triangles`` must contain ALL task-eligible native terrain faces, in the
+    same environment-local frame as geometry. Never pass just the goal face
+    or the infinite plane through the target. Worlds must share this terrain.
+    Native contacts/success metrics remain separate from this surrogate.
+    """
+    def __init__(self, surface, triangles, *, dt, **arrival_options):
+        self.surface = surface
+        self.triangles = torch.as_tensor(triangles,
+            device=surface.atlas.areas.device, dtype=surface.atlas.areas.dtype)
+        if self.triangles.ndim != 3 or self.triangles.shape[1:] != (3, 3) or not len(self.triangles):
+            raise ValueError('Expected nonempty finite terrain triangles [face,3,3]')
+        self.areas = surface.atlas.areas
+        self.dt, self.arrival_options = dt, arrival_options
+
+    def samples(self, state):
+        points = self.material_points(state)
+        return points,self.gaps(points)
+
+    def material_points(self, state):
+        p, R = self.surface.geometry.poses(state)
+        return self.surface.atlas.world(p, R)
+
+    def gaps(self, points):
+        flat = points.reshape(-1, 3)
+        closest = nearest_triangle(flat, self.triangles)
+        return (flat-closest).norm(dim=-1).reshape(points.shape[:-1])
+
+    def begin(self, state, initial_supported):
+        from .contact_soft_arrival import SoftLanding
+        _, gap = self.samples(state)
+        return SoftLanding(gap, self.areas, initial_supported=initial_supported, **self.arrival_options)

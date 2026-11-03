@@ -1,8 +1,6 @@
 """Decompose the unchanged DMO objective and gradients on one frozen replay."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import argparse,copy,json,sys,time
 from pathlib import Path
-pass
 
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--run',type=Path,required=True);a=p.parse_args()

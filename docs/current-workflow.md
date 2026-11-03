@@ -36,7 +36,7 @@ PPO 只保留原来的 tracking 代码及 recipe，接入 DAgger 的工作暂缓
 
 ## 逐阶段检查命令
 
-以下都是 `--dry-run` 模板：只打印命令和环境，不导入模拟器、不创建输出、不启动训练。将 `/external/...` 替换为本机已验证的输入及新的输出目录，检查后移除 `--dry-run` 才会执行。manifest、机器人碰撞 profile、contact response 必须在各阶段一致；示例显式采用 `surface_v2` 和 `manifold_v2`。
+以下都是 `--dry-run` 模板：只打印命令和环境，不导入模拟器、不创建输出、不启动训练。将 `/external/...` 替换为本机已验证的输入及新的输出目录，检查后移除 `--dry-run` 才会执行。manifest、机器人碰撞 profile、contact response 必须在各阶段一致；示例显式采用 `surface_v2` 和 `manifold_v3`。
 
 第一阶段使用 force6 tracking，保持与后续采集接口的观测约定一致：
 
@@ -45,7 +45,7 @@ python scripts/run_workflow.py tracking --dry-run -- \
   --task_manifest /external/tasks/task.json \
   --motion_dir /external/tasks/motions \
   --contact_model force6 --collision_profile surface_v2 \
-  --contact_response manifold_v2 --log_dir /external/runs/tracking --headless
+  --contact_response manifold_v3 --log_dir /external/runs/tracking --headless
 ```
 
 从对应的原生 tracking checkpoint 采集接触轨迹。`--num_envs` 按所用 task manifest 配置；单条采集要求所选 motion 恰好对应一个环境。多动作采集继续使用原生 `--all_motions` / `--selection_manifest` 接口。
@@ -55,7 +55,7 @@ python scripts/run_workflow.py collect --dry-run -- \
   --task_manifest /external/tasks/task.json \
   --checkpoint /external/runs/tracking/ckpt_006000.pt \
   --output /external/runs/recording --motion 0 --num_envs 40 \
-  --collision_profile surface_v2 --contact_response manifold_v2 --headless
+  --collision_profile surface_v2 --contact_response manifold_v3 --headless
 ```
 
 DAgger 使用成功的原生 demonstration 和同一个 tracking teacher。若使用已审核的轨迹切片，显式传入 `--slices /external/cases_validated.pt`，后续 contact 阶段继续使用同一份切片。初始化保留原实现：学生原生 rollout、teacher 查询和 DAgger 更新；world model 来自 SuperMimic tracking checkpoint。
@@ -66,7 +66,7 @@ python scripts/run_workflow.py initialize --dry-run -- \
   --checkpoint /external/runs/tracking/ckpt_006000.pt \
   --recording /external/runs/recording/rollout.pt \
   --output /external/runs/initialization \
-  --collision_profile surface_v2 --contact_response manifold_v2 --headless
+  --collision_profile surface_v2 --contact_response manifold_v3 --headless
 ```
 
 先完成原生验证并选定可接受的 DAgger checkpoint，再进入 contact 训练。`--checkpoint` 是原 tracking teacher；`--resume` 是本次恢复的 actor/WM 状态；`--prior_checkpoint` 是固定的、已经接受的 DAgger 初始化。三者角色不同，不能按文件扩展名互换。首次训练时后两者可以指向同一个已接受的 `checkpoint_dagger.pt`。
@@ -79,7 +79,7 @@ python scripts/run_workflow.py contact --dry-run -- \
   --resume /external/runs/initialization/checkpoint_dagger.pt \
   --prior_checkpoint /external/runs/initialization/checkpoint_dagger.pt \
   --output /external/runs/contact --policy_gradient dmo \
-  --collision_profile surface_v2 --contact_response manifold_v2 --headless
+  --collision_profile surface_v2 --contact_response manifold_v3 --headless
 ```
 
 `--policy_gradient imagination` 保留原来的 imagination 更新方式；`dmo`、continuous 模式以及其他原生选项均通过 `--` 传递。统一入口没有替代各阶段的原生验证或 checkpoint 接受标准。
@@ -117,3 +117,21 @@ python3 scripts/setup_workflow_environment.py
 历史 `accepted-baseline.json` 和其原 `checkpoint_dagger.pt` 仍缺失。已有其他历史 DAgger/contact 文件只用作兼容性启动样例，不自动成为已接受的新训练基线；正式 contact 训练前仍需明确选定经过验证的 checkpoint。
 
 旧仓库已归档清理。当前源码只在 `somaforge-unified`，独立 IsaacLab 位于 `/home/zhouxia/workspace/dependencies/IsaacLab`；旧项目名仅保留外部资源兼容链接，以支持历史 manifest/checkpoint 的绝对路径。归档位置见 `configs/consolidation_provenance.json`，运行数据与权重未迁移或删除。
+
+### 原始 PHP 接触数据
+
+新切分只接受拼接前的原始数据库片段，入口要求
+`source_unit=original_database_clip`。`motions-*` 组合轨迹和历史 PHP296
+采集保留作历史记录，不再重复切分。镜像保留并标明同源增强。
+原始库位于 `runtime/supermimic/data/php_originals_v1/`；打包的来源策略在
+`packages/supermimic/supermimic/resources/experiments/contact_data_source.json`。
+这些数据仍是运动学来源，需要转换到权威机器人并采集当前物理接触后再切分。
+
+恢复下载工具（已存在的数据会校验并复用）：
+
+```bash
+runtime/environments/venv/workflow/bin/python packages/supermimic/tools/prepare_php_originals.py --download-only
+```
+
+新 tracking 默认 `manifold_v3`，其他阶段显式选择相同版本。旧版本仍保留用于
+兼容历史 checkpoint，不会把旧采集或权重自动标成 v3。迁移验证不等于重新训练。

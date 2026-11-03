@@ -36,7 +36,7 @@ parser.add_argument("--task_manifest", type=str, default=None)
 parser.add_argument("--contact_model", choices=("binary2", "force6", "original", "height_only", "force_only"), default=None)
 parser.add_argument("--terrain_transfer", action="store_true", help="explicitly test policy weights on corrected terrain; preserve robot, motions and observation schema")
 parser.add_argument("--collision_profile",choices=("legacy_v1","surface_v2"),default=None)
-parser.add_argument("--contact_response", choices=("legacy", "firm_v2", "manifold_v1", "manifold_v2", "manifold_v3", "newton_contacts_v1", "newton_contacts_v2", "manifold_soft_v1", "manifold_balanced_v1"), default=None)
+parser.add_argument("--contact_response", choices=("legacy", "firm_v2", "manifold_v1", "manifold_v2", "manifold_v3", "newton_contacts_v1", "newton_contacts_v2", "newton_contacts_v3", "manifold_soft_v1", "manifold_balanced_v1"), default=None)
 add_launcher_args(parser)
 args = parser.parse_args()
 if args.iteration_interval is not None and args.iteration_interval < 1:
@@ -70,7 +70,8 @@ if args.task_manifest:
                         depth_layout=run_args.get("depth_layout", "full"),
                         depth_encoder=run_args.get("depth_encoder", "cnn"),
                         collision_profile=args.collision_profile or run_args.get('collision_profile','legacy_v1'),
-                        contact_response=args.contact_response or run_args.get('contact_response','legacy'))
+                        contact_response=args.contact_response or run_args.get('contact_response','legacy'),
+                        wm_contact_architecture=run_args.get("wm_contact_architecture","independent"))
     args.motion_dir = task_spec["motion_dir"]
     task_metadata = checkpoint_metadata(task_spec)
 

@@ -1,6 +1,6 @@
 """Independent-process nominal repeats of a fixed tracking checkpoint."""
 from __future__ import annotations
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_root
 import argparse
 import hashlib
 import html
