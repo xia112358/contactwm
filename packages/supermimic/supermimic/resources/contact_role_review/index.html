@@ -1,0 +1,6 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>接触角色 · 轨迹对照播放</title><link rel="stylesheet" href="style.css"></head><body>
+<header><div><small>CONTACT TRAJECTORY REVIEW</small><h1>统一接触时序 · 轨迹复核</h1><p>真实采集轨迹，逐帧回放。整段角色与当前帧的支撑状态分开显示。</p></div><div class="global"><button id="playBoth">两侧播放</button><button id="pauseBoth">全部暂停</button><label>速度 <select id="speed"><option value="0.1">0.1×</option><option value="0.25" selected>0.25×</option><option value="0.5">0.5×</option><option value="1">1×</option></select></label></div></header>
+<nav class="review-nav"><a href="?review=length">长短段全量复核</a> · <a href="./">按角色查看全部轨迹</a></nav><div id="error" role="alert" hidden></div><main id="players"></main>
+<footer><span class="legend s">● 支撑</span><span class="legend t">● 转移</span><span class="legend n">● 不参与</span><span>拖动旋转 · 滚轮缩放 · 下方色带可定位帧</span><p>色带：蓝色＝有运动证据的转移过程，绿色＝持续承重支撑，橙色＝只有原生活跃接触，灰色＝无接触。首次落稳需连续5帧向上承重力超过30 N且运动收敛；已建立支撑后，以15 N滞回退出，不因部位内部滚动或换点退出。物理起点与确认帧分开记录。同一部位内部换点、滚动不算转移；转移需实际脱离证据。已在转移中的刮碰不会生成落稳切点。起身等姿态阶段单独标注；仅裁剪有证据的首尾静止或异常，正常半步保留。原始接触与点loss掩码保持不变。点：绿＝可用于loss的稳定接触点，橙＝尚未稳定。机器人来自记录的积分后姿态，接触点来自该步最后一次原生求解采样，二者存在采样时序差；未重新模拟或用几何距离推算接触。</p><p id="loaded">正在加载修正版轨迹索引…</p></footer>
+<script src="player.js"></script></body></html>

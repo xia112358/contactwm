@@ -1,6 +1,5 @@
 """Check canonical FK, network dimensions, and optional matched-terrain GPU simulation."""
 from __future__ import annotations
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 
 import argparse
 import json
@@ -8,7 +7,6 @@ from pathlib import Path
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-pass
 from isaaclab.app import add_launcher_args, launch_simulation
 
 parser = argparse.ArgumentParser(description=__doc__)

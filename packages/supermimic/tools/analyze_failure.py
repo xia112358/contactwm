@@ -1,5 +1,4 @@
 """Diagnose how a clip fails in a recorded evaluation: which termination fires and the tracking error."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import sys
 import numpy as np
 import mujoco

@@ -1,8 +1,6 @@
 """Profile solver initialization only, then run the requested frozen collection."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import cProfile,json,runpy,sys,time,pstats
 from pathlib import Path
-pass
 prefix=Path(sys.argv[1]);sys.argv=['supermimic.contact_train']+sys.argv[2:]
 from isaaclab_newton.physics.newton_manager import NewtonManager
 original=NewtonManager.initialize_solver

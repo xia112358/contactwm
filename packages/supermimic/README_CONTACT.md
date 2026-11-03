@@ -1,5 +1,28 @@
 # Single-segment contact learning
 
+## Current contact data source
+
+New contact segmentation uses **original pre-composition PHP database clips**.
+The source policy is `supermimic/resources/experiments/contact_data_source.json`; the verified assets
+and source-frame catalogue are in the registered runtime at `data/php_originals_v1/`. The historic PHP296
+and 109-motion composed captures remain unchanged but are rejected by the new
+segmentation entrypoints.
+
+`tools/prepare_php_originals.py` downloads the pinned official `databases`
+release, verifies its archive and all 83 members, and exports each original
+database range without resampling or changing bone arrays. `catalogue.json`
+contains 19 databases, 46 ranges and 22 numerically verified mirror relations.
+Skill registry windows are references into these ranges, not extra copies.
+`low_speed_sources.json` selects the original step and 76 cm climb sources,
+keeps their mirrors optional, and retains locomotion separately for context.
+
+These NPZs contain the original 60 Hz local-bone hierarchy and two-foot contact
+hints, **not** canonical simulator states or measured contact forces. Canonicalize
+the selected source windows with matching terrain, collect native contacts, then
+cut each source once. Do not reuse composed-rollout slice indices/checkpoints.
+The unchanged source data also retains any source imperfections; the catalogue
+records non-unit source quaternions and excludes invalid upstream skill windows.
+
 ## Native solver verification (2026-10-30)
 
 The sphere-free `surface_v2` geometry and contact response are separate versioned
@@ -429,3 +452,7 @@ transfer; rollout replay is rebuilt from new physical transitions. The original
 200 m floor remains usable for the collision regression and is not reduced as
 part of either profile. The 2 ms profile has passed isolated small-batch tests;
 it does not establish full-scale training stability or tracking success.
+
+## Current contact slicing and review
+
+See [2026-11-03 progress](../../docs/research/contact-20261103/README.md) for the current native contact/support timeline, per-frame point supervision, 197-case audit, browser exporter, and remaining training integration.

@@ -1,0 +1,30 @@
+{
+  "purpose": "experimental native Newton cylinder-box local witness correction; preserves signed separation and native activation",
+  "baseline_version": "1.8.0.dev0",
+  "files": {
+    "_src/geometry/mpr.py": {
+      "baseline_sha256": "2f8d138190d028903d2804c6175d98631b7fc4e1bb8b236c5315a33766cd5a21",
+      "patched_sha256": "68c3c4c1630b656ed6cfc71cf8a466ade806e7728badb9d67b6746ef9d18f1f8"
+    },
+    "_src/geometry/collision_convex.py": {
+      "baseline_sha256": "b32bb4567b0c8fead3850f737fc873dfc10ba4a58ea848339c750d402159decb",
+      "patched_sha256": "cf87994c5242e39bd3c46c2820a79cca828cca2ef0b28cb5b9a4da7730d19e82"
+    }
+  },
+  "validation": {
+    "exact_overlap_and_6um_separation": "passed",
+    "newton_solver_seed43_30_updates_substep_far_worlds": 0,
+    "upstream_unpatched_positive_control_far_distance_m": 70.05,
+    "upstream_convex_tests": "8 passed, 2 skipped, 78 subtests passed",
+    "newton_solver_additional_seeds_44_45_46": "three seeds each 30 updates, 4096 worlds, no NaNs or recorded >2m contacts at physics substeps",
+    "synthetic_full_mpr_multicontact_2400": "box-face-center far contacts 8 to 0; 600 near-edge cases still produced 14 far contacts (unpatched 24)",
+    "separated_6um": "4 of 600 separated cases still emitted contacts in both patched and unpatched isolated query; needs further analysis"
+  },
+  "limitations": [
+    "tested on captured cylinder-box contacts; not a general convex contact repair",
+    "does not automatically patch installed Newton or restart training",
+    "unverified on other Newton revisions",
+    "Not ready for production: remaining 14 far contacts in 600 near-edge scenarios and small-gap contact-classification discrepancies."
+  ],
+  "status": "experimental_incomplete_do_not_enable"
+}

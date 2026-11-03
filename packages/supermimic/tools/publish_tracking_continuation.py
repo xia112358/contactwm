@@ -1,5 +1,5 @@
 """Render the recorded tracking continuation around one contact segment."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_root
 import argparse
 import json
 from pathlib import Path
@@ -7,7 +7,6 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-pass
 
 
 def main():

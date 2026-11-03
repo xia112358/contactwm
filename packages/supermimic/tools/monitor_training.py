@@ -1,5 +1,5 @@
 """Read-only, dependency-free training dashboard; bind to loopback for SSH forwarding."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path
 import argparse
 import csv
 import io

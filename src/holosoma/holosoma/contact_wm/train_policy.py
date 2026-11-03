@@ -24,6 +24,7 @@ class Options:
     atlas:Path
     wm_checkpoint:Path
     output_dir:Path
+    prior_checkpoint:Path|None=None
     start:int=266
     arrival:int=286
     hold:int=10
@@ -62,6 +63,7 @@ def build_training(o):
     torch.manual_seed(o.seed);torch.set_num_threads(1)
     out=o.output_dir.resolve();out.mkdir(parents=True,exist_ok=False)
     meta=json.loads((o.recording/'report.json').read_text());z=np.load(o.recording/'transitions.npz')
+    if o.prior_checkpoint is not None:meta['checkpoint']=str(o.prior_checkpoint.resolve())
     from somaforge_core.robot_assets import validate_g1_asset_metadata
     validate_g1_asset_metadata(meta.get('robot_asset'),context='Contact WM native recording')
     if 'reference_origin_w' not in meta:
@@ -122,7 +124,8 @@ def build_training(o):
     observation=PHPObservation(tensor(meta['default_joint_pos']),php_height,hint,known).to(o.device)
     policy,prior,provenance=load_php_policy(meta['checkpoint']);policy.to(o.device);prior.to(o.device).requires_grad_(False)
     from somaforge_core.collision_profiles import require_profile
-    profile=meta['robot_asset'].get('collision_profile','legacy_v1')
+    profile=meta['robot_asset']['collision_profile']
+    require_profile(meta['robot_asset'],'surface_v2',context='Contact WM recording')
     require_profile(provenance['robot_asset'],profile,context='Contact WM policy prior versus recording')
     if o.panorama:
         from holosoma.contact_wm.panorama_policy import PanoramaContactPolicy

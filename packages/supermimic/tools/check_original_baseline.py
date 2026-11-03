@@ -1,9 +1,7 @@
 """Verify original network identity, input isolation, and differentiable recurrence."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import sys
 from pathlib import Path
 
-pass
 import torch
 from supermimic import networks, mdp as mdp_module
 from supermimic.lowstep import install, checkpoint_metadata, validate_checkpoint

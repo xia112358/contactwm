@@ -1,12 +1,10 @@
 """Recheck recorded attempts under a completion profile without rerunning physics."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import argparse
 import json
 from pathlib import Path
 import sys
 
 ROOT=Path(__file__).resolve().parents[1]
-pass
 
 
 def main():

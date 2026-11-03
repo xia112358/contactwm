@@ -1,10 +1,10 @@
 """Publish a complete existing native tracking capture without rerunning training."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path, runtime_root
 import argparse,json,math,subprocess,sys
 from pathlib import Path
 import numpy as np
 import torch
-ROOT=Path(__file__).resolve().parents[1];pass
+ROOT=Path(__file__).resolve().parents[1]
 from supermimic.rotations import quat_to_mat
 
 def main():

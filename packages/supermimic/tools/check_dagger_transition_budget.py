@@ -2,7 +2,6 @@
 
 This fixture produces no physical contact labels or accepted training data.
 """
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import argparse
 from pathlib import Path
 from types import SimpleNamespace as NS
@@ -10,7 +9,7 @@ from unittest.mock import patch
 import sys
 import torch
 
-ROOT=Path(__file__).resolve().parents[1];pass
+ROOT=Path(__file__).resolve().parents[1]
 
 
 def main():

@@ -1,6 +1,5 @@
 """Pool successful 10k native captures and export independently restartable contact slices."""
 from __future__ import annotations
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import argparse
 from collections import Counter
 import hashlib
@@ -12,7 +11,6 @@ import torch
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
-pass
 
 
 def sha(path):
@@ -51,11 +49,13 @@ def main():
     p.add_argument('--captures', type=Path, nargs='+', required=True)
     p.add_argument('--selection', type=Path, required=True)
     p.add_argument('--output', type=Path, required=True)
+    p.add_argument('--boundary_policy',choices=('legacy_v1','event_preserving_v2'),default='event_preserving_v2')
     a = p.parse_args()
     if a.output.exists():
         raise FileExistsError(a.output)
     selection = json.loads(a.selection.read_text())
-    pass
+    from supermimic.contact_source import require_original_contact_source
+    require_original_contact_source(selection)
     from supermimic.contact_library import build_contact_clock
     from supermimic.contact_control import PARTS
     from somaforge_core.robot_assets import validate_g1_asset_metadata
@@ -108,7 +108,8 @@ def main():
                     selection_manifest=str(a.selection.resolve()), selection_manifest_sha256=sha(a.selection),
                     unit='whole contact-transfer episode', slice_contract='Use cases.pt explicit starts/stops/goals; original pooled clock is preserved')
     library = dict(data=data, metadata=metadata)
-    clock = build_contact_clock(library, hold=1, role_aware=True)
+    clock = build_contact_clock(library, hold=1, role_aware=True,boundary_policy=a.boundary_policy)
+    metadata["boundary_policy"]=a.boundary_policy
     teacher_args = torch.load(checkpoint, map_location='cpu', weights_only=False)['args']
     hist = int(teacher_args['hist'])
     reference_bounds = {s['motion']: reference_action_bounds(tasks[s['motion']],s['end']-s['begin'],
@@ -154,7 +155,9 @@ def main():
                            reference_waits=False, measured_motion_and_stable_contact_required=True,
                            preparation_frames=int(teacher_args['goal_frames']),
                            landing_response_frames=hist),
-        native_restart_validation='pending', attempts=attempts, recording_spans=spans, cases=cases)
+        native_restart_validation='pending', attempts=attempts, recording_spans=spans, cases=cases,
+        boundary_policy=a.boundary_policy,boundary_audits=clock.boundary_audits,
+        departure_contract='Audited within whole transfers; liftoff alone is not a positive arrival goal')
     a.output.mkdir(parents=True)
     torch.save(library, a.output/'rollout.pt'); torch.save(packed, a.output/'cases.pt')
     for name in ('solver-collision.mjb','solver-collision.mjb.json'):

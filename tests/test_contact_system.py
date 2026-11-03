@@ -121,6 +121,24 @@ def test_atlas_projection_preserves_force_and_carries_moment_residual():
     torch.testing.assert_close(moment+projected['moment_residual_w'],actual)
 
 
+def test_normal_load_projection_uses_native_frame_not_net_vertical_force():
+    atlas=SurfaceAtlas(torch.tensor([[[-.1,0,0],[.1,0,0]]],dtype=torch.float64),
+        torch.tensor([[[0.,0.,1.],[0.,0.,1.]]],dtype=torch.float64),
+        torch.ones(1,2,dtype=torch.float64),parts=('foot',))
+    s=snapshot()
+    s['frame_w'][0]=[[0,1,0],[1,0,0],[0,0,-1]]
+    s['frame_w'][1]=[[0,-1,0],[1,0,0],[0,0,1]]
+    s['force_on_body1_w'][0]=[0,2,10]
+    s['force_on_body1_w'][1]=[0,-4,-20]
+    v=evidence(s).terrain_view(binding());p=torch.zeros(1,1,3,dtype=torch.float64)
+    R=torch.eye(3,dtype=p.dtype).reshape(1,1,3,3)
+    projected=atlas.project(v,p,R,bandwidth=.01)
+    assert projected['normal_load'].item()==6
+    torch.testing.assert_close(projected['node_load'].sum(-1),projected['normal_load'])
+    assert v.reduce()['force_w'][0,0,2]==30
+    torch.testing.assert_close(projected['node_position'],atlas.world(p,R))
+
+
 def test_fixed_atlas_retains_small_spheres_and_known_area():
     triangle=np.array([[[0.,0,0],[1,0,0],[0,1,0]]])
     sphere=np.array([[0,0,0,.001]])

@@ -1,8 +1,6 @@
 """Independent forward-contract audit and scoring-rule sensitivity on real replay."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import argparse,json,sys
 from pathlib import Path
-pass
 import torch
 p=argparse.ArgumentParser();p.add_argument('--run',type=Path,required=True);a=p.parse_args()
 torch.set_num_threads(4)

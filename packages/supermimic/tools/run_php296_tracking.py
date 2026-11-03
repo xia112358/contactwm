@@ -1,6 +1,6 @@
 """Launch the authorized PHP-only surface-v2 tracker and owned evaluation watcher."""
 from __future__ import annotations
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path, runtime_root
 import argparse
 import hashlib
 import json

@@ -1,12 +1,10 @@
 """Check FK vs simulator, state round-trip, and reward on reference playback."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 
 import argparse
 import os
 import sys
 import time
 
-pass
 from isaaclab.app import add_launcher_args, launch_simulation
 
 parser = argparse.ArgumentParser()

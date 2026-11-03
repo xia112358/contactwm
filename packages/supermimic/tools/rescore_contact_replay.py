@@ -1,11 +1,9 @@
 """Compare contact criteria on identical saved first attempts, without simulation."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import argparse
 import html
 import json
 from pathlib import Path
 import sys
-pass
 
 
 def main():

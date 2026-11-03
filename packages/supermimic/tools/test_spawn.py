@@ -1,12 +1,10 @@
 """Spawn G1s on Newton/MuJoCo-Warp, report ordering and stepping throughput."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 
 import argparse
 import os
 import sys
 import time
 
-pass
 
 from isaaclab.app import add_launcher_args, launch_simulation
 

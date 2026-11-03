@@ -9,6 +9,31 @@ from holosoma.contact_wm.validation import native_success
 from somaforge_core import G1_29DOF_JOINT_ORDER
 from somaforge_core.batched_g1_kinematics import BatchedG1ForwardKinematics
 
+def touchdown_summary(x,targets):
+    """First observed new-hand contact, distinct from later first goal entry."""
+    results=[];points=[];errors=[];goal_frames=[]
+    for i,target in enumerate(targets):
+        observed=x['active'][5:,i,2]&x['known'][5:,i,2]
+        hits=np.flatnonzero(observed)
+        index=int(hits[0])+5 if len(hits) else None
+        point=x['point'][index,i,2] if index is not None else None
+        error=float(np.linalg.norm(point-target)) if point is not None else None
+        eligible=observed&(np.linalg.norm(x['point'][5:,i,2]-target,axis=-1)<=.05)
+        goals=np.flatnonzero(eligible);goal_frames.append(int(goals[0])+5 if len(goals) else None)
+        points.append(point.tolist() if point is not None else None);errors.append(error)
+        results.append(dict(index=i,frame=index,error_m=error,success=error is not None and error<=.05))
+    response=None
+    if all(p is not None for p in points):
+        from holosoma.contact_wm.target_response import response_metrics
+        response=response_metrics(torch.tensor(points,dtype=torch.float32),torch.tensor(targets,dtype=torch.float32))
+    observed_errors=[e for e in errors if e is not None]
+    return dict(results=results,successes=sum(r['success'] for r in results),
+        strict_2cm_successes=sum(e is not None and e<=.02 for e in errors),
+        mean_contact_error_m=float(np.mean(observed_errors)) if observed_errors else None,
+        per_target_mean_position_error_m=errors,target_response=response,first_points=points,
+        first_goal_frames=goal_frames,goal_reached=sum(f is not None for f in goal_frames),
+        scope='first observed new-hand contact after warmup; no post-contact hold/load/slip criterion')
+
 class NativeMonitor:
     def __init__(self,out,joint_names,mesh,atlas):
         self.out=Path(out);self.order=[joint_names.index(n) for n in G1_29DOF_JOINT_ORDER]
@@ -51,6 +76,17 @@ class NativeMonitor:
             source='native Newton/MJWarp; frozen policy, no exploration noise; excluded from training replay',
             contact_sampling='last native solve, poses post integration',
             mean_contact_error_m=float(np.linalg.norm(x['point'][-10:,:,2]-self.goal['position_w'][None,:,2],axis=-1)[x['active'][-10:,:,2]&x['known'][-10:,:,2]].mean()) if (x['active'][-10:,:,2]&x['known'][-10:,:,2]).any() else None)
+        mask=x['active'][-10:,:,2]&x['known'][-10:,:,2]
+        counts=mask.sum(0)
+        endpoints=np.where(mask[...,None],x['point'][-10:,:,2],0.).sum(0)/counts[:,None].clip(min=1)
+        summary['per_target_observed_hold_steps']=counts.tolist()
+        summary['per_target_mean_position_error_m']=[float(np.linalg.norm(x['point'][-10:,i,2]-self.goal['position_w'][i,2],axis=-1)[mask[:,i]].mean()) if counts[i] else None for i in range(9)]
+        summary['strict_2cm_successes']=sum(r['success'] and r['max_position_error'] is not None and r['max_position_error']<=.02 for r in results)
+        if (counts==10).all():
+            from holosoma.contact_wm.target_response import response_metrics
+            summary['target_response']=response_metrics(torch.tensor(endpoints,dtype=torch.float32),torch.tensor(self.goal['position_w'][:,2],dtype=torch.float32))
+        else:summary['target_response']=None
+        summary['touchdown']=touchdown_summary(x,self.goal['position_w'][:,2])
         payload=dict(**summary,monitor_version='solver_points_v2',dt=.02,episodes=episodes,terrain=self.terrain)
         temp=self.out/'native-latest.tmp';temp.write_text(json.dumps(payload,allow_nan=False));temp.replace(self.out/'native-latest.json')
         if self.version==0 and not (self.out/'native-baseline.json').exists():

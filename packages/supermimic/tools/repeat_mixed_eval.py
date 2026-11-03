@@ -1,5 +1,5 @@
 """Independent-process nominal evaluations; preserve official single-run results."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path, runtime_root
 import concurrent.futures
 import json
 import os

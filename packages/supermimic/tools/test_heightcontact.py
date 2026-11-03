@@ -1,10 +1,8 @@
 """CPU regressions for height raster sampling and observation contents."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import sys
 from pathlib import Path
 import unittest
 
-pass
 import torch
 from supermimic.lowstep_observations import HeightContactContext, HeightForceContext
 

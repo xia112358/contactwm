@@ -1,6 +1,5 @@
 """Replay every extracted slice with its original teacher and genuine preceding history."""
 from __future__ import annotations
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import argparse
 from collections import Counter
 import hashlib
@@ -10,7 +9,6 @@ import sys
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
-pass
 
 
 def main():
@@ -19,7 +17,7 @@ def main():
     p.add_argument('--library', type=Path, required=True)
     p.add_argument('--task_manifest', required=True)
     p.add_argument('--output', type=Path, required=True)
-    p.add_argument('--contact_response', choices=('legacy','firm_v2','manifold_v1','manifold_v2','manifold_soft_v1','manifold_balanced_v1'), default='legacy')
+    p.add_argument('--contact_response', choices=('legacy','firm_v2','manifold_v1','manifold_v2','manifold_v3','newton_contacts_v1','newton_contacts_v2','newton_contacts_v3','manifold_soft_v1','manifold_balanced_v1'), default='legacy')
     p.add_argument('--grace_steps', type=int, default=10)
     p.add_argument('--headless', action='store_true')
     add_launcher_args(p); a = p.parse_args()

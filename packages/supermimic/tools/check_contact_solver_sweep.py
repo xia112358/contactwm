@@ -37,7 +37,7 @@ def main():
     from supermimic.contact_response import contract
     task = runtime_path('data/php296_surface_v2/task.json')
     checkpoint = runtime_path('logs/php296_surface_v2_startprobe_20261029_v1/tracking/ckpt_010000.pt')
-    spec = install(task, contact_model='force6', collision_profile='surface_v2', contact_response='manifold_v2')
+    spec = install(task, contact_model='force6', collision_profile='surface_v2', contact_response='manifold_v3')
     from supermimic.kinematics import G1Kinematics
     from supermimic.motion import MotionLib
     from supermimic.mdp import MDP, OBS_DIM
@@ -71,7 +71,7 @@ def main():
     report = dict(schema='native_contact_solver_sweep_v1', status='starting',
                   production_compatible=False, training=False, seed=a.seed,
                   source_checkpoint=str(checkpoint), source_checkpoint_sha256=hashlib.sha256(checkpoint.read_bytes()).hexdigest(),
-                  source_response=contract('legacy'), target_response=contract('manifold_v2'),
+                  source_response=contract('legacy'), target_response=contract('manifold_v3'),
                   tasks=len(spec['tasks']), low_speed_tasks=len(low_ids), phases=[], comparisons=[],
                   limits='Frozen old policy transferred to new physics; cold reference starts are stress tests, not motion success evaluations.')
     def save():
@@ -178,7 +178,7 @@ def main():
                     if step % 25 == 0 or step == limit-1:
                         report.update(total_control_steps=total_steps, world_control_steps=total_steps*env.N,
                                       elapsed_seconds=time.monotonic()-started, audit=audit.report())
-                        if report['audit']['native_solves'] < total_steps*contract('manifold_v2')['substeps']:
+                        if report['audit']['native_solves'] < total_steps*contract('manifold_v3')['substeps']:
                             raise RuntimeError('Substep audit did not execute for every native solve')
                         save()
                         print(json.dumps(dict(phase=name, step=step+1, total=total_steps,

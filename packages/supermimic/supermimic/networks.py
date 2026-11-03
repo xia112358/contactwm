@@ -104,8 +104,11 @@ class WorldModel(nn.Module):
         return self.step_from_inputs(S, self.in_norm(self.inputs(S, a, xi_n)))
 
     def step_from_inputs(self, S, normalized_inputs):
+        return self.state_from_prediction(S, run_mlp(self.net, normalized_inputs))
+
+    def state_from_prediction(self, S, y):
+        """Integrate normalized state outputs, including a shared-trunk forward."""
         p, R, v, w, q, qd = S
-        y = run_mlp(self.net, normalized_inputs)
         d = y * self.out_norm.std() + self.out_norm.mean
         H = yaw_mat(R)
         dp, dth, dv, dw, dq, dqd = d.split((3, 3, 3, 3, NUM_J, NUM_J), -1)

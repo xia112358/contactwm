@@ -3,7 +3,6 @@
 Use contact_train's --continuous_random --fixed_inherited_duration options and
 both freeze flags with --profile_collection. No optimizer updates or replay saves.
 """
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import copy
 import importlib.util
 import inspect
@@ -14,7 +13,7 @@ import statistics
 import sys
 import time
 
-ROOT=Path(__file__).resolve().parents[1];pass
+ROOT=Path(__file__).resolve().parents[1]
 import torch
 from supermimic import contact_profile
 

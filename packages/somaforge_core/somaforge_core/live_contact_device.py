@@ -1,7 +1,7 @@
 """GPU attribution at actual solver force points; no collision or integration.
 
-Float32 BVHs are conservative broad phases only. Final finite-triangle distance,
-normal ordering and the existing numerical tie rule use float64. Activation and
+Each native pair already identifies its terrain shape. Query only that shape's
+finite triangles; distance, normal ordering and the numerical tie rule use float64. Activation and
 allocation always come from the actual Newton/MJWarp constraint tensors.
 """
 from __future__ import annotations
@@ -38,53 +38,31 @@ def _distance(p:wp.vec3d, a:wp.vec3d, b:wp.vec3d, c:wp.vec3d):
 
 
 @wp.kernel
-def _bound(mesh:wp.uint64, points:wp.array(dtype=wp.vec3d), task:wp.array(dtype=wp.bool),
-           external:wp.array(dtype=wp.int64), first:wp.array(dtype=wp.int64),
-           triangle_shape:wp.array(dtype=wp.int64), vertices:wp.array(dtype=wp.vec3d),
-           radius:wp.array(dtype=wp.float64)):
-    i = wp.tid()
-    if task[i]:
-        p = points[i]
-        triangle = int(first[external[i]])
-        approximate = wp.mesh_query_point_no_sign(mesh,wp.vec3(p),wp.float32(1.0e30))
-        if approximate.result:
-            if triangle_shape[approximate.face] == external[i]:
-                triangle = approximate.face
-        d = _distance(p,vertices[3*triangle],vertices[3*triangle+1],vertices[3*triangle+2])
-        radius[i] = wp.sqrt(d+wp.float64(1.0e-12)+wp.float64(1.0e-9)*wp.abs(d))
-
-
-@wp.kernel
-def _primary(bvh:wp.uint64, points:wp.array(dtype=wp.vec3d), normals:wp.array(dtype=wp.vec3d),
-             task:wp.array(dtype=wp.bool), external:wp.array(dtype=wp.int64),
-             lower:wp.array(dtype=wp.vec3), upper:wp.array(dtype=wp.vec3),
-             vertices:wp.array(dtype=wp.vec3d), triangle_shape:wp.array(dtype=wp.int64),
-             owner:wp.array(dtype=wp.int64), face_normal:wp.array(dtype=wp.vec3d),
-             surface_ids:wp.array(dtype=wp.int64), output:wp.array(dtype=wp.int64)):
+def _primary_by_shape(points:wp.array(dtype=wp.vec3d), normals:wp.array(dtype=wp.vec3d),
+                      task:wp.array(dtype=wp.bool), external:wp.array(dtype=wp.int64),
+                      first:wp.array(dtype=wp.int64), stop:wp.array(dtype=wp.int64),
+                      vertices:wp.array(dtype=wp.vec3d), owner:wp.array(dtype=wp.int64),
+                      face_normal:wp.array(dtype=wp.vec3d), surface_ids:wp.array(dtype=wp.int64),
+                      output:wp.array(dtype=wp.int64)):
     i = wp.tid()
     output[i] = wp.int64(-1)
     if task[i]:
-        p = points[i]; minimum = wp.float64(1.0e308)
-        query = wp.bvh_query_aabb(bvh,lower[i],upper[i])
-        t = int(0)
-        while wp.bvh_query_next(query,t):
-            if triangle_shape[t] == external[i]:
-                d = _distance(p,vertices[3*t],vertices[3*t+1],vertices[3*t+2])
-                minimum = wp.min(minimum,d)
-        query = wp.bvh_query_aabb(bvh,lower[i],upper[i])
+        p = points[i]; shape = external[i]; minimum = wp.float64(1.0e308)
+        for t in range(int(first[shape]),int(stop[shape])):
+            d = _distance(p,vertices[3*t],vertices[3*t+1],vertices[3*t+2])
+            minimum = wp.min(minimum,d)
         best = int(-1); score = wp.float64(-1.0e308)
-        while wp.bvh_query_next(query,t):
-            if triangle_shape[t] == external[i]:
-                d = _distance(p,vertices[3*t],vertices[3*t+1],vertices[3*t+2])
-                if wp.abs(d-minimum) <= wp.float64(1.0e-12)+wp.float64(1.0e-9)*wp.abs(minimum):
-                    face = int(owner[t]); alignment = wp.dot(face_normal[face],normals[i])
-                    take = best < 0 or alignment > score
-                    if best >= 0 and alignment == score:
-                        take = surface_ids[face] < surface_ids[best]
-                        if surface_ids[face] == surface_ids[best]:
-                            take = face < best
-                    if take:
-                        best = face; score = alignment
+        for t in range(int(first[shape]),int(stop[shape])):
+            d = _distance(p,vertices[3*t],vertices[3*t+1],vertices[3*t+2])
+            if wp.abs(d-minimum) <= wp.float64(1.0e-12)+wp.float64(1.0e-9)*wp.abs(minimum):
+                face = int(owner[t]); alignment = wp.dot(face_normal[face],normals[i])
+                take = best < 0 or alignment > score
+                if best >= 0 and alignment == score:
+                    take = surface_ids[face] < surface_ids[best]
+                    if surface_ids[face] == surface_ids[best]:
+                        take = face < best
+                if take:
+                    best = face; score = alignment
         output[i] = wp.int64(best)
 
 
@@ -100,6 +78,7 @@ class DeviceSupportContactSelector:
         self.body_part = torch.as_tensor(cpu.body_part,device=self.device)
         triangles, owners, triangle_shapes, normals, surfaces, upward = [], [], [], [], [], []
         first = np.full(max(cpu.face_ids)+1,-1,np.int64)
+        stop = first.copy()
         for shape, faces in binding['shape_surface'].items():
             shape = int(shape); first[shape] = len(triangles)
             for local, face in enumerate(faces):
@@ -109,6 +88,7 @@ class DeviceSupportContactSelector:
                 triangles.extend(face['triangles_w'])
                 owners.extend([owner]*len(face['triangles_w']))
                 triangle_shapes.extend([shape]*len(face['triangles_w']))
+            stop[shape] = len(triangles)
         triangles = np.asarray(triangles,np.float64)
         from .newton_contacts import triangle_distance_squared
         triangle_distance_squared(np.zeros(3),triangles)  # Reject invalid/degenerate binding once.
@@ -119,14 +99,7 @@ class DeviceSupportContactSelector:
         self.surfaces = torch.tensor(surfaces,device=self.device,dtype=torch.long)
         self.upward = torch.tensor(upward,device=self.device,dtype=torch.bool)
         self.first = torch.tensor(first,device=self.device)
-        self.mesh_points = wp.array(triangles.astype(np.float32).reshape(-1,3),dtype=wp.vec3,device=str(self.device))
-        self.mesh_indices = wp.array(np.arange(3*len(triangles),dtype=np.int32),dtype=wp.int32,device=str(self.device))
-        self.mesh = wp.Mesh(points=self.mesh_points,indices=self.mesh_indices)
-        self.lower = wp.array(np.nextafter(triangles.min(1).astype(np.float32),np.float32(-np.inf)),
-                              dtype=wp.vec3,device=str(self.device))
-        self.upper = wp.array(np.nextafter(triangles.max(1).astype(np.float32),np.float32(np.inf)),
-                              dtype=wp.vec3,device=str(self.device))
-        self.bvh = wp.Bvh(self.lower,self.upper)
+        self.stop = torch.tensor(stop,device=self.device)
         wp.stream_from_torch(torch.cuda.current_stream(self.device)).wait_stream(
             wp.get_stream(str(self.device)))
 
@@ -155,22 +128,13 @@ class DeviceSupportContactSelector:
         normal = (snapshot['frame_w'][:,0].double()*torch.where(side == 1,1.,-1.)[:,None]).contiguous()
         finite = torch.isfinite(point).all(-1) & torch.isfinite(normal).all(-1)
         query = (task & bound & finite & allocated).contiguous()
-        radius = torch.zeros(n,device=self.device,dtype=torch.float64)
         face = torch.full((n,),-1,device=self.device,dtype=torch.long)
         with wp.ScopedStream(wp.stream_from_torch(torch.cuda.current_stream(self.device))):
             if n:
-                wp.launch(_bound,n,inputs=[self.mesh.id,wp.from_torch(point,dtype=wp.vec3d),
-                    wp.from_torch(query),wp.from_torch(safe_shape),wp.from_torch(self.first),
-                    self.triangle_shapes,self.vertices,wp.from_torch(radius)],device=str(self.device))
-                low = (point-radius[:,None]).float()
-                high = (point+radius[:,None]).float()
-                low = torch.nextafter(low,torch.full_like(low,-torch.inf)).contiguous()
-                high = torch.nextafter(high,torch.full_like(high,torch.inf)).contiguous()
-                wp.launch(_primary,n,inputs=[self.bvh.id,wp.from_torch(point,dtype=wp.vec3d),
+                wp.launch(_primary_by_shape,n,inputs=[wp.from_torch(point,dtype=wp.vec3d),
                     wp.from_torch(normal,dtype=wp.vec3d),wp.from_torch(query),wp.from_torch(safe_shape),
-                    wp.from_torch(low,dtype=wp.vec3),wp.from_torch(high,dtype=wp.vec3),self.vertices,
-                    self.triangle_shapes,self.owners,self.face_normals,wp.from_torch(self.surfaces),
-                    wp.from_torch(face)],device=str(self.device))
+                    wp.from_torch(self.first),wp.from_torch(self.stop),self.vertices,self.owners,
+                    self.face_normals,wp.from_torch(self.surfaces),wp.from_torch(face)],device=str(self.device))
         safe_face = face.clamp_min(0)
         eligible = task & allocated & bound & finite & (face >= 0) & self.upward[safe_face]
         surface = torch.where(task,self.surfaces[safe_face],-1)

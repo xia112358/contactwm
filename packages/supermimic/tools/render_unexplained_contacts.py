@@ -1,11 +1,10 @@
 """Render eight unexplained long recorded contact slices, without policy execution."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path, runtime_root
 import json, math, os, subprocess, sys
 from pathlib import Path
 import numpy as np
 import torch
 ROOT=Path(__file__).resolve().parents[1]
-pass
 from supermimic.rotations import quat_to_mat
 
 def main():

@@ -1,5 +1,5 @@
 """CPU-only checkpoint/replay equivalence and read benchmark; no actor updates."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path
 import argparse
 import json
 from pathlib import Path
@@ -10,7 +10,6 @@ import time
 
 import torch
 
-pass
 from supermimic.contact_io import load_checkpoint_cpu
 from supermimic.contact_dagger import BalancedReplay, _load_replay_groups
 

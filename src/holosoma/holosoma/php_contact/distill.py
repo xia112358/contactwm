@@ -71,6 +71,7 @@ class Options:
     pure_distill_iters: int | None = None
     regularizer_mse_coef: float = .1
     segment_mode: Literal['independent','continuous'] = 'independent'
+    collision_profile: Literal['legacy_v1','surface_v2'] | None = None
     validate_only: bool = False
 
 
@@ -167,6 +168,8 @@ def build_config(options):
                 options.pure_distill_iters, options.regularizer_mse_coef))),
         robot=replace(cfg.robot, control=teacher.robot.control),
         training=replace(cfg.training, project='PHPSegmentDistill'))
+    if options.collision_profile is not None:
+        cfg=replace(cfg,robot=replace(cfg.robot,asset=replace(cfg.robot.asset,collision_profile=options.collision_profile)))
     return prepare_routed_distillation(cfg)
 
 

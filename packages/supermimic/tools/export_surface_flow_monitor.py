@@ -1,5 +1,4 @@
 """Publish this run's read-only dashboard beneath the existing static server."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import argparse
 import json
 from pathlib import Path

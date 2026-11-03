@@ -1,8 +1,6 @@
 """Matched old/new BPTT batching on exactly the same simulator data; no updates."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import sys,json,time,runpy
 from pathlib import Path
-pass
 import torch
 import supermimic.contact_sequence as sequence
 from supermimic.contact_dmo import replay_loss

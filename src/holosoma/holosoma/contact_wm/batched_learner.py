@@ -62,7 +62,7 @@ class BatchedLearner(nn.Module):
                 if not torch.allclose(self.normal_w[0,part],tensor([0.,0.,1.])):
                     raise ValueError('Height-atlas plane lookup requires upward horizontal targets')
                 self.hand_surfaces[str(part)]=HandPlaneContact(task['meta']['joint_names'],'left' if part==2 else 'right',
-                    collision_profile=task['meta']['robot_asset'].get('collision_profile','legacy_v1')).to(device)
+                    collision_profile=task['meta']['robot_asset']['collision_profile']).to(device)
                 with torch.no_grad():
                     self.hand_surfaces[str(part)](tensor(task['z']['state'][266:267]),self.normal_w[:,part],self.target[:,part])
         # Cache canonical FK traversal before tracing; no dynamic cache mutation in kernels.
@@ -99,7 +99,7 @@ class BatchedLearner(nn.Module):
                 loss=loss+self.wm.world_field.fit_loss(p,*target[:3])/self.wm_window
             state=p['state'];force=p['force_w']
         return loss
-    def _imag_step(self,state,contact,history,previous,force,known,targets,support,remaining,initial,features,view,first):
+    def _imag_step(self,state,contact,history,previous,force,known,targets,support,remaining,initial,features,view,first,native=None):
         # Finished shorter horizons use a safe initial pose; masked padding cannot
         # extrapolate the map and introduce NaN gradients into active samples.
         state=torch.where((remaining>=-8)[:,None],state,initial)
@@ -114,12 +114,20 @@ class BatchedLearner(nn.Module):
         obs=torch.cat((contact,known.float(),command,self.hint.expand(len(state),-1),php_height,pack_history(history)),-1)
         normals=yaw_local(self.normal_w.expand(len(state),-1,-1),state[:,3:7])
         extra=torch.cat((normals.flatten(1),self.maintain.expand(len(state),-1).float(),remaining[:,None].clamp_min(0)*.02),-1)
+        if native is not None:
+            from supermimic.contact_dmo import swap
+            obs=swap(obs,native['policy_observation'])
+            extra=swap(extra,native['policy_extra'])
         if self.use_panorama:
             from holosoma.contact_wm.panorama_policy import relative_view
             action=self.policy.forward_encoded(obs,extra,features,relative_view(state,view))
         else:action=self.policy(obs,extra)
+        if native is not None:
+            native['action_error']=(action.detach()-native['action']).abs().masked_fill(~native['dmo_live'][:,None],0.).max()
+            action=swap(action,native['action'])
         with torch.no_grad():prior=self.prior(obs)
         height,ok_wm=self.height(state,self.source_grid)
+        if native is not None:height=swap(height,native['height'])
         p=self.wm.source_step(state,action,self.physics(state),height,force)
         return p['state'],p['contact'],history,action,p['force_w'],p['contact_logits'],prior,ok_php&ok_wm
     def prepare(self,sample):
@@ -146,7 +154,10 @@ class BatchedLearner(nn.Module):
             states.append(state);actions.append(previous);forces.append(force);logits.append(logit);priors.append(prior);valid.append(ok)
         tensors=tuple(torch.stack(v) for v in (states,actions,forces,logits,priors,valid))
         return (self.objective if compiled else self._objective)(x,*tensors)
-    def _objective(self,x,states,actions,forces,logits,priors,valid):
+    def _objective(self,x,states,actions,forces,logits,priors,valid,native=None):
+        if native is not None and hasattr(self,'segment_surface'):
+            from holosoma.contact_wm.single_segment import objective
+            return objective(self,x,states,actions,priors,valid,native)
         H,B=states.shape[:2]
         points=self.geometry(states.flatten(0,1)).reshape(H,B,6,3)
         placement=points
@@ -161,9 +172,14 @@ class BatchedLearner(nn.Module):
                 valid=valid&((indices>=0)&(indices<=limits)).all(-1)[None]&torch.isfinite(plane).all(-1)[None]
                 placement[:,:,part]=surface(states.flatten(0,1),self.normal_w[:,part].expand(H*B,-1),plane[None].expand(H,-1,-1).reshape(H*B,3)).reshape(H,B,3)
         initial_points=self.geometry(x['state'])
+        if native is not None:
+            from supermimic.contact_dmo import swap
+            observed=native['known']&native['active']
+            placement=swap(placement,torch.where(observed[...,None],native['point'],placement.detach()))
         t=torch.arange(1,H+1,device=states.device)[:,None]
         hold=(t>=x['arrival'])&(t<x['arrival']+10)
         live=t<x['arrival']+10
+        if native is not None:live=live&native['live']
         required=(self.maintain[None]|(hold[...,None]&self.establish[None]))&live[...,None]
         mean=lambda value,mask:(torch.where(mask,value,0.).sum(0)/mask.sum(0).clamp_min(1)).mean()
         # Average each independent start/goal equally, including different remaining horizons.

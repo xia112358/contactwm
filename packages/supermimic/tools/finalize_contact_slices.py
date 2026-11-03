@@ -1,5 +1,5 @@
 """Audit every extracted case and attach native restart results without dropping failures."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_root
 import argparse
 from collections import Counter
 import hashlib

@@ -1,5 +1,4 @@
 """Convert the G1 MJCF to USD with the standalone Isaac Sim MJCF importer (no Kit)."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import os
 import sys
 

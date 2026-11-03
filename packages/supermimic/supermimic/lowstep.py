@@ -55,12 +55,16 @@ def spawn_floating_canonical(prim_path, cfg, translation=None, orientation=None,
 from .lowstep_observations import HeightContactContext, HeightForceContext, OriginalContext, CONTEXT_TYPES
 
 
-def install(path, contact_model="binary2", reset_sampler="return_bins", probes_per_motion=3, probe_mode="all_long", policy_force_observation="measured", perception="heightmap", perception_buffer_steps=1000, depth_layout="full", depth_encoder="cnn", collision_profile=None, contact_response="legacy"):
+def install(path, contact_model="binary2", reset_sampler="return_bins", probes_per_motion=3, probe_mode="all_long", policy_force_observation="measured", perception="heightmap", perception_buffer_steps=1000, depth_layout="full", depth_encoder="cnn", collision_profile=None, contact_response="legacy", wm_contact_architecture="independent"):
     """Validate a frozen experiment manifest and install matching runtime components."""
     global _SPEC
     from .contact_response import contract as response_contract
     response_contract(contact_response)
     panorama_mode = perception in ("panorama_asymmetric", "panorama_rolling", "panorama_oracle")
+    if wm_contact_architecture not in ('independent','shared'):
+        raise ValueError('Unknown force WM architecture')
+    if wm_contact_architecture=='shared' and (contact_model not in ('force6','force_only') or perception!='heightmap'):
+        raise ValueError('Shared force WM currently supports force6/force_only with heightmap')
     if perception not in ("heightmap", "panorama_asymmetric", "panorama_rolling", "panorama_oracle"):
         raise ValueError("Unknown perception mode")
     if panorama_mode and (contact_model != "force6" or policy_force_observation != "none"):
@@ -83,7 +87,8 @@ def install(path, contact_model="binary2", reset_sampler="return_bins", probes_p
                 or _SPEC.get("_policy_force_observation", "measured") != policy_force_observation
                 or _SPEC.get("_perception", "heightmap") != perception
                 or _SPEC.get("_depth_layout", "full") != depth_layout
-                or _SPEC.get("_depth_encoder", "cnn") != depth_encoder):
+                or _SPEC.get("_depth_encoder", "cnn") != depth_encoder
+                or _SPEC.get("_wm_contact_architecture", "independent") != wm_contact_architecture):
             raise RuntimeError("Cannot mix two task manifests in one process")
         if collision_profile is not None and _SPEC["_collision_profile"]!=collision_profile:
             raise RuntimeError("Cannot change collision profile in a running process")
@@ -117,6 +122,7 @@ def install(path, contact_model="binary2", reset_sampler="return_bins", probes_p
                 raise ValueError(f"Task input changed: {task[field]}")
     spec["_sha256"] = signature
     spec["_contact_model"] = contact_model
+    spec["_wm_contact_architecture"] = wm_contact_architecture
     spec["_collision_profile"] = profile
     spec["_contact_response"] = contact_response
     spec["_execution_robot_asset"] = actual
@@ -275,7 +281,11 @@ def install(path, contact_model="binary2", reset_sampler="return_bins", probes_p
             return (loss * window["mask"]).sum() / window["mask"].sum().clamp(min=1)
 
     if not original_mode:
-        networks.WorldModel = TerrainWorldModel
+        if wm_contact_architecture=='shared':
+            from .shared_force_wm import shared_force_world_model
+            networks.WorldModel=shared_force_world_model(TerrainWorldModel,context)
+        else:
+            networks.WorldModel = TerrainWorldModel
     if panorama_mode:
         from .panorama import policy_class
         networks.Policy = policy_class(networks, context)
@@ -543,7 +553,7 @@ def install(path, contact_model="binary2", reset_sampler="return_bins", probes_p
                 print("PASS per-world terrain AABBs and bounding radii, including floor/padding", flush=True)
             print("PASS live terrain collision poses, dimensions, orientations and masks for every environment", flush=True)
 
-        def reset(self, env_ids, frames=None):
+        def reset(self, env_ids, frames=None, *, state=None):
             if len(env_ids) == 0:
                 return
             if frames is None and hasattr(self, "reset_sampler_controller"):
@@ -563,7 +573,7 @@ def install(path, contact_model="binary2", reset_sampler="return_bins", probes_p
                 frames = start + (torch.rand(len(env_ids), device=self.device) * (end - start).float()).long()
             if not torch.equal(self.motion.clip_id[frames], self.task_ids[env_ids]):
                 raise ValueError("Reset attempted to pair a motion with a different terrain")
-            super().reset(env_ids, frames)
+            super().reset(env_ids, frames, state=state)
             if not original_mode and self.xi.shape[-1] == mdp_module.XI_DIM:
                 self.xi[env_ids, context.contact_slice] = 0
             if panorama_mode and hasattr(self, "historical_sensor"):
@@ -577,13 +587,15 @@ def install(path, contact_model="binary2", reset_sampler="return_bins", probes_p
             from .contact_manifold_normals import install as install_manifold_normals
             install_manifold_normals(response_contract(contact_response)["manifold_normal"])
         cfg = original_make_sim(device, args)
-        if contact_response in ('newton_contacts_v1', 'newton_contacts_v2'):
+        if contact_response in ('newton_contacts_v1', 'newton_contacts_v2', 'newton_contacts_v3'):
             cfg.physics.solver_cfg.use_mujoco_contacts = False
-        if contact_response == 'newton_contacts_v2':
+        if contact_response in ('newton_contacts_v2','newton_contacts_v3'):
             cfg.physics.collision_decimation = 1
         if contact_response != "legacy":
             cfg.physics.num_substeps = response_contract(contact_response)["substeps"]
             cfg.physics.solver_cfg.enable_multiccd = response_contract(contact_response)["enable_multiccd"]
+        if contact_response=='newton_contacts_v3':
+            cfg.physics.solver_cfg.solver='cg'
         cfg.physics.solver_cfg.njmax = 1000
         cfg.physics.solver_cfg.nconmax = 256
         return cfg

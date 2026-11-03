@@ -1,8 +1,8 @@
 """Isolated native contact-response comparison using a frozen tracking teacher."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path
 import argparse,json,runpy,sys,time
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[1];pass
+ROOT=Path(__file__).resolve().parents[1]
 p=argparse.ArgumentParser();p.add_argument('--response',choices=['baseline','firm_v1','firm_v2','multiccd','manifold_v1','manifold_v2','manifold_soft_v1','manifold_balanced_v1'],required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--motion',type=int,default=246);p.add_argument('--scoped-read',action='store_true');p.add_argument('--max-steps',type=int,default=1600)
 a=p.parse_args();out=a.output
 import torch,warp as wp,numpy as np

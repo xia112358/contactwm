@@ -1,0 +1,13 @@
+{
+  "schema": "contact_data_source_policy_v1",
+  "source_unit": "original_database_clip",
+  "catalogue": "data/php_originals_v1/catalogue.json",
+  "selection": "data/php_originals_v1/low_speed_sources.json",
+  "source_commit": "c7c9ce3fc75a8754a7e403c58de3b6933254d01b",
+  "composed_trajectories_allowed_for_new_slices": false,
+  "mirror_policy": "explicit augmentation tied to original source, not an independent motion",
+  "existing_composed_data": "retained as historical baselines only",
+  "physical_contacts_collected": false,
+  "native_contact_source": "fresh capture of canonicalized original clips with matching terrain and physics",
+  "training_started": false
+}

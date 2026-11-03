@@ -1,6 +1,6 @@
 """Select complete PHP walk-command clips; preserve original motion/terrain pairs."""
 from __future__ import annotations
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path
 
 import argparse
 from collections import Counter

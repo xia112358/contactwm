@@ -1,11 +1,9 @@
 """Check the no-distillation learner against real recorded transitions on CPU/GPU."""
 from __future__ import annotations
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import argparse
 from pathlib import Path
 import sys
 
-pass
 
 
 def main():

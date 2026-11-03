@@ -1,8 +1,6 @@
 """Compare fresh arrays and contact-bearing trajectories against upstream init."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import sys,dataclasses,json,time
 from pathlib import Path
-pass
 import numpy as np
 import mujoco,mujoco_warp,warp as wp
 from supermimic.fast_mujoco_init import install

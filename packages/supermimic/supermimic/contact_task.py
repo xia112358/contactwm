@@ -2,11 +2,21 @@
 import torch
 from .contact_control import observation, new_part_contact
 from .mdp import unflatten_state
-from .rotations import mat_to_quat, rot_angle_sq
+from .rotations import rot_angle_sq
+
+
+def has_fallen(state):
+    """Physical fall: root near the floor or pelvis up axis points downward.
+
+    This permits the deep forward lean in the low-speed references. It rejects
+    inversion before the already-fallen robot reaches a singular floor impact.
+    Numerical invalidity remains a separate hard failure in the collector.
+    """
+    return (state[0][...,2]<.15) | (state[1][...,2,2]<=0.)
 
 
 class ContactTask:
-    def __init__(self,env,actor,teacher,motion,mdp,clock,demo,context,default_q,reader,teacher_hist,goal_frames,grace_steps=10,segment_index=None,root_tolerance=.25,completion_mode='onset',contact_tolerances=None,sequential=False,sequence_length=None,contact_only=False,continuous_random=False):
+    def __init__(self,env,actor,teacher,motion,mdp,clock,demo,context,default_q,reader,teacher_hist,goal_frames,grace_steps=10,segment_index=None,root_tolerance=.25,completion_mode='onset',contact_tolerances=None,sequential=False,sequence_length=None,contact_only=False,continuous_random=False,root_angle_tolerance=.4,first_contact_only=False,contact_window_frames=1,cache_reset_contacts=True,stable_contact_frames=0):
         if grace_steps < 0:
             raise ValueError('Segment grace must be nonnegative')
         if contact_only and (not sequential or completion_mode!='accumulated_target'):
@@ -61,41 +71,96 @@ class ContactTask:
         self.target_faces=None if reader.direct else self.target_faces_by_segment[self.segment]
         reader.set_targets(demo['point'][self.ends-1],self.ids)
         self.attempts=torch.zeros(self.count,device=dev);self.successes=self.attempts.clone()
-        self.root_sum=self.attempts.clone();self.point_sum=self.attempts.clone()
+        self.root_sum=self.attempts.clone();self.point_sum=self.attempts.clone();self.point_count=self.attempts.clone()
+        if stable_contact_frames:
+            from .contact_phase import reference_release_starts,LandingPhaseTracker
+            from .contact_stability import NativeContactStability
+            from .motion import CONTROL_DT
+            if not (reader.direct and reader.primary_faces):
+                raise ValueError("Stable support requires the native primary-surface row view")
+            from .contact_stability import CONTRACT
+            if getattr(clock,'reference_support_contract',None)!=CONTRACT:
+                raise ValueError('Stable support training requires rematerialized stable reference slices; old onset goals are incompatible')
+            self.contact_stability=NativeContactStability(CONTROL_DT)
+            clock.contact_phase_release_starts=reference_release_starts(clock,stable_contact_frames)
+            required=clock.target_masks[self.ends-1]&~clock.keep_masks[self.ends-1]
+            self.landing_phase=LandingPhaseTracker(clock.contact_phase_release_starts[self.segment],required,stable_contact_frames)
         self.previous_contact=torch.zeros((self.N,6),device=dev,dtype=torch.bool)
         self.recontact=torch.zeros_like(self.previous_contact)
         self.valid_contacts=torch.zeros_like(self.previous_contact)
+        from .contact_arrival import ArrivalWindow
+        self.arrival=ArrivalWindow(self.previous_contact.shape,dev,contact_window_frames)
         self.onset_point=torch.zeros((self.N,6,3),device=dev)
         self.onset_face=torch.full((self.N,6),-1,device=dev,dtype=torch.long)
+        if hasattr(clock,'target_grid'):
+            self.grid_last_points=torch.zeros_like(self.onset_point)
+            self.grid_last_observed=torch.zeros_like(self.recontact)
+            self.grid_last_completed=torch.zeros(self.N,device=dev,dtype=torch.bool)
         self.history=self.teacher_history=None
         self.pending_history_reset=torch.zeros(self.N,device=dev,dtype=torch.bool)
+        self.entry_xi=self.demo['xi'][self.starts].clone()
+        self._reset_history=None
+        if hasattr(clock,'segment_starts'):
+            from .contact_library import history_indices
+            indices=history_indices(clock,all_starts,actor.hist)
+            self._reset_history=observation(unflatten_state(demo['s'][indices].flatten(0,1)),
+                demo['a_prev'][indices].flatten(0,1),demo['xi'][indices].flatten(0,1),
+                default_q,context).reshape(self.count,actor.hist,-1).detach()
+        # Runtime-only evidence for immutable reference entries on static paired terrain.
+        # Keyed by physical world and segment; dynamic entries always bypass this cache.
+        self.cache_reset_contacts=cache_reset_contacts and env.eval_mode and hasattr(clock,'segment_starts') and not sequential
+        self._reset_contact_segment=torch.full((self.N,),-1,device=dev,dtype=torch.long)
+        self._reset_contact_active=torch.zeros_like(self.previous_contact)
+        self.initial_contact_probe=None
+        if self.first_contact_only:
+            from .contact_initial import InitialContactProbe
+            self.initial_contact_probe=InitialContactProbe(reader)
         env.reset(torch.arange(env.N,device=dev),motion.clip_start[env.task_ids])
         self.reset(torch.arange(self.N,device=dev))
 
-    def reset(self,slots):
+    def invalidate_reset_contacts(self):
+        """Call after changing terrain or collision parameters; references are immutable."""
+        self._reset_contact_segment.fill_(-1)
+
+    def reset(self,slots,entry=None):
+        """Reset once to an exact reference or a detached physical handoff entry.
+
+        Handoff entries carry s, a_prev, xi, history and previous native active
+        contacts. They never use the fixed-reference evidence/history caches.
+        """
+        if not len(slots):return
         env=self.env;ids=self.ids[slots];starts=self.starts[slots]
-        # Exact recorded segment starts, as in the accepted DAgger initialization.
-        env.reset(ids,self.demo['f'][starts].long())
-        p,R,v,w,q,qd=unflatten_state(self.demo['s'][starts]);quat=mat_to_quat(R)
-        env.robot.write_root_link_pose_to_sim_index(root_pose=torch.cat((p+env.scene.env_origins[ids],quat[:,1:],quat[:,:1]),-1),env_ids=ids)
-        env.robot.write_root_link_velocity_to_sim_index(root_velocity=torch.cat((v,w),-1),env_ids=ids)
-        env.robot.write_joint_position_to_sim_index(position=q,env_ids=ids)
-        env.robot.write_joint_velocity_to_sim_index(velocity=qd,env_ids=ids)
-        env.robot.set_joint_position_target_index(target=q,env_ids=ids)
-        env.a_prev[ids]=self.demo['a_prev'][starts];env.xi[ids]=self.demo['xi'][starts]
+        state=self.demo['s'][starts] if entry is None else entry['s']
+        frames=self.demo['f'][starts].long() if entry is None else entry['f']
+        env.reset(ids,frames,state=unflatten_state(state))
+        env.a_prev[ids]=self.demo['a_prev'][starts] if entry is None else entry['a_prev']
+        env.xi[ids]=self.demo['xi'][starts] if entry is None else entry['xi']
+        if entry is not None:
+            env.robot.set_joint_position_target_index(
+                target=env.default_q+entry['xi'][:,1:30]+env.alpha*entry['a_prev'],env_ids=ids)
+        self.entry_xi[slots]=env.xi[ids]
         env.refresh()
         if hasattr(self.clock,'segment_starts'):
-            from .contact_library import history_indices
-            indices=history_indices(self.clock,starts,self.actor.hist)
-            hist=observation(unflatten_state(self.demo['s'][indices].flatten(0,1)),
-                self.demo['a_prev'][indices].flatten(0,1),self.demo['xi'][indices].flatten(0,1),
-                self.default_q,self.context).reshape(len(slots),self.actor.hist,-1)
+            hist=self._reset_history[self.segment[slots]] if entry is None else entry['history']
             if self.history is None:self.history=hist.new_empty((self.N,*hist.shape[1:]))
             self.history[slots]=hist;self.pending_history_reset[slots]=True
-        # Native labels describe s1, so the preceding transition is reset-state evidence.
-        from .contact_library import initial_contact_indices
-        initial=initial_contact_indices(self.clock,starts)
-        self.previous_contact[slots]=self.demo['active'][initial]&self.demo['known'][initial]
+        if entry is not None:
+            # Same last-solve evidence used by an uninterrupted command handoff.
+            self.previous_contact[slots]=entry['active']
+        elif self.initial_contact_probe is not None:
+            missing=(self._reset_contact_segment[slots]!=self.segment[slots]) if self.cache_reset_contacts else torch.ones_like(slots,dtype=torch.bool)
+            if bool(missing.any()):
+                fresh=self.initial_contact_probe.read()
+                update=slots[missing]
+                self._reset_contact_active[update]=fresh[self.ids[update]]
+                self._reset_contact_segment[update]=self.segment[update]
+            self.previous_contact[slots]=self._reset_contact_active[slots]
+        else:
+            from .contact_library import initial_contact_indices
+            initial=initial_contact_indices(self.clock,starts)
+            self.previous_contact[slots]=self.demo['active'][initial]&self.demo['known'][initial]
+        if self.stable_contact_frames:self.landing_phase.reset(slots)
+        self.arrival.reset(slots)
         self.recontact[slots]=False
         self.valid_contacts[slots]=False
         self.onset_point[slots]=0
@@ -121,7 +186,7 @@ class ContactTask:
         env=self.env;ids=self.ids;S=env.state();current=tuple(x[ids] for x in S)
         if hasattr(self.clock,'segment_starts'):
             reset_slots=self.pending_history_reset.nonzero().flatten()
-            env.xi[ids[reset_slots]]=self.demo['xi'][self.starts[reset_slots]]
+            env.xi[ids[reset_slots]]=self.entry_xi[reset_slots]
             self.pending_history_reset.zero_()
         policy_xi=env.xi[ids].clone() if hasattr(self.clock,'segment_starts') else None
         obs=observation(current,env.a_prev[ids],env.xi[ids],self.default_q,self.context)
@@ -147,12 +212,16 @@ class ContactTask:
         if getattr(self,'skip_student_tracking',False):step_kwargs['tracking_env_ids']=self.background
         out=env.step(actions,**step_kwargs)
         evidence={k:v[ids] for k,v in self.reader.read_device().items()}
+        if self.stable_contact_frames:
+            support=self.contact_stability.update(self.reader.last_view,self.reader.last_part_poses,env.ep_step)
+            evidence.update({k:v[ids] for k,v in support.items()})
         state=unflatten_state(out['s1'][ids]);clock=self.clock
         target=clock.data['point'][self.ends-1];keep=clock.keep_masks[self.ends-1]
         new=clock.target_masks[self.ends-1]&~keep;support=None if self.reader.direct else clock.support_masks[self.ends-1]
         reference=unflatten_state(clock.data['s1'][self.ends-1])
         root=(state[0]-reference[0]).norm(dim=-1);angle=rot_angle_sq(state[1],reference[1]).sqrt()
-        failed=(~torch.isfinite(out['s1'][ids]).all(-1))|(state[0][:,2]<.15)
+        angle_ok=torch.ones_like(root,dtype=torch.bool) if self.root_angle_tolerance is None else angle<self.root_angle_tolerance
+        failed=(~torch.isfinite(out['s1'][ids]).all(-1))|has_fallen(state)
         observed=evidence['known']&evidence['active']
         # This distance is also the native metric. Compute it once; accumulated
         # completion does not need the discarded onset-mode arrival calculation.
@@ -172,18 +241,46 @@ class ContactTask:
         valid_first=torch.zeros_like(new)
         if self.completion_mode=='accumulated_target':
             valid=observed if self.contact_only else in_goal
-            valid_first=valid&new&~self.valid_contacts
-            self.valid_contacts|=valid&new
+            if self.first_contact_only:
+                eligible=torch.ones_like(observed) if self.target_faces is None else (evidence['surface_local']==self.target_faces)&(self.target_faces>=0)
+                step=self.stage_step if self.sequential else out['ep_step'][ids]
+                improved=self.arrival.update(first,observed,eligible,contact_distance,step[:,None],failed|(step+1>=self.budgets))
+                self.onset_point=torch.where(improved[...,None],evidence['point'],self.onset_point)
+                self.onset_face=torch.where(improved,evidence['surface_local'],self.onset_face)
+                valid=self.arrival.closed&(self.arrival.distance<=self.contact_tolerance)&new
+                valid_first=valid&~self.valid_contacts
+                self.valid_contacts|=valid
+            else:
+                valid_first=valid&new&~self.valid_contacts
+                self.valid_contacts|=valid&new
             arrived=((~new)|self.valid_contacts).all(-1)
-            completed=arrived&(root<self.root_tolerance)&(angle<.4)&torch.where(has_new,True,kept)&~failed
+            completed=arrived&(root<self.root_tolerance)&angle_ok&torch.where(has_new,True,kept)&~failed
             if self.contact_only:
                 completed=arrived&torch.where(has_new,True,kept)&~failed
             contact_end=torch.zeros_like(completed)
         else:
             valid=self.recontact&(torch.ones_like(observed) if self.target_faces is None else self.onset_face==self.target_faces)&((self.onset_point-target).norm(dim=-1)<=self.contact_tolerance)
             arrived=torch.where(has_new,((~new)|valid).all(-1),((~new)|in_goal).all(-1))
-            completed=arrived&(root<self.root_tolerance)&(angle<.4)&torch.where(has_new,contact_end,kept)&~failed
+            completed=arrived&(root<self.root_tolerance)&angle_ok&torch.where(has_new,contact_end,kept)&~failed
+        if self.stable_contact_frames:
+            # Confirm qualified native support after the demonstrated release.
+            # Scraping/row changes cannot latch a target or end the attempt.
+            first=self.landing_phase.update(evidence['active'],evidence['known'],evidence['contact_stable'])
+            self.onset_point=torch.where(first[...,None],evidence['point'],self.onset_point)
+            self.onset_face=torch.where(first,evidence['surface_local'],self.onset_face)
+            valid_first=first&in_goal
+            self.valid_contacts=self.landing_phase.confirmed&((self.onset_point-target).norm(dim=-1)<=self.contact_tolerance)
+            phase_ready=((~new)|self.landing_phase.confirmed).all(-1)&has_new
+            phase_arrived=((~new)|self.valid_contacts).all(-1)
+            completed=phase_ready&phase_arrived&(root<self.root_tolerance)&angle_ok&~failed
+            completed=torch.where(has_new,completed,kept&(root<self.root_tolerance)&angle_ok&~failed)
+            contact_end=phase_ready
         attempt_step=self.stage_step.clone() if self.sequential else out['ep_step'][ids]
+        if getattr(self,'native_region_mode',False):
+            # Region windows are evaluated from complete same-solve evidence
+            # after collection; point-onset completion must not end them early.
+            completed=torch.zeros_like(completed)
+            contact_end=torch.zeros_like(contact_end)
         success=completed if not self.sequential else completed&self.sequence_live
         expired=attempt_step+1>=self.budgets
         # Accept success on the last allowed transition; otherwise end as failure.
@@ -195,6 +292,7 @@ class ContactTask:
         if entry_history is not None:transition.update(actor_history=entry_history,xi=policy_xi)
         transition.update(evidence,contact_first=first.clone(),contact_goal=valid_first.clone(),next_xi=env.xi[ids].clone(),goal_index=self.segment.clone(),
                           term=failed|deadline_failed|(contact_end&~completed),done=done)
+        if getattr(self,'native_region_mode',False):transition['term']=failed
         if self.sequential:
             transition.update(sequence_live=self.sequence_live.clone(),stage_step=attempt_step,
                               stage_done=done.clone(),stage_success=success.clone(),root_error=root,angle_error=angle)
@@ -211,9 +309,18 @@ class ContactTask:
             self.successes.index_add_(0,segments,success[ended].float())
             self.root_sum.index_add_(0,segments,root[ended])
         metric_distance=contact_distance if self.completion_mode=='accumulated_target' else (self.onset_point-target).norm(dim=-1)
+        if self.first_contact_only:metric_distance=self.arrival.distance
         error=metric_distance.masked_fill(~new,0).max(-1).values
-        if len(ended):self.point_sum.index_add_(0,segments,error[ended])
-        self.current_root=root.mean();self.current_contact=error.mean()
+        finite=torch.isfinite(error)
+        if len(ended):
+            self.point_sum.index_add_(0,segments,error[ended].masked_fill(~finite[ended],0))
+            self.point_count.index_add_(0,segments,finite[ended].float())
+        if len(ended) and hasattr(self.clock,'target_grid'):
+            self.grid_last_points[ended]=self.onset_point[ended]
+            self.grid_last_observed[ended]=self.recontact[ended]
+            self.grid_last_completed[ended]=True
+        self.current_root=root.mean();self.current_contact=error.masked_fill(~finite,0).sum()/finite.sum().clamp_min(1)
+        self.current_contact_count=finite.sum()
         if self.sequential:
             self.stage_step+=self.sequence_live.long()
             self.finish_sequence(done,success,transition,ended=ended)
@@ -253,11 +360,22 @@ class ContactTask:
         self.budgets[advance]=(self.fixed_budgets[self.segment[advance]] if hasattr(self,'fixed_budgets') else self.ends[advance]-self.starts[advance]+self.grace_steps)
         self.contact_tolerance[advance]=self.contact_tolerances_by_segment[self.segment[advance],None]
         self.stage_step[advance]=0
+        self.arrival.reset(advance)
         self.valid_contacts[advance]=False
         self.recontact[advance]=False
         self.onset_point[advance]=0
         self.onset_face[advance]=-1
         self.reader.update_targets(self.demo['point'][self.ends[advance]-1],self.ids[advance])
+
+    def grid_report(self):
+        if not hasattr(self.clock,'target_grid'):return {}
+        rows=[]
+        for index in range(self.count):
+            slots=((self.segment==index)&self.grid_last_completed).nonzero().flatten()[:64]
+            rows.append(dict(target_index=index,points_w=self.grid_last_points[slots].cpu().tolist(),
+                observed=self.grid_last_observed[slots].cpu().tolist()))
+        return dict(target_grid=self.clock.target_grid,landing_distribution=rows,
+            landing_scope=f'last completed attempt; first contiguous native contact window ({self.contact_window_frames} frames); missing explicitly masked')
 
     def report(self,iteration,updates):
         if self.sequential and self.sequence_length is not None:
@@ -281,9 +399,9 @@ class ContactTask:
         # Reporting runs repeatedly during collection. Read all scalar counters
         # together instead of synchronizing separately for every segment/field.
         packed=torch.cat((torch.stack((self.attempts,self.successes,self.root_sum,self.point_sum,
-            self.contact_tolerances_by_segment,self.last_terminal_steps),0).flatten(),
-            torch.stack((self.current_root,self.current_contact))))
-        values=packed.cpu().tolist();n,s,root,point,tolerances,terminals=[values[i*self.count:(i+1)*self.count] for i in range(6)]
+            self.contact_tolerances_by_segment,self.last_terminal_steps,self.point_count),0).flatten(),
+            torch.stack((self.current_root,self.current_contact,self.current_contact_count))))
+        values=packed.cpu().tolist();n,s,root,point,tolerances,terminals,point_count=[values[i*self.count:(i+1)*self.count] for i in range(7)]
         total=sum(n);wins=sum(s)
         covered=[i for i in range(self.count) if n[i]>0]
         from .contact_library import segment_ranges
@@ -297,14 +415,14 @@ class ContactTask:
             macro_success_rate=sum(s[i]/n[i] for i in covered)/len(covered) if covered else None,
             covered_goals=len(covered),
             mean_root_error_m=sum(root)/total if total else None,
-            current_root_error_m=values[-2],current_contact_error_m=values[-1],
+            current_root_error_m=values[-3],current_contact_error_m=values[-2] if values[-1] else None,contact_error_samples=int(values[-1]),
             segments=[dict(segment=i,attempts=int(n[i]),successful_attempts=int(s[i]),
                 contact_tolerance_m=tolerances[i],
                 budget_steps=clock_end-clock_start+self.grace_steps,
                 terminal_steps=int(terminals[i]),
                 success_rate=s[i]/n[i] if n[i] else None,
                 final_root_error_m=root[i]/n[i] if n[i] else None,
-                final_contact_error_m=point[i]/n[i] if n[i] else None)
+                final_contact_error_m=point[i]/point_count[i] if point_count[i] else None,contact_error_samples=int(point_count[i]))
                 for i,(clock_start,clock_end) in enumerate(self._report_ranges)
                 if self.segment_index is None or i==self.segment_index],
-            metric_scope='completed training attempts since this run started; exact recorded segment starts')
+            metric_scope='completed training attempts since this run started; exact recorded segment starts',**self.grid_report())

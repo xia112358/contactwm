@@ -16,7 +16,7 @@ def main():
     p.add_argument('--slices',type=Path,help='Audited cases_validated.pt; preserve explicit starts, stops and original goals')
     p.add_argument('--output',type=Path,required=True)
     p.add_argument('--collision_profile',choices=('legacy_v1','surface_v2'),default='surface_v2')
-    p.add_argument('--contact_response',choices=('legacy','firm_v2','manifold_v1','manifold_v2','manifold_v3','newton_contacts_v1','newton_contacts_v2','manifold_soft_v1','manifold_balanced_v1'),default='legacy')
+    p.add_argument('--contact_response',choices=('legacy','firm_v2','manifold_v1','manifold_v2','manifold_v3','newton_contacts_v1','newton_contacts_v2','newton_contacts_v3','manifold_soft_v1','manifold_balanced_v1'),default='legacy')
     p.add_argument('--num_envs',type=int,default=4096)
     p.add_argument('--seed',type=int,default=42)
     p.add_argument('--bc_steps',type=int,default=0)
@@ -60,12 +60,13 @@ def main():
         if hashlib.sha256(a.checkpoint.read_bytes()).hexdigest()!=recording['metadata']['source_checkpoint_sha256']:
             raise ValueError('Selected slices require their exact validated tracking teacher')
     demo=recording['data']
-    if demo['term'].any():raise ValueError('DAgger requires a successful fresh native demonstration')
     networks.AMP_DTYPE=torch.bfloat16 if source['args'].get('amp')=='bf16' else None
     context=HeightForceContext(spec['tasks']);actor=ContactActor().to(device)
     from supermimic.contact_library import build_contact_clock,load_slice_clock,segment_ranges,history_indices,case_world_counts
     geometry=ContactGeometry(demo,device)
     clock=load_slice_clock(recording,a.slices) if a.slices else build_contact_clock(recording,hold=1,role_aware=True)
+    if bool(demo['term'].any()) and getattr(clock,'source_evidence_contract',None) is None:
+        raise ValueError('Legacy source termination requires migration to per-slice native source-evidence admission')
     starts,stops=segment_ranges(clock)
     default=torch.tensor(default_joint_pos_list(),device=device)
     teacher_hist=source['args'].get('hist',10);goal_frames=source['args'].get('goal_frames',10)
@@ -76,6 +77,7 @@ def main():
     config=dict(vars(a),wm_implementation='tracking_source_frozen_dagger',
         contact_bounds=clock.bounds,actor_initialization=('random; optional BC then native DAgger' if a.bc_steps else 'random; directly native DAgger; no offline action fitting'),
         source_native_transitions=len(demo['s']),sampling='fresh executed student transitions; repeated simulator runs, no copied data expansion')
+    if hasattr(actor,'architecture'):config['actor_architecture']=actor.architecture
     if a.slices:
         import hashlib
         config.update(slices_sha256=hashlib.sha256(a.slices.read_bytes()).hexdigest(),

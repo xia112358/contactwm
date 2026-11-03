@@ -1,0 +1,63 @@
+{
+  "date": "2026-11-03",
+  "dataset_id": "native-release-v5",
+  "source_traces": 12,
+  "frames": 4146,
+  "cases": 197,
+  "trimmed_frames": 0,
+  "point_loss_valid_part_frames": 1492,
+  "frame_supervised_cases": 191,
+  "legacy_endpoint_subset": 20,
+  "lengths": {
+    "min": 2,
+    "mean": 21.04568527918782,
+    "median": 23,
+    "p90": 29,
+    "p95": 32.2,
+    "max": 49,
+    "short_at_most_10": 32,
+    "long_over_40": 5
+  },
+  "phase_counts": {
+    "sustained_contact_transfer": 169,
+    "transfer_motion": 16,
+    "rise": 4,
+    "support_posture_motion": 6,
+    "support_motion": 1,
+    "lowering": 1
+  },
+  "temporal_contract": {
+    "version": "native_continuous_bearing_support_v6",
+    "entry": "five native bearing samples with converged pose and measured material motion; use physical onset, keep confirmation separately",
+    "exit": "two inactive or <=15 N samples; unknown evidence and face changes end the episode; internal rolling/sliding alone preserves established bearing support",
+    "attachments": "positive-force native terrain shape sets; updated while bearing load",
+    "zero_state": "no observed bearing support; not a statement about limb participation",
+    "raw_contact": "unaltered native active/known masks; row stability gates point loss only"
+  },
+  "tests_before_sync": 68,
+  "training_started": false,
+  "frame_mask_training_consumer": "pending",
+  "overlap_aware_partition": "pending",
+  "walking_audit": {
+    "traces": 6,
+    "frames": 2394,
+    "raw_both_feet_inactive_samples": 31,
+    "max_consecutive_samples": 1,
+    "sampling": "final solver sample per 20 ms control frame; not all substeps"
+  },
+  "sync_validation": {
+    "tests_passed": 278,
+    "pytest_subtests_passed": 28,
+    "source_check": "passed with committed resource registry",
+    "export": {
+      "cases": 197,
+      "traces": 12
+    },
+    "browser": "passed short/long lists, frame step, scrub, playback, navigation and mobile overflow",
+    "gpu_training_started": false,
+    "repository_audit": "passed; 1248 Python files parsed",
+    "diagnostic_cli_help_checks": 11,
+    "additional_input_and_release_tests": 73,
+    "new_input_validation": "--cuda diagnostic requires explicit --source-root; CPU mode remains independent of saved experiment data"
+  }
+}

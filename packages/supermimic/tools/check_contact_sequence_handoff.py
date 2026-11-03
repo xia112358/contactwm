@@ -1,9 +1,7 @@
 """Check command handoff, failure isolation, and preservation of live history."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import sys
 from pathlib import Path
 from types import SimpleNamespace
-pass
 import torch
 from supermimic.contact_task import ContactTask
 

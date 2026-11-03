@@ -1,8 +1,12 @@
 """Matched numerical and timing check for shared WM state/context encoding."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path
 import sys,json,time
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[1];pass
+import argparse
+_inputs_parser=argparse.ArgumentParser(description=__doc__)
+_inputs_parser.add_argument('--source-root',type=Path,required=True,help='Existing experiment directory containing the historical run inputs')
+_inputs=_inputs_parser.parse_args()
+ROOT=Path(__file__).resolve().parents[1]
 import torch
 torch.set_num_threads(4);torch.backends.cuda.matmul.allow_tf32=False
 from supermimic.lowstep import install
@@ -10,7 +14,7 @@ install(runtime_path('data/lowclimb_boxes/task.json'),contact_model='force6')
 from supermimic.networks import WorldModel
 import supermimic.networks as networks
 from supermimic.mdp import unflatten_state,normalize_xi
-b=runtime_path('tmp/contact-tracker-20261027-v1');p=b/'dmo-continuous-aligned-band-100-resume-v1';ck=torch.load(p/'checkpoint_000140.pt',map_location='cuda',weights_only=False);wm=WorldModel().cuda().requires_grad_(False);wm.load_state_dict(ck['wm']);networks.AMP_DTYPE=torch.bfloat16
+b=_inputs.source_root;p=b/'dmo-continuous-aligned-band-100-resume-v1';ck=torch.load(p/'checkpoint_000140.pt',map_location='cuda',weights_only=False);wm=WorldModel().cuda().requires_grad_(False);wm.load_state_dict(ck['wm']);networks.AMP_DTYPE=torch.bfloat16
 pack=torch.load(p/'isolated-entry-pack.pt',map_location='cuda',weights_only=False);ix=torch.arange(1024,device='cuda')%6;state=pack['initial']['s'][ix];xi=pack['initial']['xi'][ix];action=pack['initial']['a_prev'][ix];results=[]
 def run(joint):
  s=state.clone().requires_grad_();x=xi.clone().requires_grad_();a=action.clone().requires_grad_();S=unflatten_state(s);xn=normalize_xi(x)

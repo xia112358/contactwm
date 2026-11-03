@@ -8,32 +8,61 @@ import torch
 
 
 def load_slice_clock(recording, path):
-    """Use audited explicit cuts without replacing original contact/reference goals."""
+    """Load audited explicit native cuts and their versioned reference goals."""
     from .contact_control import ContactClock
     slices = torch.load(path, map_location=recording['data']['s'].device, weights_only=False)
-    if slices.get('schema') != 'native_contact_slices_v1':
+    if slices.get('schema') not in ('native_contact_slices_v1','native_region_slices_v1','native_stable_contact_slices_v1','native_evidence_contact_slices_v2','native_motion_contact_slices_v3'):
         raise ValueError('Unsupported contact slice schema')
     for key in ('task_manifest_sha256','source_checkpoint_sha256','selection_manifest_sha256'):
         if slices['metadata'][key] != recording['metadata'][key]:
             raise ValueError(f'Slice/recording identity mismatch: {key}')
-    if not bool(slices['native_restart_passed'].all()):
-        raise ValueError('Only native-restart-validated slices can initialize training')
     data=recording['data']; dev=data['s'].device
     clock=ContactClock.__new__(ContactClock)
+    clock.reference_support_contract=None
+    clock.source_evidence_contract=None
+    motion_v3=slices['schema']=='native_motion_contact_slices_v3'
+    evidence_v2=slices['schema'] in ('native_evidence_contact_slices_v2','native_motion_contact_slices_v3')
+    if evidence_v2:
+        if not bool(slices['source_valid'].all()):
+            raise ValueError('Contact slices contain source-invalid intervals')
+        clock.source_evidence_contract=slices['metadata']['source_evidence_admission']
+    if slices['schema'] in ('native_stable_contact_slices_v1','native_evidence_contact_slices_v2','native_motion_contact_slices_v3'):
+        from .contact_stability import CONTRACT
+        from .contact_phase import VERSION
+        if not (slices['metadata']['stable_support_contract']==recording['metadata']['stable_support_contract']==CONTRACT):
+            raise ValueError('Stable reference and runtime support contracts differ')
+        if not (slices['metadata']['contact_phase_version']==recording['metadata']['contact_phase_version']==VERSION):
+            raise ValueError('Stable reference and runtime phase versions differ')
+        new=slices['target_masks']&~slices['keep_masks']
+        if not bool((data['contact_stable'][slices['goals']]|~new).all()):
+            raise ValueError('A stable reference goal contains an unqualified required part')
+        clock.reference_support_contract=CONTRACT
     clock.data=data; clock.length=len(data['s']); clock.hold=1
     clock.segment_starts=slices['starts']; clock.segment_stops=slices['stops']
     clock.event_ends=slices['goals']+1; clock.segment_motion=slices['motion_ids']
     clock.case_ids=slices['case_ids']; clock.bounds=None
     clock.ends=torch.zeros(clock.length,device=dev,dtype=torch.long)
     clock.frame_source_floor=torch.empty(clock.length,device=dev,dtype=torch.long)
-    spans={s['motion']:s for s in recording['metadata']['recording_spans']}
-    for span in spans.values():clock.frame_source_floor[span['begin']:span['end']]=span['begin']
+    source_spans=recording['metadata']['recording_spans']
+    spans={s['motion']:s for s in source_spans}
+    for span in source_spans:
+        floor=span['history_begin'] if motion_v3 else span['begin']
+        if not span['begin']<=floor<=span['end']:raise ValueError('Trimmed history floor is outside its source trace')
+        clock.frame_source_floor[span['begin']:span['end']]=floor
+    if evidence_v2:
+        if not bool(((slices['trace_ids']>=0)&(slices['trace_ids']<len(source_spans))).all()):
+            raise ValueError('Slice source trace identity is out of range')
+        clock.segment_trace_ids=slices['trace_ids']
     clock.segment_local_bounds=[]
-    for start,stop,goal,motion in zip(slices['starts'].tolist(),slices['stops'].tolist(),slices['goals'].tolist(),slices['motion_ids'].tolist()):
-        span=spans[motion]
-        if not span['begin']<=start<stop<=span['end'] or not span['begin']<=goal<span['end']:
+    for case,(start,stop,goal,motion) in enumerate(zip(slices['starts'].tolist(),slices['stops'].tolist(),slices['goals'].tolist(),slices['motion_ids'].tolist())):
+        span=source_spans[int(slices['trace_ids'][case])] if evidence_v2 else spans[motion]
+        if evidence_v2 and span['motion']!=motion:
+            raise ValueError('Source trace motion mismatch')
+        if not span['begin']<=start<stop<=span['end'] or not start<=goal<stop:
             raise ValueError('Slice crosses source trajectory boundary')
         if not bool((data['xi'][start:stop,33].long()==motion).all()):raise ValueError('Slice terrain identity mismatch')
+        if evidence_v2 and not bool(data['source_supervision_valid'][start:stop].all()):
+            raise ValueError('History-only context cannot become a supervised source interval')
         clock.ends[start:stop]=goal+1
         clock.segment_local_bounds.append((start-span['begin'],stop-span['begin']))
     for key in ('target_masks','keep_masks','support_masks'):
@@ -49,7 +78,7 @@ def segment_ranges(clock):
 
 
 def history_indices(clock, starts, length, *, include_current=False):
-    """True source history, clamped only at the source start, not the cut start."""
+    """True source history, clamped at the admissible source start, not each cut."""
     if hasattr(clock,'frame_source_floor'):
         floor=clock.frame_source_floor[starts]
     else:
@@ -62,9 +91,14 @@ def history_indices(clock, starts, length, *, include_current=False):
     return torch.maximum(starts[:,None]+offsets,floor[:,None])
 
 
-def case_world_counts(clock, task_count, total):
+def case_world_counts(clock, task_count, total, segment_index=None):
     """Reserve each case's own terrain world; distribute extras over cases equally."""
     counts=[1]*task_count
+    if segment_index is not None:
+        motion=int(clock.segment_motion[segment_index])
+        counts[motion]=total-task_count+1
+        if counts[motion]<1:raise ValueError('Insufficient worlds for selected segment')
+        return counts
     motions=clock.segment_motion.cpu().tolist()
     for motion in set(motions):counts[motion]=motions.count(motion)
     minimum=sum(counts)
@@ -78,6 +112,8 @@ def collect_motion_library(args,env,motion,mdp,policy,reader,hist,goal_frames,me
     import json
     import shutil
     import numpy as np
+    from contextlib import nullcontext
+    from .contact_substep_capture import SubstepCapture
     sources={}
     for task in getattr(args,'selected_motion_ids',range(len(motion.clip_len))):
         ids=(env.task_ids==task).nonzero().flatten()
@@ -85,27 +121,32 @@ def collect_motion_library(args,env,motion,mdp,policy,reader,hist,goal_frames,me
         sources[task]=int(ids[0])
     recorded={task:[] for task in sources};final_xi={};pending=set(sources);history=None
     limit=min(args.steps,int(motion.clip_len.max())-1)
-    for step in range(limit):
-        state=env.state();obs=mdp.obs(state,env.a_prev,env.xi,env.f)
-        history=(obs[:,None].expand(-1,hist,-1).clone() if history is None else torch.cat((history[:,1:],obs[:,None]),1))
-        action=policy(history,motion.goal(env.f,goal_frames))
-        if args.noise:action=(action+args.noise*torch.randn_like(action)).clamp(-20,20)
-        out=env.step(action);evidence=reader.read()
-        exported={key:out[key].cpu() for key in ('s','s1','a','a_prev','xi','f','term','done','ep_step','r')}
-        exported.update({key:value.cpu() for key,value in evidence.items()})
-        for task in list(pending):
-            world=sources[task]
-            row={key:value[world].clone() for key,value in exported.items()}
-            recorded[task].append(row)
-            if bool(row['done']) or len(recorded[task])>=int(motion.clip_len[task])-1:
-                final_xi[task]=env.xi[world:world+1].cpu().clone();pending.remove(task)
-        if step%100==0:
-            raw=reader.last_evidence.export()
-            raw.update({key:reader.last_snapshot[key] for key in ('eligible','groups','robot_side')})
-            np.savez_compressed(args.output/f'raw-{step:04d}.npz',**raw)
-            print(json.dumps(dict(step=step,pending_motions=len(pending))),flush=True)
-        if not pending:break
-        env.f=torch.minimum(env.f,motion.clip_end[env.task_ids]-1)
+    capture=SubstepCapture(env,args.output/'substeps') if args.capture_substeps else nullcontext(None)
+    with capture as substeps:
+        for step in range(limit):
+            live_worlds=[sources[task] for task in pending]
+            state=env.state();obs=mdp.obs(state,env.a_prev,env.xi,env.f)
+            history=(obs[:,None].expand(-1,hist,-1).clone() if history is None else torch.cat((history[:,1:],obs[:,None]),1))
+            action=policy(history,motion.goal(env.f,goal_frames))
+            if args.noise:action=(action+args.noise*torch.randn_like(action)).clamp(-20,20)
+            out=env.step(action)
+            if substeps is not None:substeps.flush(step,live_worlds)
+            evidence=reader.read()
+            exported={key:out[key].cpu() for key in ('s','s1','a','a_prev','xi','f','term','done','ep_step','r')}
+            exported.update({key:value.cpu() for key,value in evidence.items()})
+            for task in list(pending):
+                world=sources[task]
+                row={key:value[world].clone() for key,value in exported.items()}
+                recorded[task].append(row)
+                if bool(row['done']) or len(recorded[task])>=int(motion.clip_len[task])-1:
+                    final_xi[task]=env.xi[world:world+1].cpu().clone();pending.remove(task)
+            if step%100==0:
+                raw=reader.last_evidence.export()
+                raw.update({key:reader.last_snapshot[key] for key in ('eligible','groups','robot_side')})
+                np.savez_compressed(args.output/f'raw-{step:04d}.npz',**raw)
+                print(json.dumps(dict(step=step,pending_motions=len(pending))),flush=True)
+            if not pending:break
+            env.f=torch.minimum(env.f,motion.clip_end[env.task_ids]-1)
     reports=[]
     for task,world in sources.items():
         directory=args.output/f'motion_{task:03d}';directory.mkdir()
@@ -142,6 +183,7 @@ def build_contact_clock(recording,**kwargs):
     if offset!=total:raise ValueError('Incomplete native recording spans')
     result=ContactClock.__new__(ContactClock)
     result.data=data;result.length=total;result.hold=children[0][1].hold
+    result.boundary_audits=[dict(motion=int(span["motion"]),**child.boundary_audit) for span,child in children]
     result.bounds=[0];result.segment_local_bounds=[];motions=[]
     for span,clock in children:
         result.bounds.extend(int(span['begin'])+end for end in clock.bounds[1:])
@@ -195,3 +237,13 @@ def dagger_case_worlds(clock,task_ids,chosen,segment_ids,repeat=0):
         if len(worlds)<len(slots):raise ValueError('DAgger batch exceeds matching terrain allocation')
         answer[slots]=worlds[(torch.arange(len(slots),device=chosen.device)+repeat*len(slots))%len(worlds)]
     return answer
+
+
+def require_source_replay_capacity(clock,capacity,grace_steps,segment=None):
+    """A complete source transfer must fit before a ring buffer overwrites it."""
+    starts,stops=segment_ranges(clock);durations=stops-starts
+    longest=int(durations.max() if segment is None else durations[segment-1])
+    required=longest+grace_steps
+    if capacity<required:
+        raise ValueError(f'Native source transfers require buffer_steps >= {required} (selected source duration plus grace); configured {capacity}')
+    return required

@@ -1,8 +1,6 @@
 """Regression checks for dynamic duration selection without a simulator."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import sys
 from pathlib import Path
-pass
 import torch
 from supermimic.contact_duration import select_duration_batch
 

@@ -1,5 +1,4 @@
 """Execute trained contact policies continuously, without resets between goals."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import argparse
 import json
 from pathlib import Path
@@ -7,14 +6,13 @@ import sys
 import time
 
 ROOT=Path(__file__).resolve().parents[1]
-pass
 
 
 def main():
     from isaaclab.app import add_launcher_args,launch_simulation
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--task_manifest',required=True)
-    parser.add_argument('--contact_response', choices=('legacy','firm_v2','manifold_v1','manifold_v2','manifold_soft_v1','manifold_balanced_v1'), default=None)
+    parser.add_argument('--contact_response', choices=('legacy','firm_v2','manifold_v1','manifold_v2','manifold_v3','manifold_soft_v1','manifold_balanced_v1'), default=None)
     parser.add_argument('--collision_profile',choices=('legacy_v1','surface_v2'),default=None,
                         help='Defaults to the recording physical revision')
     parser.add_argument('--allow_collision_transfer',action='store_true',help='Allow a legacy tracker as initialization only')

@@ -1,8 +1,6 @@
 """Recompute exact forward contact loss and cutoff counterfactual on saved replay."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import json,sys
 from pathlib import Path
-pass
 import torch
 from supermimic.lowstep import install
 from supermimic.contact_control import ContactClock,ContactGeometry

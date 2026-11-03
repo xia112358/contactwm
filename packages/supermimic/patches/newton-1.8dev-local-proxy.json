@@ -1,0 +1,38 @@
+{
+  "status": "experimental_not_enabled",
+  "method": "retry anomalous cylinder-box contacts with a locally cropped equivalent box containing the entire cylinder plus clearance; verify returned witness on original box",
+  "baseline_version": "1.8.0.dev0",
+  "files": {
+    "_src/geometry/mpr.py": {
+      "baseline_sha256": "2f8d138190d028903d2804c6175d98631b7fc4e1bb8b236c5315a33766cd5a21",
+      "patched_sha256": "68c3c4c1630b656ed6cfc71cf8a466ade806e7728badb9d67b6746ef9d18f1f8"
+    },
+    "_src/geometry/collision_convex.py": {
+      "baseline_sha256": "b32bb4567b0c8fead3850f737fc873dfc10ba4a58ea848339c750d402159decb",
+      "patched_sha256": "cbaa1a55cead1ec01c1fb839e496dc2482ac29cea5a79c7579ab02b91ca8a4cf"
+    }
+  },
+  "validation": {
+    "real_mpr_pairs": 2400,
+    "far_before": 32,
+    "far_after": 0,
+    "previous_far_cases_retaining_contact": 32,
+    "worst_surface_error_previously_far_cases_m": 1.07547e-05,
+    "dynamic_newton_seeds": [
+      43,
+      44
+    ],
+    "updates_per_seed": 30,
+    "worlds": 4096,
+    "far_detected_physics_substeps": 0,
+    "nan": 0,
+    "upstream_tests": "8 passed, 2 skipped, 78 subtests passed"
+  },
+  "limitations": [
+    "only cylinder-versus-box fallback validated",
+    "4 of 600 six-micrometre separated CPU test cases produced negative contacts both before and after patch",
+    "one of 2400 cases changed contact presence, 1-micrometre overlap previously missing a contact",
+    "short testing does not establish long-run training stability",
+    "does not automatically patch shared Newton or resume training"
+  ]
+}

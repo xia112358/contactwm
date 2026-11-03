@@ -1,5 +1,4 @@
 """Exercise the new surface-region branch in actual DMO replay, on CPU."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 from pathlib import Path
 import runpy
 import sys
@@ -8,7 +7,6 @@ from unittest.mock import patch
 import torch
 
 ROOT=Path(__file__).resolve().parents[1]
-pass
 # Reuse the maintained episode/cutoff fixture and its legacy regression checks.
 x=runpy.run_path(str(ROOT/'tools/check_contact_duration.py'))
 from somaforge_core.contact_system.objectives import smooth_region_loss

@@ -1,11 +1,9 @@
 """CPU checks for physical checkpoint isolation and explicit weight transfer."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import argparse
 from copy import deepcopy
 from pathlib import Path
 import sys
 
-pass
 
 
 def main():

@@ -1,5 +1,4 @@
 """Conservative boundary waits: both motion and contact evidence must be quiet."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import torch
 
 

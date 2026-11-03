@@ -1,6 +1,6 @@
 """Finish an existing native capture, retry failed low-speed motions, then slice and validate."""
 from __future__ import annotations
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_root
 import argparse
 import copy
 import json

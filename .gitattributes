@@ -3,3 +3,6 @@ assets/g1_spherehand_usd/** -text whitespace=-blank-at-eof
 src/holosoma/holosoma/data/robots/g1/** -text
 assets/g1_surface_v2_usd/** -text
 src/holosoma/holosoma/data/robots/converted_rank0/g1_29dof_spherehand/** -text
+
+# Unified diffs require a space on blank context lines; preserve patch bytes.
+packages/supermimic/patches/*.patch -text whitespace=-blank-at-eol,-blank-at-eof

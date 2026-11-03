@@ -1,8 +1,6 @@
 """Check exact simulator forward values and chained surrogate derivatives."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 from pathlib import Path
 import sys
-pass
 import torch
 from supermimic.contact_dmo import swap
 

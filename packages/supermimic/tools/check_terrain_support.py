@@ -1,10 +1,9 @@
 """Direct paired drop test of actual low-step support surfaces (no policy)."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path
 import argparse
 import json
 from pathlib import Path
 import sys
-pass
 from isaaclab.app import add_launcher_args, launch_simulation
 p = argparse.ArgumentParser(description=__doc__)
 p.add_argument("--task_manifest", default="data/lowstep_boxes/task.json")

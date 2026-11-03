@@ -4,7 +4,7 @@ Provide a pre-change contact_dmo.py with --reference-source to compare revisions
 The optional CUDA check tiles six retained real trajectories; it is a component
 benchmark, not a new simulation or estimate of a complete training iteration.
 """
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path
 import argparse
 import importlib.util
 import json
@@ -17,7 +17,6 @@ from unittest.mock import patch
 import warnings
 
 ROOT=Path(__file__).resolve().parents[1]
-pass
 import torch
 from supermimic import contact_dmo as current
 
@@ -98,7 +97,7 @@ def check_event_schedule():
     return dict(cases=80,result='exact masks: onset/accumulated, first hits, truncation, disabled stages, handoffs')
 
 
-def check_cuda(reference,batch,repeats,objective):
+def check_cuda(reference,batch,repeats,objective,source_root):
     torch.set_num_threads(4);torch.backends.cuda.matmul.allow_tf32=False
     from supermimic.lowstep import install
     spec=install(runtime_path('data/lowclimb_boxes/task.json'),contact_model='force6')
@@ -110,7 +109,7 @@ def check_cuda(reference,batch,repeats,objective):
     import supermimic.networks as networks
     from supermimic.robot import default_joint_pos_list
     networks.AMP_DTYPE=torch.bfloat16
-    base=runtime_path('tmp/contact-tracker-20261027-v1')
+    base=source_root
     source=base/'dmo-continuous-aligned-band-100-resume-v1'
     cfg=json.loads((source/'config.json').read_text())
     ck=torch.load(source/'checkpoint_000140.pt',map_location='cuda',weights_only=False)
@@ -183,13 +182,16 @@ def check_cuda(reference,batch,repeats,objective):
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--reference-source',type=Path,required=True)
+    parser.add_argument('--source-root',type=Path,help='Existing experiment inputs; required with --cuda')
     parser.add_argument('--cuda',action='store_true');parser.add_argument('--batch',type=int,default=1024)
     parser.add_argument('--repeats',type=int,default=3)
     parser.add_argument('--objective',choices=['surface_region','collision_surface'],default='surface_region')
     parser.add_argument('--output',type=Path)
-    args=parser.parse_args();reference=load_reference(args.reference_source)
+    args=parser.parse_args()
+    if args.cuda and args.source_root is None:parser.error('--cuda requires --source-root')
+    reference=load_reference(args.reference_source)
     result=dict(cpu_cases=check_small(reference),event_schedule=check_event_schedule(),optimizer_updates=0)
-    if args.cuda:result['cuda']=check_cuda(reference,args.batch,args.repeats,args.objective)
+    if args.cuda:result['cuda']=check_cuda(reference,args.batch,args.repeats,args.objective,args.source_root)
     if args.output:
         args.output.parent.mkdir(parents=True,exist_ok=True);args.output.write_text(json.dumps(result,indent=2))
     print(json.dumps(result,indent=2))

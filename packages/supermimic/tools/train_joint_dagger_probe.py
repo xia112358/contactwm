@@ -1,5 +1,4 @@
 """Compare all-segment DAgger replay strategies from the accepted joint initialization."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import argparse
 import json
 from pathlib import Path
@@ -7,7 +6,6 @@ import sys
 import time
 
 ROOT=Path(__file__).resolve().parents[1]
-pass
 
 
 def main():

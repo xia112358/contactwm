@@ -1,5 +1,5 @@
 """Combine all prepared step/climb motions with canonical, obstacle-free walking."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path, workspace_root
 import copy
 import json
 from collections import Counter
@@ -9,7 +9,6 @@ import sys
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
-pass
 from prepare_lowstep import digest, write_terrain
 
 

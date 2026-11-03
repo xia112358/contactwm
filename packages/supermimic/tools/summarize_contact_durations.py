@@ -1,5 +1,4 @@
 """Summarize successful completion times separately from censored failures."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import argparse
 import json
 from pathlib import Path

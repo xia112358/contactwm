@@ -1,12 +1,17 @@
 """Independent DMO refinement of recorded no-contact failure entries."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_path
 import sys,json,runpy,copy,signal,time,os
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[1];pass
+import argparse
+_inputs_parser=argparse.ArgumentParser(description=__doc__)
+_inputs_parser.add_argument('--source-root',type=Path,required=True,help='Existing experiment directory containing the historical run inputs')
+_inputs,_forwarded=_inputs_parser.parse_known_args()
+sys.argv=[sys.argv[0],*_forwarded]
+ROOT=Path(__file__).resolve().parents[1]
 import torch
 from supermimic.contact_task import ContactTask
 native_step=ContactTask.step
-base=runtime_path('tmp/contact-tracker-20261027-v1');source=base/'dmo-continuous-aligned-band-100-resume-v1';out=base/'isolated-region-normal4-v1';web=runtime_path('results/mixed_comparison_web/isolated-contact-region')
+base=_inputs.source_root;source=base/'dmo-continuous-aligned-band-100-resume-v1';out=base/'isolated-region-normal4-v1';web=runtime_path('results/mixed_comparison_web/isolated-contact-region')
 stopping=False
 def request_stop(*a):
  global stopping

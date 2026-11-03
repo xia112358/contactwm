@@ -11,8 +11,9 @@ import torch
 
 
 class NativeContacts:
-    def __init__(self, env, *, direct=False):
+    def __init__(self, env, *, direct=False, primary_faces=False):
         self.direct=direct
+        self.primary_faces=primary_faces
         self.env = env
         from somaforge_core.collision_profiles import contact_body_names
         self.collision_profile = getattr(env, 'collision_profile', 'legacy_v1')
@@ -20,7 +21,7 @@ class NativeContacts:
         self.model = env.sim.backend_manager.get_model()
         self.solver = env.sim.backend_manager._solver
         model, solver = self.model, self.solver
-        if direct:
+        if direct and not primary_faces:
             self._init_direct()
             return
         from scipy.spatial.transform import Rotation
@@ -84,6 +85,7 @@ class NativeContacts:
         self.last_snapshot = None
         self.last_evidence = None
         self.surface_offsets_device = torch.tensor(self.surface_offsets, device=env.device)
+        if direct:self._init_direct()
 
     def set_observed_worlds(self, world_ids):
         """Limit expensive face attribution; retain all original native rows.
@@ -176,10 +178,11 @@ class NativeContacts:
                     key=prefix+'.'+name;fingerprint_fields.append(key)
                     digest.update(key.encode());digest.update(value.numpy().tobytes())
         digest.update(mapping.tobytes())
-        self.evidence_provenance=dict(backend='supermimic_mjwarp',selection='one_robot_no_face_filter',
+        self.evidence_provenance=dict(backend='supermimic_mjwarp',selection='primary_horizontal_upward_faces_v1' if self.primary_faces else 'one_robot_no_face_filter',
             parts=PARTS,robot_asset=canonical_g1_asset_metadata(collision_profile=self.collision_profile),model_fingerprint=digest.hexdigest(),
             fingerprint_fields=fingerprint_fields,
             contact_response=getattr(self.env,'contact_response','legacy'),
+            solver_numerics=getattr(self.env,'contact_solver_numerics',{}).get('contract','upstream'),
             runtime={name:version(name) for name in ('newton','mujoco','mujoco-warp','warp-lang')})
         from .contact_control import LINKS
         proto=self.solver.mjc_body_to_newton.numpy()[0]
@@ -264,7 +267,17 @@ class NativeContacts:
         # Advanced indexing already owns its storage; no second pose copy is
         # needed to retain this solve across the next simulator step.
         self.last_part_poses=(positions[:,self.part_body_ids],rotations[:,self.part_body_ids])
-        view=evidence.terrain_view(self.evidence_binding)
+        eligible=None
+        if self.primary_faces:
+            from somaforge_core.live_contact_device import DeviceSupportContactSelector
+            if not hasattr(self,'device_selector'):
+                self.device_selector=DeviceSupportContactSelector(self.binding,self.model.body_label,self.env.device,
+                    body_names_by_part=self.body_names)
+            selected=self.device_selector(dict(evidence.rows,count=evidence.count))
+            self.device_selector.validate(selected)
+            self.last_primary_selection=selected
+            eligible=selected['eligible']
+        view=evidence.terrain_view(self.evidence_binding,eligible=eligible)
         self.last_view=view
         reduced=view.reduce();n=evidence.count
         index,group=view.rows,view.groups

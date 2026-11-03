@@ -1,9 +1,9 @@
 """Render direct and inherited-entry failures from existing continuous training replay."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
+from supermimic.paths import runtime_root
 import argparse,json,sys,subprocess,html
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[1];pass
+ROOT=Path(__file__).resolve().parents[1]
 p=argparse.ArgumentParser();p.add_argument('--run',type=Path,required=True);p.add_argument('--output',type=Path,required=True);args=p.parse_args()
 import torch,numpy as np
 torch.set_num_threads(4)

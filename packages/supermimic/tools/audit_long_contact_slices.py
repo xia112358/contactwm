@@ -1,5 +1,4 @@
 """Export all >40-frame cases with measured motion/contact timelines; no training."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import argparse
 from collections import Counter
 import json

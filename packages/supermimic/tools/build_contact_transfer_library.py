@@ -1,5 +1,4 @@
 """Build a catalogue of complete contact-transfer episodes from fresh native runs."""
-from supermimic.paths import runtime_path, runtime_root, workspace_root, module_root
 import argparse
 import hashlib
 import json
@@ -8,7 +7,7 @@ import shutil
 import sys
 import torch
 
-ROOT=Path(__file__).resolve().parents[1];pass
+ROOT=Path(__file__).resolve().parents[1]
 
 
 def main():
@@ -16,6 +15,9 @@ def main():
     p.add_argument('--capture',type=Path,required=True);p.add_argument('--output',type=Path,required=True)
     p.add_argument('--min-motions',type=int,default=4);p.add_argument('--min-transfers',type=int,default=64)
     a=p.parse_args()
+    from supermimic.contact_source import require_original_contact_source
+    capture_config=json.loads((a.capture/'config.json').read_text())
+    require_original_contact_source(json.loads(Path(capture_config['task_manifest']).read_text()))
     from somaforge_core.robot_assets import validate_g1_asset_metadata
     from somaforge_core.collision_profiles import require_profile
     from supermimic.contact_control import ContactClock,PARTS
