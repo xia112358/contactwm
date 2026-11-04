@@ -1,0 +1,99 @@
+{
+  "dataset_id": "partition-v8",
+  "cases": 161,
+  "source_frames": 3789,
+  "retained_frames": 3774,
+  "excluded_frames": 15,
+  "all_cut_intervals_recomputed": true,
+  "all_v7_recorded_tensors_and_catalogue_equal": true,
+  "retained_coverage_exactly_once": true,
+  "observed_forms_have_native_contact": true,
+  "artifact_sha256_verified": true,
+  "traces": [
+    {
+      "name": "step_original",
+      "source_frames": 107,
+      "retained_frames": 107,
+      "segments": 5,
+      "source_sha256": "02c715f2380e028b1c2db13d4ddc6e1a699505ad7bb7c73cb148fcc02e6338b9"
+    },
+    {
+      "name": "step_mirror",
+      "source_frames": 107,
+      "retained_frames": 107,
+      "segments": 5,
+      "source_sha256": "5aa7a2a616032ed5bb17133af2bdec31ad6aabe45a9d901909857f47d217bf13"
+    },
+    {
+      "name": "climb_58_original",
+      "source_frames": 301,
+      "retained_frames": 301,
+      "segments": 14,
+      "source_sha256": "5f85ee106e79c288fe8eed9995fed9d588bc685eba5198590c507535c00d54bd"
+    },
+    {
+      "name": "climb_58_mirror",
+      "source_frames": 301,
+      "retained_frames": 301,
+      "segments": 14,
+      "source_sha256": "35be93f518897365529065c01181ada79b35b38db28a178b2581fc35e76d5a1c"
+    },
+    {
+      "name": "climb_76_original",
+      "source_frames": 111,
+      "retained_frames": 111,
+      "segments": 5,
+      "source_sha256": "2421c501aa9301909a9bf62c6718a5d03473f3999d0ad161d83121dab7a491d6"
+    },
+    {
+      "name": "climb_76_mirror",
+      "source_frames": 468,
+      "retained_frames": 463,
+      "segments": 20,
+      "source_sha256": "44314fabf8a4ff7e94808fbbcba184f7ce39f72827956c3e679fc3084054453d"
+    },
+    {
+      "name": "walk_03600_original",
+      "source_frames": 399,
+      "retained_frames": 399,
+      "segments": 17,
+      "source_sha256": "eba0a4e6962bec85456f880bcb57a08c888674f3921d989d833997644036a5cf"
+    },
+    {
+      "name": "walk_07800_original",
+      "source_frames": 399,
+      "retained_frames": 399,
+      "segments": 16,
+      "source_sha256": "934db5dc331e7334939475bd71e32a05732c608a023f561cd0ce052eb2ab4b4f"
+    },
+    {
+      "name": "walk_05400_original",
+      "source_frames": 399,
+      "retained_frames": 394,
+      "segments": 16,
+      "source_sha256": "261da7bdd111e69e36cd7988fa9cd43d923d2eaf90f9a9bc4bc2c89bacfaacc2"
+    },
+    {
+      "name": "walk_03600_mirror",
+      "source_frames": 399,
+      "retained_frames": 399,
+      "segments": 17,
+      "source_sha256": "6cddedf86bbc7ff891f9c8a57576de13ed9fa900d7154e949807c0b162dda3f8"
+    },
+    {
+      "name": "walk_07800_mirror",
+      "source_frames": 399,
+      "retained_frames": 394,
+      "segments": 16,
+      "source_sha256": "f32740e186391f19831b460dba14b6692e5dcf63eaa195c3b316c8a5d3ddfbaf"
+    },
+    {
+      "name": "walk_05400_mirror",
+      "source_frames": 399,
+      "retained_frames": 399,
+      "segments": 16,
+      "source_sha256": "2ba80273334280083684ad5e60361b9fe07623d3f4472afca65446b1499c096f"
+    }
+  ],
+  "training_started": false
+}

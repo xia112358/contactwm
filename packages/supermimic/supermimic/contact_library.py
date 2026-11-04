@@ -132,6 +132,7 @@ def collect_motion_library(args,env,motion,mdp,policy,reader,hist,goal_frames,me
             out=env.step(action)
             if substeps is not None:substeps.flush(step,live_worlds)
             evidence=reader.read()
+            if substeps is not None:evidence.update(substeps.monitor.summary())
             exported={key:out[key].cpu() for key in ('s','s1','a','a_prev','xi','f','term','done','ep_step','r')}
             exported.update({key:value.cpu() for key,value in evidence.items()})
             for task in list(pending):
@@ -147,6 +148,7 @@ def collect_motion_library(args,env,motion,mdp,policy,reader,hist,goal_frames,me
                 print(json.dumps(dict(step=step,pending_motions=len(pending))),flush=True)
             if not pending:break
             env.f=torch.minimum(env.f,motion.clip_end[env.task_ids]-1)
+    if args.capture_substeps:metadata=dict(metadata,substep_support_contract=capture.monitor.contract)
     reports=[]
     for task,world in sources.items():
         directory=args.output/f'motion_{task:03d}';directory.mkdir()

@@ -1,0 +1,23 @@
+[
+  {
+    "trace": "capture-seed0/motion-005",
+    "source_sha256": "44314fabf8a4ff7e94808fbbcba184f7ce39f72827956c3e679fc3084054453d",
+    "start": 0,
+    "stop": 5,
+    "reason": "reviewed_startup_fragment"
+  },
+  {
+    "trace": "capture-seed0/motion-008",
+    "source_sha256": "261da7bdd111e69e36cd7988fa9cd43d923d2eaf90f9a9bc4bc2c89bacfaacc2",
+    "start": 394,
+    "stop": 399,
+    "reason": "reviewed_truncated_departure"
+  },
+  {
+    "trace": "capture-seed0/motion-010",
+    "source_sha256": "f32740e186391f19831b460dba14b6692e5dcf63eaa195c3b316c8a5d3ddfbaf",
+    "start": 394,
+    "stop": 399,
+    "reason": "reviewed_truncated_departure"
+  }
+]

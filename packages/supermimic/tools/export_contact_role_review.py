@@ -18,6 +18,7 @@ def main():
     from somaforge_core.g1_kinematics import CanonicalG1ForwardKinematics,_rpy_matrix
     from somaforge_core import G1_29DOF_JOINT_ORDER
     from supermimic.contact_topology import support_topology
+    from supermimic.contact_temporal import segmentation_contact_state
     r=Path(__file__).resolve().parents[3];out=args.output;lib=args.dataset/'library'
     out.mkdir(parents=True,exist_ok=True)
     import shutil
@@ -28,9 +29,9 @@ def main():
     assert sum(c['stop']-c['start'] for c in cases)==int(data['source_supervision_valid'].sum())
     old_cases=json.loads((args.previous/'library/catalogue.json').read_text())['cases'] if args.previous else []
     from collections import Counter
-    role_names={'S':'支撑','T':'转移','N':'不参与'}
+    role_names={'S':'支撑','T':'参与变化','N':'不参与'}
     counts=Counter(c['conversion_class'] for c in cases)
-    labels={'STNN':'单下肢支撑 · 另一侧转移','SSNN':'双下肢支撑','STTT':'下肢支撑/转移 · 双上肢转移'}
+    labels={'STNN':'单下肢支撑 · 另一侧参与变化','SSNN':'双下肢支撑','STTT':'下肢支撑/参与变化 · 双上肢参与变化'}
     classes=[dict(key=k,label=labels[k] if k in labels else '下肢：'+'/'.join(role_names[x] for x in k[:2])+' · 上肢：'+'/'.join(role_names[x] for x in k[2:]),count=n) for k,n in counts.most_common()]
     urdf=canonical_g1_urdf_path();xml=ET.parse(urdf).getroot();links=[l.get('name') for l in xml.findall('link')];parts=[]
     for link in xml.findall('link'):
@@ -54,14 +55,19 @@ def main():
     (out/'robot.json').write_text(json.dumps(robot,separators=(',',':')))
     node=ast.parse((r/'packages/supermimic/supermimic/robot.py').read_text());names=next(ast.literal_eval(n.value) for n in node.body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='G1_JOINT_NAMES' for t in n.targets));order=[names.index(n) for n in G1_29DOF_JOINT_ORDER]
     fk=CanonicalG1ForwardKinematics();taskpath=args.task_manifest;assert hashlib.sha256(taskpath.read_bytes()).hexdigest()==meta['task_manifest_sha256'];tasks=json.loads(taskpath.read_text())['tasks'];traces=[]
+    has_substeps='substep_contact_active' in data
     for span in meta['recording_spans']:
      tid=span['trace_id'];b,e=span['begin'],span['end'];s=data['s1'][b:e];qpos=torch.cat((s[:,:7],s[:,13:42][:,order]),-1)
      with torch.no_grad():P,R=fk.link_poses(qpos,tuple(links))
      assert torch.isfinite(P).all() and torch.isfinite(R).all()
-     states=support_topology({k:v[b:e] for k,v in data.items()},[[[] for _ in range(6)] for _ in range(e-b)])
-     payload=dict(effective_source_frames=span['effective_source_frames'],edge_exclusions=span['edge_exclusions'],posture_phases=span['posture_phases'],transfers=span['transfer_events'],name=span['name'],dt=meta['dt'],boxes=tasks[span['motion']]['boxes'],positions=P.numpy().round(5).tolist(),rotations=R.numpy().round(5).tolist(),active=data['active'][b:e].tolist(),stable=data['contact_stable'][b:e].tolist(),support=[s['mask'] for s in states],points=data['point'][b:e].numpy().round(5).tolist(),loads=data['contact_load'][b:e].numpy().round(2).tolist(),source_frames=data['f'][b:e].tolist())
+     temporal=segmentation_contact_state({k:v[b:e] for k,v in data.items()})
+     states=support_topology({k:v[b:e] for k,v in data.items()},[[[] for _ in range(6)] for _ in range(e-b)],temporal)
+     payload=dict(placement=temporal['placement_support'].tolist(),resumptions=temporal['resumptions'],main_forms=temporal['forms'].tolist(),effective_source_frames=span['effective_source_frames'],edge_exclusions=span['edge_exclusions'],posture_phases=span['posture_phases'],transfers=span['transfer_events'],name=span['name'],dt=meta['dt'],boxes=tasks[span['motion']]['boxes'],positions=P.numpy().round(5).tolist(),rotations=R.numpy().round(5).tolist(),active=data['active'][b:e].tolist(),stable=data['contact_stable'][b:e].tolist(),support=[s['mask'] for s in states],points=data['point'][b:e].numpy().round(5).tolist(),loads=data['contact_load'][b:e].numpy().round(2).tolist(),source_frames=data['f'][b:e].tolist())
+     if has_substeps:
+      for target,source in [('substep_event_ready','substep_support_event_ready'),('substep_active','substep_contact_active'),('substep_support','substep_support_state'),('substep_established','substep_support_established'),('substep_exited','substep_support_exited')]:payload[target]=data[source][b:e].tolist()
      (out/f'trace-{tid}.json').write_text(json.dumps(payload,separators=(',',':'),allow_nan=False));traces.append(dict(id=tid,name=span['name'],frames=e-b))
-    manifest=dict(source_motion_contract=meta['source_motion_contract'],temporal_contract=meta['segmentation_temporal_contract'],previous_dataset=str(args.previous) if args.previous else None,previous_case_count=len(old_cases),dt=meta['dt'],classes=classes,cases=[dict(kind=c['kind'],id=c['case'],trace=c['trace_id'],name=c['name'],start=c['source_start'],stop=c['source_stop'],category=c['conversion_class'],roles=c['topology']['limb_roles'],forms=c['topology']['contact_forms'],boundary_reasons=c['boundary_reasons'],transfer_ids=c['transfer_ids'],supervised=c['frame_point_supervision'],point_valid_frames=int(data['point_loss_valid'][c['start']:c['stop']].any(-1).sum()),previous_ids=[o['case'] for o in old_cases if o['trace']==c['trace'] and max(o['source_start'],c['source_start'])<min(o['source_stop'],c['source_stop'])]) for c in cases],traces=traces,provenance=dict(dataset=str(lib),asset=asset,timing='robot: recorded post-step s1; contacts: recorded final native solver sample, not recomputed geometry',training_started=False))
+    sampling_label=(f"{1/meta['recording_spans'][0]['support_sampling_contract']['physics_dt']:g}Hz接触/支撑 · {1/meta['dt']:g}Hz姿态播放" if has_substeps else f"{1/meta['dt']:g}Hz控制帧采样")
+    manifest=dict(has_substeps=has_substeps,sampling_label=sampling_label,source_motion_contract=meta['source_motion_contract'],temporal_contract=meta['segmentation_temporal_contract'],previous_dataset=str(args.previous) if args.previous else None,previous_case_count=len(old_cases),dt=meta['dt'],classes=classes,cases=[dict(kind=c['kind'],id=c['case'],trace=c['trace_id'],name=c['name'],start=c['source_start'],stop=c['source_stop'],category=c['conversion_class'],roles=c['topology']['limb_roles'],forms=c['topology']['contact_forms'],boundary_reasons=c['boundary_reasons'],transfer_ids=c['transfer_ids'],supervised=c['frame_point_supervision'],point_valid_frames=int(data['point_loss_valid'][c['start']:c['stop']].any(-1).sum()),previous_ids=[o['case'] for o in old_cases if o['name']==c['name'] and max(o['source_start'],c['source_start'])<min(o['source_stop'],c['source_stop'])]) for c in cases],traces=traces,provenance=dict(dataset=str(lib),asset=asset,timing='robot: recorded post-step s1; contacts: recorded final native solver sample, not recomputed geometry',training_started=False))
     (out/'manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,separators=(',',':')))
     print(json.dumps(dict(cases=len(cases),traces=len(traces),triangles=sum(len(x['faces']) for x in parts),bytes=sum(p.stat().st_size for p in out.glob('*.json')))))
 

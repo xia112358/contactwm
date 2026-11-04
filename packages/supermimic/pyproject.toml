@@ -9,7 +9,7 @@ description = "SuperMimic tracking and contact-control research in the SomaForge
 readme = "README_UNIFIED.md"
 requires-python = ">=3.12"
 license = {file = "LICENSE"}
-dependencies = ["numpy", "scipy", "torch", "somaforge-core"]
+dependencies = ["numpy", "scipy", "shapely>=2", "torch", "somaforge-core"]
 
 [tool.setuptools.packages.find]
 where = ["."]

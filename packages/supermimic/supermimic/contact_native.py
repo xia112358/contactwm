@@ -110,11 +110,11 @@ class NativeContacts:
             if hasattr(self, name):
                 delattr(self, name)
 
-    def _known_mask(self):
+    def _known_mask(self, *, solved=False):
         """Only a post-reset solve in an observed world is measured evidence."""
         observed = torch.as_tensor(getattr(self, '_observed_world_mask',
                                            np.ones(self.env.N, bool)), device=self.env.device)
-        return ((self.env.ep_step > 0) & observed)[:, None].expand(-1, 6)
+        return (((self.env.ep_step > 0) | solved) & observed)[:, None].expand(-1, 6)
 
     @staticmethod
     def _normal_error(snapshot):
@@ -132,9 +132,9 @@ class NativeContacts:
         unit = torch.isclose(length, torch.ones_like(length), atol=1e-6, rtol=1e-5)
         return (active & (~torch.isfinite(normal).all(-1) | ~unit)).any()
 
-    def _mask_unknown(self, result):
+    def _mask_unknown(self, result, *, known=None):
         """Explicit sentinels for unknown summaries; raw evidence is untouched."""
-        known = self._known_mask()
+        if known is None:known = self._known_mask()
         result['known'] = known
         for key, value in list(result.items()):
             if key == 'known':
@@ -248,15 +248,16 @@ class NativeContacts:
             else:
                 self.targets[ids]=points+self.env.scene.env_origins[ids,None]
 
-    def _read_direct(self):
+    def _read_direct(self,*,substep=None,same_solve=False):
         """Owned point-force evidence; nearest-point summary is compatibility only."""
         from somaforge_core.contact_system.evidence import ContactEvidence,Sampling,solver_snapshot
         from .motion import CONTROL_DT
         manager=self.env.sim.backend_manager
         snapshot=solver_snapshot(self.solver,self.model)
-        known=self._known_mask()
+        known=self._known_mask(solved=same_solve)
         evidence=ContactEvidence(snapshot,sampling=Sampling(CONTROL_DT,float(manager.get_solver_dt()),
-            substep=int(manager._num_substeps)-1),known=known,control_step=self.env.ep_step,
+            substep=int(manager._num_substeps)-1 if substep is None else substep,
+            pose_contact_same_state=same_solve,pose_time='constraint_evaluation' if same_solve else 'post_integration'),known=known,control_step=self.env.ep_step,
             provenance=self.evidence_provenance)
         if self._normal_error(snapshot):
             raise ValueError('Invalid active native constraint normal')
@@ -299,7 +300,7 @@ class NativeContacts:
             point=points.reshape(-1,6,3)-self.env.scene.env_origins[:,None],
             surface_local=torch.full((self.env.N,6),-1,device=point.device,dtype=torch.long),
             force=force.clone(),load=force[...,2].clamp_min(0),
-            paired_force_w=reduced['force_w'],contact_count=reduced['contact_count']))
+            paired_force_w=reduced['force_w'],contact_count=reduced['contact_count']),known=known)
 
     def surface_features(self,atlas,*,bandwidth=.01):
         """Project retained evidence using its retained constraint-evaluation poses."""
@@ -363,8 +364,8 @@ class NativeContacts:
         local = index.query(xyz, np.tile([0.,0.,1.], (len(xyz),1)))
         return torch.as_tensor(local,device=points.device).reshape(points.shape[:-1])
 
-    def read_device(self):
-        if self.direct:return self._read_direct()
+    def read_device(self,*,substep=None,same_solve=False):
+        if self.direct:return self._read_direct(substep=substep,same_solve=same_solve)
         return self._read_classified()
 
     def _read_classified(self):

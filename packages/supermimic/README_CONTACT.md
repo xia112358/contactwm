@@ -455,4 +455,4 @@ it does not establish full-scale training stability or tracking success.
 
 ## Current contact slicing and review
 
-See [2026-11-03 progress](../../docs/research/contact-20261103/README.md) for the current native contact/support timeline, per-frame point supervision, 197-case audit, browser exporter, and remaining training integration.
+See [2026-11-04 progress](../../docs/research/contact-20261104/README.md) for the current native contact/support timeline, per-frame point supervision, 161-case audit, browser exporter, and remaining training integration.

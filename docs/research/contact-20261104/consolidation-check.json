@@ -1,0 +1,9 @@
+{
+  "cases": 161,
+  "frames": 3774,
+  "catalogue_exactly_equal": true,
+  "all_recorded_tensors_exactly_equal": true,
+  "recording_spans_exactly_equal": true,
+  "reviewed_exclusions_exactly_equal": true,
+  "tests_passed": 136
+}
