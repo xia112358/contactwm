@@ -1,0 +1,80 @@
+{
+  "date": "2026-11-04",
+  "dataset_id": "partition-v8",
+  "previous_published_dataset": "native-release-v5",
+  "source_traces": 12,
+  "source_recording_frames": 3789,
+  "retained_frames": 3774,
+  "reviewed_excluded_frames": 15,
+  "cases": 161,
+  "collector_successful_traces": 11,
+  "collector_failed_traces": 1,
+  "point_loss_valid_part_frames": 1299,
+  "effective_point_loss_valid_part_frames": 1294,
+  "frame_supervised_cases": 159,
+  "legacy_endpoint_subset": 4,
+  "trajectory_only_cases": 2,
+  "lengths": {
+    "min": 6,
+    "mean": 23.440993788819874,
+    "median": 24,
+    "p90": 30.0,
+    "p95": 35.0,
+    "max": 49,
+    "short_at_most_10": 11,
+    "long_over_40": 6
+  },
+  "phase_counts": {
+    "sustained_contact_transfer": 142,
+    "incomplete_transfer": 5,
+    "transfer_motion": 3,
+    "rise": 4,
+    "support_posture_motion": 6,
+    "lowering": 1
+  },
+  "edge_exclusions": [
+    {
+      "trace_id": 5,
+      "name": "climb_76_mirror",
+      "start": 0,
+      "stop": 5,
+      "reason": "reviewed_startup_fragment"
+    },
+    {
+      "trace_id": 8,
+      "name": "walk_05400_original",
+      "start": 394,
+      "stop": 399,
+      "reason": "reviewed_truncated_departure"
+    },
+    {
+      "trace_id": 10,
+      "name": "walk_07800_mirror",
+      "start": 394,
+      "stop": 399,
+      "reason": "reviewed_truncated_departure"
+    }
+  ],
+  "topology_contract": {
+    "version": "native_continuous_bearing_support_v7",
+    "entry": "native bearing and measured motion; substep independent events require the recorded event_bearing_s, excluding gaps; keep physical onset and fast confirmation separately",
+    "exit": "use recorded exit_persistence_s and gap_motion_m for substeps, two samples for control-only records; unknown evidence and face changes end support; loaded internal rolling/sliding preserves support",
+    "attachments": "positive-force native terrain shape sets; updated while bearing load",
+    "zero_state": "no observed bearing support; not a statement about limb participation",
+    "raw_contact": "unaltered native active/known masks; row stability gates point loss only"
+  },
+  "training_started": false,
+  "frame_mask_training_consumer": "pending",
+  "source_change": "Fresh substep capture contains climb_76_original with 111 frames instead of the previous 468; 357-frame difference is a recording difference, not removed by segmentation",
+  "validation": {
+    "tests_passed": 410,
+    "pytest_subtests_passed": 28,
+    "repository_audit": "passed; 1252 Python files parsed",
+    "latest_cut_intervals_recomputed": true,
+    "artifact_sha256_verified": true,
+    "native_main_forms_verified": true,
+    "browser": "passed 161 cases, 11 short/6 long review links, substep details, playback/scrub, mobile layout",
+    "old_control_recording_export": "passed; 197 cases, 12 traces",
+    "new_defensive_branches": []
+  }
+}

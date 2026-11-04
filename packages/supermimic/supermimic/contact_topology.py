@@ -15,9 +15,9 @@ ADMISSION=dict(version='native_source_evidence_v2',
     trajectory_only='valid motion without a qualified contact goal is retained without point supervision',
     collector_success='diagnostic only',tracking_restart='diagnostic only')
 SCHEMA='native_motion_contact_slices_v3'
-TOPOLOGY_CONTRACT=dict(version='native_continuous_bearing_support_v6',
-    entry='five native bearing samples with converged pose and measured material motion; use physical onset, keep confirmation separately',
-    exit='two inactive or <=15 N samples; unknown evidence and face changes end the episode; internal rolling/sliding alone preserves established bearing support',
+TOPOLOGY_CONTRACT=dict(version='native_continuous_bearing_support_v7',
+    entry='native bearing and measured motion; substep independent events require the recorded event_bearing_s, excluding gaps; keep physical onset and fast confirmation separately',
+    exit='use recorded exit_persistence_s and gap_motion_m for substeps, two samples for control-only records; unknown evidence and face changes end support; loaded internal rolling/sliding preserves support',
     attachments='positive-force native terrain shape sets; updated while bearing load',
     zero_state='no observed bearing support; not a statement about limb participation',
     raw_contact='unaltered native active/known masks; row stability gates point loss only')
@@ -75,49 +75,53 @@ def phase_ranges(states):
 LIMBS=('LL','RL','LA','RA')
 LIMB_NAMES=('左下肢','右下肢','左上肢','右上肢')
 LIMB_PARTS=((0,4),(1,5),(2,),(3,))
-ROLE_CONTRACT=dict(version='motion_phase_roles_v6',
-    support='sustained bearing without an assigned transfer in the segment; terminal unloading alone remains a support handoff',
-    transfer='shared moving transfer event overlaps the segment; crossing its start boundary does not erase its identity',
-    inactive='no bearing in segment and no measured support-related flight; airborne or incidental contact only',
-    lower_limb='destination form throughout form-changing flight; partition at old support end, not at new support confirmation',
+ROLE_CONTRACT=dict(version='support_allocation_roles_v8',
+    support='one measured support placement without independent participation change; a qualified same-placement unload/resume remains support role; measured bearing frames and placement-continuity frames are reported separately',
+    transfer='support participation changes: engage from idle, disengage, or reallocate; a previous contact is not required',
+    inactive='no established support or support participation change; idle motion and incidental contact alone are insufficient',
+    lower_limb='actual observed established form only; no destination form assigned during unsupported motion',
     classification='four-limb role vector; global left-right mirror merged; foot/knee form is an attribute',
     motion_excursion_m=.02,
-    motion_evidence='same-solve native body poses in world coordinates over the transfer episode; motion never defines native activation',
+    motion_evidence='native part poses; arms relative to recorded torso; settled windows bound idle periods, direction reversals do not end participation; motion never defines native activation',
     attributes='row stability controls point loss only, never role or partition; contact form and quality do not split classes')
-ROLE_NAMES={'S':'支撑','T':'转移','N':'不参与'}
+ROLE_NAMES={'S':'支撑','T':'参与变化','N':'不参与'}
 
 
 def classify_limb_roles(states,data,start,stop,new,temporal=None):
     """Read whole-segment roles from the common sustained-support timeline."""
-    from .contact_temporal import segmentation_contact_state,TEMPORAL_CONTRACT
+    from .contact_temporal import segmentation_contact_state,TEMPORAL_CONTRACT,participation_interval
     if temporal is None:temporal=segmentation_contact_state(data)
+    interval=participation_interval(temporal['transfers'],start,stop)
+    arrival_ids={e['id'] for e in interval['arrivals']}
     roles=[];forms=[];evidence=[]
     for limb,(name,parts) in enumerate(zip(LIMBS,LIMB_PARTS)):
-        present=temporal['forms'][start:stop,limb].unique().tolist()
+        present=temporal['placement_forms'][start:stop,limb].unique().tolist()
         present=[p for p in present if p>=0]
         if len(present)>1:raise ValueError(f'{name}: multiple main contact forms in one segment; partition at the shared form boundary')
         p=present[0] if present else None
-        bearing=p is not None and bool(temporal['support'][start:stop,p].any())
-        events=[e for e in temporal['transfers'] if e['limb']==limb and any(a<stop and b>start for a,b in e['activity_ranges'])]
+        bearing=bool(temporal['placement_support'][start:stop,list(parts)].any())
+        events=[e for e in interval['active'] if e['limb']==limb]
         transferring=[]
         for e in events:
             source_here=e['source_support_start'] is not None and max(start,e['source_support_start'])<min(stop,e['source_support_stop'])
-            arrived=e['arrival'] is not None and start<=e['arrival']<stop
+            arrived=e['id'] in arrival_ids
             # Unloading at a handoff remains support in the departing segment;
             # the following segment reads the same ongoing transfer event.
-            other_arrival=any(x['limb']!=limb and x['arrival'] is not None and start<=x['arrival']<stop for x in temporal['transfers'])
+            other_arrival=any(x['limb']!=limb for x in interval['arrivals'])
             unfinished=False
             if e['terminal'] and not other_arrival:
                 position=data['native_part_position'][max(start,e['start']-1):stop,e['part']]
                 unfinished=float((position-position[:1]).norm(dim=-1).max())>TEMPORAL_CONTRACT['motion_excursion_m']
             if arrived or not source_here or unfinished:transferring.append(e)
         role='T' if transferring else 'S' if bearing else 'N'
-        form=('foot' if p in (0,1) else 'knee' if p in (4,5) else 'hand') if role!='N' else 'none'
+        form=('foot' if p in (0,1) else 'knee' if p in (4,5) else 'hand') if role!='N' and p is not None else 'none'
         roles.append(role);forms.append(form)
-        evidence.append(dict(limb=name,role=role,main_part=PARTS[p] if role!='N' else None,form=form,
-            established_support_frames=0 if p is None else int(temporal['support'][start:stop,p].sum()),
+        evidence.append(dict(limb=name,role=role,main_part=PARTS[p] if role!='N' and p is not None else None,form=form,
+            established_support_frames=int(temporal['support'][start:stop,list(parts)].any(-1).sum()),
+            placement_continuity_frames=int(temporal['placement_support'][start:stop,list(parts)].any(-1).sum()),
             transfer_ids=[e['id'] for e in transferring],
-            observed_release_and_arrival=any(e['arrival'] is not None and start<=e['arrival']<stop for e in transferring),
+            participation_kinds=sorted({e['participation_kind'] for e in transferring}),
+            observed_support_engagement=any(e['id'] in arrival_ids for e in transferring),
             transfer_started_before_segment=any(e['start']<start for e in transferring),
             unfinished_departure=any(e['terminal'] for e in transferring),
             evidence_complete=bool(data['known'][start:stop,list(parts)].all()),

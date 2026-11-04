@@ -1,0 +1,353 @@
+[
+  {
+    "id": 4,
+    "name": "step_original",
+    "start": 82,
+    "stop": 91,
+    "frames": 9,
+    "kind": "sustained_contact_transfer",
+    "role": "STNN",
+    "start_reasons": [
+      "sustained_arrival"
+    ],
+    "end_reasons": [
+      "sustained_arrival"
+    ],
+    "arrivals": [
+      [
+        90,
+        1
+      ]
+    ]
+  },
+  {
+    "id": 6,
+    "name": "step_mirror",
+    "start": 0,
+    "stop": 7,
+    "frames": 7,
+    "kind": "sustained_contact_transfer",
+    "role": "TTNN",
+    "start_reasons": [
+      "source_start"
+    ],
+    "end_reasons": [
+      "sustained_arrival"
+    ],
+    "arrivals": [
+      [
+        6,
+        0
+      ]
+    ]
+  },
+  {
+    "id": 16,
+    "name": "climb_58_original",
+    "start": 120,
+    "stop": 126,
+    "frames": 6,
+    "kind": "sustained_contact_transfer",
+    "role": "TSST",
+    "start_reasons": [
+      "sustained_arrival"
+    ],
+    "end_reasons": [
+      "sustained_arrival"
+    ],
+    "arrivals": [
+      [
+        125,
+        3
+      ]
+    ]
+  },
+  {
+    "id": 20,
+    "name": "climb_58_original",
+    "start": 176,
+    "stop": 224,
+    "frames": 48,
+    "kind": "rise",
+    "role": "TSNT",
+    "start_reasons": [
+      "main_form_change",
+      "posture_phase"
+    ],
+    "end_reasons": [
+      "posture_phase"
+    ],
+    "arrivals": [
+      [
+        176,
+        0
+      ]
+    ]
+  },
+  {
+    "id": 23,
+    "name": "climb_58_original",
+    "start": 263,
+    "stop": 271,
+    "frames": 8,
+    "kind": "sustained_contact_transfer",
+    "role": "TTNS",
+    "start_reasons": [
+      "sustained_arrival"
+    ],
+    "end_reasons": [
+      "sustained_arrival",
+      "posture_phase"
+    ],
+    "arrivals": [
+      [
+        269,
+        0
+      ],
+      [
+        270,
+        1
+      ]
+    ]
+  },
+  {
+    "id": 31,
+    "name": "climb_58_mirror",
+    "start": 117,
+    "stop": 127,
+    "frames": 10,
+    "kind": "sustained_contact_transfer",
+    "role": "STTS",
+    "start_reasons": [
+      "sustained_arrival"
+    ],
+    "end_reasons": [
+      "sustained_arrival"
+    ],
+    "arrivals": [
+      [
+        126,
+        2
+      ]
+    ]
+  },
+  {
+    "id": 33,
+    "name": "climb_58_mirror",
+    "start": 152,
+    "stop": 160,
+    "frames": 8,
+    "kind": "sustained_contact_transfer",
+    "role": "TSSS",
+    "start_reasons": [
+      "sustained_arrival"
+    ],
+    "end_reasons": [
+      "sustained_arrival"
+    ],
+    "arrivals": [
+      [
+        159,
+        0
+      ]
+    ]
+  },
+  {
+    "id": 35,
+    "name": "climb_58_mirror",
+    "start": 175,
+    "stop": 224,
+    "frames": 49,
+    "kind": "rise",
+    "role": "SSTT",
+    "start_reasons": [
+      "sustained_arrival",
+      "posture_phase"
+    ],
+    "end_reasons": [
+      "posture_phase"
+    ],
+    "arrivals": []
+  },
+  {
+    "id": 39,
+    "name": "climb_76_original",
+    "start": 0,
+    "stop": 7,
+    "frames": 7,
+    "kind": "sustained_contact_transfer",
+    "role": "TTNN",
+    "start_reasons": [
+      "source_start"
+    ],
+    "end_reasons": [
+      "sustained_arrival"
+    ],
+    "arrivals": [
+      [
+        3,
+        0
+      ],
+      [
+        6,
+        1
+      ]
+    ]
+  },
+  {
+    "id": 41,
+    "name": "climb_76_original",
+    "start": 23,
+    "stop": 72,
+    "frames": 49,
+    "kind": "support_posture_motion",
+    "role": "SSTT",
+    "start_reasons": [
+      "sustained_arrival",
+      "posture_phase"
+    ],
+    "end_reasons": [
+      "posture_phase"
+    ],
+    "arrivals": [
+      [
+        67,
+        3
+      ]
+    ]
+  },
+  {
+    "id": 45,
+    "name": "climb_76_mirror",
+    "start": 30,
+    "stop": 72,
+    "frames": 42,
+    "kind": "support_posture_motion",
+    "role": "SSTT",
+    "start_reasons": [
+      "sustained_arrival",
+      "posture_phase"
+    ],
+    "end_reasons": [
+      "posture_phase"
+    ],
+    "arrivals": [
+      [
+        68,
+        3
+      ]
+    ]
+  },
+  {
+    "id": 51,
+    "name": "climb_76_mirror",
+    "start": 181,
+    "stop": 190,
+    "frames": 9,
+    "kind": "sustained_contact_transfer",
+    "role": "TSTS",
+    "start_reasons": [
+      "sustained_arrival"
+    ],
+    "end_reasons": [
+      "sustained_arrival"
+    ],
+    "arrivals": [
+      [
+        189,
+        0
+      ]
+    ]
+  },
+  {
+    "id": 52,
+    "name": "climb_76_mirror",
+    "start": 190,
+    "stop": 231,
+    "frames": 41,
+    "kind": "transfer_motion",
+    "role": "SSTT",
+    "start_reasons": [
+      "sustained_arrival"
+    ],
+    "end_reasons": [
+      "main_form_change"
+    ],
+    "arrivals": []
+  },
+  {
+    "id": 54,
+    "name": "climb_76_mirror",
+    "start": 243,
+    "stop": 292,
+    "frames": 49,
+    "kind": "support_posture_motion",
+    "role": "SSTT",
+    "start_reasons": [
+      "sustained_arrival",
+      "posture_phase"
+    ],
+    "end_reasons": [
+      "posture_phase"
+    ],
+    "arrivals": []
+  },
+  {
+    "id": 55,
+    "name": "climb_76_mirror",
+    "start": 292,
+    "stop": 302,
+    "frames": 10,
+    "kind": "sustained_contact_transfer",
+    "role": "STNN",
+    "start_reasons": [
+      "posture_phase"
+    ],
+    "end_reasons": [
+      "sustained_arrival"
+    ],
+    "arrivals": [
+      [
+        301,
+        1
+      ]
+    ]
+  },
+  {
+    "id": 97,
+    "name": "walk_05400_original",
+    "start": 0,
+    "stop": 9,
+    "frames": 9,
+    "kind": "sustained_contact_transfer",
+    "role": "TTNN",
+    "start_reasons": [
+      "source_start"
+    ],
+    "end_reasons": [
+      "sustained_arrival"
+    ],
+    "arrivals": [
+      [
+        8,
+        1
+      ]
+    ]
+  },
+  {
+    "id": 161,
+    "name": "walk_05400_mirror",
+    "start": 391,
+    "stop": 399,
+    "frames": 8,
+    "kind": "incomplete_transfer",
+    "role": "TSNN",
+    "start_reasons": [
+      "sustained_arrival"
+    ],
+    "end_reasons": [
+      "effective_end"
+    ],
+    "arrivals": []
+  }
+]

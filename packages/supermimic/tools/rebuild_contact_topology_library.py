@@ -4,6 +4,7 @@ from pathlib import Path
 from types import SimpleNamespace
 import torch
 from supermimic.contact_stability import NativeContactStability,CONTRACT
+from supermimic.contact_placement import load_placement_evidence,associate_support_placements,PLACEMENT_CONTRACT
 from supermimic.contact_phase import VERSION
 from supermimic.contact_temporal import TEMPORAL_CONTRACT,segmentation_contact_state
 from supermimic.stable_contact_slices import load_transfer_slices
@@ -42,24 +43,31 @@ def recompute(capture):
 
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--previous',type=Path,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--previous',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--capture_root',type=Path,help='Explicit fresh capture directory; include every recorded motion, without transferring old restart outcomes');p.add_argument('--edge_exclusions',type=Path,help='Reviewed source-edge exclusions bound to source SHA256');a=p.parse_args()
     torch.set_num_threads(4);a.output.mkdir(parents=True,exist_ok=False);library=a.output/'library';library.mkdir()
     old=torch.load(a.previous/'library/rollout.pt',map_location='cpu',weights_only=False)
-    old_catalogue=json.loads((a.previous/'library/catalogue.json').read_text());old_validation=json.loads((a.previous/'validation/report.json').read_text())['cases']
-    selected_sources={str(Path(s['source']).resolve()) for s in old['metadata']['recording_spans']}
+    reviewed_edges=json.loads(a.edge_exclusions.read_text()) if a.edge_exclusions is not None else old['metadata'].get('reviewed_edge_exclusions',[])
+    applied_edges=[]
+    capture_root=a.previous if a.capture_root is None else a.capture_root
     old_lookup={}
-    for c,v in zip(old_catalogue['cases'],old_validation):
-        span=next(s for s in old['metadata']['recording_spans'] if s['motion']==c['motion'])
-        old_lookup[(str(Path(span['source']).resolve()),c['source_goal'],c['kind'])]=(c['case'],bool(v['passed']))
+    if a.capture_root is None:
+        selected_sources={str(Path(s['source']).resolve()) for s in old['metadata']['recording_spans']}
+        old_catalogue=json.loads((a.previous/'library/catalogue.json').read_text());old_validation=json.loads((a.previous/'validation/report.json').read_text())['cases']
+        for c,v in zip(old_catalogue['cases'],old_validation):
+            span=next(s for s in old['metadata']['recording_spans'] if s['motion']==c['motion'])
+            old_lookup[(str(Path(span['source']).resolve()),c['source_goal'],c['kind'])]=(c['case'],bool(v['passed']))
+    else:
+        selected_sources={str(p.resolve()) for p in capture_root.glob('capture-seed*/motion-*.pt')}
     chunks=[];spans=[];cases=[];history=[];previous=[];review=[];failures=[];phases=[];native_phases=[];traces=[];goal_proofs=[];offset=0;covered_frames=0;trimmed_frames=0
     checkpoint=torch.load(old['metadata']['source_checkpoint'],map_location='cpu',weights_only=False)
     hist=int(checkpoint['args']['hist']);expected_contract=old['metadata']['stable_support_contract']
     if expected_contract!=CONTRACT:raise ValueError('Rebuild requires the current support contract')
-    for capture in sorted(a.previous.glob('capture-seed*')):
+    for capture in sorted(capture_root.glob('capture-seed*')):
         if not capture.is_dir() or not any(Path(p).parent==capture.resolve() for p in selected_sources):continue
         report=json.loads((capture/'report.json').read_text())
         if report['stable_support_contract']!=CONTRACT or report['checkpoint_sha256']!=old['metadata']['source_checkpoint_sha256'] or report['task_manifest_sha256']!=old['metadata']['task_manifest_sha256']:raise ValueError('Mixed capture support/checkpoint contracts')
         q,truth,known,attachments,witnesses,native_surfaces,rawmeta=recompute(capture)
+        placement_evidence=load_placement_evidence(capture) if 'substep_support_contract' in report else None
         for item in report['motions']:
             motion=int(item['motion']);path=capture/f'motion-{motion:03d}.pt'
             if str(path.resolve()) not in selected_sources:continue
@@ -67,8 +75,13 @@ def main():
             if not torch.equal(data['active'],truth[:T,motion]) or not torch.equal(data['known'],known[:T,motion]):raise ValueError('Captured summary disagrees with allocated primary native rows')
             cache_mismatch=int((data['contact_stable']!=q['contact_stable'][:T,motion]).sum())
             data={**data,**{k:v[:T,motion] for k,v in q.items()}}
+            placement_audit=[]
+            if placement_evidence is not None:
+                placement_data,placement_audit=associate_support_placements(data,placement_evidence,motion);data.update(placement_data)
             intervals,valid,finite,physical=physical_intervals(data)
             trace_name=f'{capture.name}/motion-{motion:03d}';trace_info=dict(trace=trace_name,motion=motion,name=item['name'],source=str(path),source_sha256=sha(path),raw_rows=str(capture/'native-rows.pt'),collector_success=bool(item['successful_rollout']),collector_terminal=bool(data['term'][-1]),total_frames=T,valid_frames=int(valid.sum()),physical_invalid_frames=int((~physical).sum()),nonfinite_frames=int((~finite).sum()),valid_intervals=intervals,qualification_cache_mismatches=cache_mismatch,model_fingerprint=rawmeta['provenance']['model_fingerprint']);traces.append(trace_info)
+            trace_info['placement_associations']=placement_audit
+            if 'substep_support_contract' in report:trace_info['support_sampling_contract']=report['substep_support_contract']
             for t in (~valid).nonzero().flatten().tolist():review.append(dict(trace=trace_name,source_frame=t,reason='nonfinite_source' if not finite[t] else 'physical_fall_or_inversion',source=str(path)))
             bad=(~valid).nonzero().flatten().tolist();bad_runs=[]
             for frame in bad:
@@ -88,8 +101,20 @@ def main():
                 context_begin=max(0,lo-hist);prefix=lo-context_begin
                 if not bool(finite[context_begin:lo].all()):raise ValueError('Recorded source history contains nonfinite context; it cannot be fabricated')
                 d={k:v[lo:hi] for k,v in data.items()};surfaces=[x[motion] for x in attachments[lo:hi]];temporal=segmentation_contact_state(d);states=support_topology(d,surfaces,temporal);motion_analysis=source_motion_analysis(d,temporal);cuts,hits=load_transfer_slices(d,temporal,motion_analysis)
+                for edge in reviewed_edges:
+                    if edge['trace']!=trace_name or not (lo<=edge['start']<edge['stop']<=hi):continue
+                    if edge['source_sha256']!=trace_info['source_sha256']:raise ValueError('Reviewed exclusion source has changed')
+                    begin,end=edge['start']-lo,edge['stop']-lo
+                    if begin==motion_analysis['start'] and end<motion_analysis['stop']:motion_analysis['start']=end
+                    elif end==motion_analysis['stop'] and begin>motion_analysis['start']:motion_analysis['stop']=begin
+                    else:raise ValueError('Reviewed exclusion must remove only an edge and retain a nonempty interval')
+                    if not any(c['start']==begin and c['stop']==end for c in cuts):raise ValueError('Reviewed exclusion no longer matches a complete edge segment')
+                    cuts=[c for c in cuts if c['stop']<=begin or c['start']>=end]
+                    motion_analysis['exclusions'].append(dict(start=begin,stop=end,reason=edge['reason']))
+                    applied_edges.append(edge)
                 trimmed_frames+=len(d['s'])-(motion_analysis['stop']-motion_analysis['start'])
-                trace_id=len(spans);span=dict(history_begin=offset+prefix+motion_analysis['start'],effective_source_frames=[lo+motion_analysis['start'],lo+motion_analysis['stop']],edge_exclusions=[dict(x,start=lo+x['start'],stop=lo+x['stop']) for x in motion_analysis['exclusions']],posture_phases=motion_analysis['posture_phases'],interior_flags=motion_analysis['interior_flags'],contact_episodes=temporal['episodes'],transfer_events=temporal['transfers'],form_changes=temporal['form_changes'],trace_id=trace_id,trace=trace_name,run=run,motion=motion,name=item['name'],begin=offset,end=offset+hi-context_begin,source=str(path),source_frames=[context_begin,hi],supervised_source_frames=[lo+motion_analysis['start'],lo+motion_analysis['stop']],history_prefix_frames=prefix,source_sha256=sha(path),raw_rows=str(capture/'native-rows.pt'),model_fingerprint=trace_info['model_fingerprint']);spans.append(span)
+                trace_id=len(spans);span=dict(history_begin=offset+prefix+motion_analysis['start'],effective_source_frames=[lo+motion_analysis['start'],lo+motion_analysis['stop']],edge_exclusions=[dict(x,start=lo+x['start'],stop=lo+x['stop']) for x in motion_analysis['exclusions']],posture_phases=motion_analysis['posture_phases'],interior_flags=motion_analysis['interior_flags'],contact_episodes=temporal['episodes'],placement_episodes=temporal['placements'],placement_resumptions=temporal['resumptions'],transfer_events=temporal['transfers'],form_changes=temporal['form_changes'],trace_id=trace_id,trace=trace_name,run=run,motion=motion,name=item['name'],begin=offset,end=offset+hi-context_begin,source=str(path),source_frames=[context_begin,hi],supervised_source_frames=[lo+motion_analysis['start'],lo+motion_analysis['stop']],history_prefix_frames=prefix,source_sha256=sha(path),raw_rows=str(capture/'native-rows.pt'),model_fingerprint=trace_info['model_fingerprint']);spans.append(span)
+                if 'substep_support_contract' in report:span['support_sampling_contract']=report['substep_support_contract']
                 for phase in native_contact_phases(d,[x[motion] for x in native_surfaces[lo:hi]]):native_phases.append(dict(trace_id=trace_id,trace=trace_name,source_start=lo+phase['start'],source_stop=lo+phase['stop'],**dict(phase,start=prefix+phase['start'],stop=prefix+phase['stop'])))
                 for phase in phase_ranges(states):phases.append(dict(trace_id=trace_id,trace=trace_name,source_start=lo+phase['start'],source_stop=lo+phase['stop'],**dict(phase,start=prefix+phase['start'],stop=prefix+phase['stop'])))
                 logical=motion_analysis['start']
@@ -114,10 +139,11 @@ def main():
                 chunk['source_physical_valid']=valid[context_begin:hi]
                 chunks.append(chunk);offset+=hi-context_begin
         print(json.dumps(dict(stage='recomputed',capture=capture.name,traces=len(traces),cases=len(cases))),flush=True)
+    if len(applied_edges)!=len(reviewed_edges):raise ValueError('Not all reviewed edge exclusions matched the source')
     if covered_frames+trimmed_frames!=sum(t['valid_frames'] for t in traces):raise ValueError('Valid motion frames were lost or duplicated in logical cuts')
     retired={'native_restart_report','native_restart_validation','source_library','source_slices_sha256','native_rows','raw_rows','boundary_policy','slice_contract','recording_spans'}
     metadata={k:v for k,v in old['metadata'].items() if k not in retired}
-    metadata.update(source_motion_contract=SOURCE_MOTION_CONTRACT,recording_spans=spans,source_evidence_admission=ADMISSION,transition_topology=TOPOLOGY_CONTRACT,segmentation_temporal_contract=TEMPORAL_CONTRACT,part_role_contract=ROLE_CONTRACT,stable_support_contract=CONTRACT,contact_phase_version=VERSION,source_capture_policy='same recorded source traces as previous dataset; no new capture selection or tracking-success filter',native_rows=[str(p/'native-rows.pt') for p in sorted(a.previous.glob('capture-seed*')) if p.is_dir()],boundary_policy='settled_motion_effective_partition_v8',slice_contract='native source-evidence admission; per-trace history; no tracking policy gate',previous_dataset=dict(path=str(a.previous),summary_sha256=sha(a.previous/'summary.json'),retired_filters=['whole_capture_success','tracking_restart_success']))
+    metadata.update(reviewed_edge_exclusions=reviewed_edges,support_placement_contract=PLACEMENT_CONTRACT,source_motion_contract=SOURCE_MOTION_CONTRACT,recording_spans=spans,source_evidence_admission=ADMISSION,transition_topology=TOPOLOGY_CONTRACT,segmentation_temporal_contract=TEMPORAL_CONTRACT,part_role_contract=ROLE_CONTRACT,stable_support_contract=CONTRACT,contact_phase_version=VERSION,source_capture_policy='same recorded source traces as previous dataset; no new capture selection or tracking-success filter' if a.capture_root is None else 'all explicitly supplied fresh native capture traces; no tracking-success filter; previous restart outcomes do not apply',native_rows=[str(p/'native-rows.pt') for p in sorted(capture_root.glob('capture-seed*')) if p.is_dir()],boundary_policy='support_completion_partition_v10',slice_contract='native source-evidence admission; per-trace history; no tracking policy gate',previous_dataset=dict(path=str(a.previous),summary_sha256=sha(a.previous/'summary.json'),retired_filters=['whole_capture_success','tracking_restart_success']))
     data={k:torch.cat([x[k] for x in chunks]) for k in chunks[0]}
     data['point_loss_valid']=data['known']&data['active']&data['contact_stable']
     if not cases:raise ValueError('No trainable source intervals remain after explicit edge trimming')

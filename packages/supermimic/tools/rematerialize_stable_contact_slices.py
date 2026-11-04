@@ -56,24 +56,27 @@ def main():
         reader=NativeContacts(env,direct=True,primary_faces=True)
         if a.mode=='capture':
             dest=a.output/f'capture-seed{a.seed}';dest.mkdir(parents=True,exist_ok=False);reader.export_collision_model(dest/'solver-collision.mjb')
+            (dest/'config.json').write_text(json.dumps({k:str(v) if isinstance(v,Path) else v for k,v in vars(a).items()},indent=2))
             support=NativeContactStability(CONTROL_DT);history=None;pending=set(range(len(spec['tasks'])));rows={i:[] for i in pending};raw=[];final={}
             worlds={i:int((env.task_ids==i).nonzero().flatten()[0]) for i in pending}
-            for t in range(int(motion.clip_len.max())-1):
-                state=env.state();obs=mdp.obs(state,env.a_prev,env.xi,env.f);history=obs[:,None].expand(-1,hist,-1).clone() if history is None else torch.cat((history[:,1:],obs[:,None]),1)
-                out=env.step(policy(history,motion.goal(env.f,lookahead)));evidence=reader.read_device();evidence.update(support.update(reader.last_view,reader.last_part_poses,env.ep_step))
-                raw.append(dict(control_frame=t,evidence=reader.last_evidence.export(),eligible=reader.last_primary_selection['eligible'].cpu(),groups=reader.last_view.groups.cpu(),view_rows=reader.last_view.rows.cpu(),part_position=reader.last_part_poses[0].cpu(),part_rotation=reader.last_part_poses[1].cpu()))
-                for i in list(pending):
-                    w=worlds[i];row={k:out[k][w].cpu().clone() for k in ('s','s1','a','a_prev','xi','f','term','done','ep_step','r')};row.update({k:v[w].cpu().clone() for k,v in evidence.items()});rows[i].append(row)
-                    if bool(row['done']) or len(rows[i])>=int(motion.clip_len[i])-1:final[i]=env.xi[w].cpu().clone();pending.remove(i)
-                if t%100==0:print(json.dumps(dict(stage='capture',seed=a.seed,frame=t,pending=len(pending))),flush=True)
-                if not pending:break
-                env.f=torch.minimum(env.f,motion.clip_end[env.task_ids]-1)
+            from supermimic.contact_substep_capture import SubstepCapture
+            with SubstepCapture(env,dest/'substeps') as substeps:
+                for t in range(int(motion.clip_len.max())-1):
+                    state=env.state();obs=mdp.obs(state,env.a_prev,env.xi,env.f);history=obs[:,None].expand(-1,hist,-1).clone() if history is None else torch.cat((history[:,1:],obs[:,None]),1)
+                    out=env.step(policy(history,motion.goal(env.f,lookahead)));substeps.flush(t,[worlds[i] for i in pending]);evidence=reader.read_device();evidence.update(substeps.monitor.summary());evidence.update(support.update(reader.last_view,reader.last_part_poses,env.ep_step))
+                    raw.append(dict(control_frame=t,evidence=reader.last_evidence.export(),eligible=reader.last_primary_selection['eligible'].cpu(),groups=reader.last_view.groups.cpu(),view_rows=reader.last_view.rows.cpu(),part_position=reader.last_part_poses[0].cpu(),part_rotation=reader.last_part_poses[1].cpu()))
+                    for i in list(pending):
+                        w=worlds[i];row={k:out[k][w].cpu().clone() for k in ('s','s1','a','a_prev','xi','f','term','done','ep_step','r')};row.update({k:v[w].cpu().clone() for k,v in evidence.items()});rows[i].append(row)
+                        if bool(row['done']) or len(rows[i])>=int(motion.clip_len[i])-1:final[i]=env.xi[w].cpu().clone();pending.remove(i)
+                    if t%100==0:print(json.dumps(dict(stage='capture',seed=a.seed,frame=t,pending=len(pending))),flush=True)
+                    if not pending:break
+                    env.f=torch.minimum(env.f,motion.clip_end[env.task_ids]-1)
             reports=[]
             for i,trace in rows.items():
                 data={k:torch.stack([x[k] for x in trace]) for k in trace[0]};data['next_xi']=torch.cat((data['xi'][1:],final[i][None]),0)
                 report=dict(motion=i,name=spec['tasks'][i]['name'],frames=len(trace),successful_rollout=len(trace)==int(motion.clip_len[i])-1 and not bool(data['term'].any()))
                 torch.save(dict(data=data,report=report),dest/f'motion-{i:03d}.pt');reports.append(report)
-            torch.save(raw,dest/'native-rows.pt');(dest/'report.json').write_text(json.dumps(dict(motions=reports,stable_support_contract=CONTRACT,phase_version=VERSION,checkpoint=a.checkpoint,checkpoint_sha256=sha(a.checkpoint),task_manifest_sha256=sha(a.task_manifest),policy_updated=False),indent=2));return
+            torch.save(raw,dest/'native-rows.pt');(dest/'report.json').write_text(json.dumps(dict(motions=reports,substep_support_contract=substeps.monitor.contract,stable_support_contract=CONTRACT,phase_version=VERSION,checkpoint=a.checkpoint,checkpoint_sha256=sha(a.checkpoint),task_manifest_sha256=sha(a.task_manifest),policy_updated=False),indent=2));return
         validate(a,env,reader,policy,motion,mdp,recording,slices,hist,lookahead,NativeContactStability,CONTROL_DT,reference_release_starts,LandingPhaseTracker,unflatten_state,flatten_state,mat_to_quat,rot_angle_sq)
 
 

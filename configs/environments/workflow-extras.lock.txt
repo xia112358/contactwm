@@ -26,8 +26,10 @@ pytest==9.1.1
 PyYAML==6.0.3
 requests==2.34.2
 sentry-sdk==2.73.0
+shapely==2.1.2
 smmap==5.0.3
 starlette==1.10.0
+trimesh==4.11.1
 typeguard==4.6.0
 typing-inspection==0.4.4
 typing_extensions==4.16.0
