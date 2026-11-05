@@ -3,12 +3,12 @@ import torch
 from .rotations import quat_to_mat
 from .contact_temporal import _runs,TEMPORAL_CONTRACT
 
-SOURCE_MOTION_CONTRACT=dict(version='source_motion_edges_v2',dt=.02,quiet_frames=15,
+SOURCE_MOTION_CONTRACT=dict(version='source_motion_edges_v3',dt=.02,quiet_frames=15,
     quiet_root_m=.01,quiet_root_angle_rad=.04,quiet_joint_rad=.06,quiet_part_m=.015,
     posture_min_frames=15,rise_height_m=.12,posture_root_m=.03,
     initial_drop_speed_m_s=.35,initial_settle_search_frames=25,
     fall_upright_cos=.5,fall_drop_m=.12,fall_speed_m_s=.5,
-    exclusions='edge-only static waits, measured initialization settling, known physical/numeric failures or unknown native evidence; partial normal transfers retained',
+    exclusions='edge-only static waits, measured initialization settling, known physical/numeric failures or unknown native evidence; incomplete initial and terminal action segments excluded by the partitioner',
     posture='use associated support placements for stance; measured contact/support gaps remain separate',
     middle='flag interior anomalies; never join frames across an excluded interval')
 

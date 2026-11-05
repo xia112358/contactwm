@@ -455,4 +455,4 @@ it does not establish full-scale training stability or tracking success.
 
 ## Current contact slicing and review
 
-See [2026-11-04 progress](../../docs/research/contact-20261104/README.md) for the current native contact/support timeline, per-frame point supervision, 161-case audit, browser exporter, and remaining training integration.
+See [2026-11-05 progress](../../docs/research/contact-20261105/README.md) for loss-aligned native witnesses, the `climb_58` handoff-chain experiments, the 82→83 entry diagnosis, and the remaining optimization questions.

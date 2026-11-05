@@ -61,7 +61,11 @@ def load_placement_evidence(capture):
         # measured single-surface identity and neither qualifies an association.
         face=torch.where(high<0,-1,torch.where(low==high,low,-2))
         surfaces.append(face.reshape(shape));known.append(r['observation']['known'])
-    return dict(position=positions.numpy(),rotation=rotations.numpy(),surfaces=torch.stack(surfaces).numpy(),known=torch.stack(known).numpy(),dt=contract['dt'],meshes=solver_part_meshes(capture))
+    return dict(position=positions.numpy(),rotation=rotations.numpy(),surfaces=torch.stack(surfaces).numpy(),known=torch.stack(known).numpy(),dt=contract['dt'],meshes=solver_part_meshes(capture),
+        points=torch.stack([r['observation']['point'] for r in samples]),
+        qualified_points=torch.stack([r['observation']['known']&r['observation']['active']&r['features']['contact_stable']&r['support']['event_ready'] for r in samples]),
+        world_task_ids=contract['world_task_ids'],substeps=contract['support_contract']['substeps_per_control'],
+        native_samples=samples,world_origins=torch.tensor(contract['world_origins']))
 
 
 def footprint(vertices):

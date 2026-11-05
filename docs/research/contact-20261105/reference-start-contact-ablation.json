@@ -1,0 +1,17 @@
+{
+  "source": "stable-support-v2-345/error-distribution-attempts.csv",
+  "motions": {
+    "climb_58_mirror": {
+      "attempts": 336,
+      "original_success_rate": 0.6339285714285714,
+      "root_angle_pass_rate": 0.9940476190476191,
+      "contact_only_failure_rate": 0.3601190476190476
+    },
+    "climb_58_original": {
+      "attempts": 264,
+      "original_success_rate": 0.7916666666666666,
+      "root_angle_pass_rate": 1.0,
+      "contact_only_failure_rate": 0.20833333333333334
+    }
+  }
+}

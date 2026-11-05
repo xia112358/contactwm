@@ -41,7 +41,7 @@ data downloads and a one-step simulation check. Installation does not include
 trained policies or certify historical contact labels. The optional native
 PPO/Predictor environment has its own [installation recipe](docs/install.md).
 
-Latest contact segmentation and supervision status: [2026-11-04 progress](docs/research/contact-20261104/README.md), including reproducible trajectory review and remaining training integration work.
+Latest contact segmentation and supervision status: [2026-11-05 progress](docs/research/contact-20261105/README.md), including loss-aligned native witnesses, handoff-chain experiments, and the 82→83 entry diagnosis.
 
 ## Start here
 

@@ -94,7 +94,10 @@ def _replay_events(data, clock, event, stop, truncated, completion_mode, stage_p
     """
     T=int(stop.max());device=stop.device
     frames=torch.arange(T,device=device)[:,None];live=frames<stop[None]
-    if stable_contact_frames:
+    if stable_contact_frames and getattr(clock,'fixed_goal_mode',False):
+        from .contact_loss_sampling import stable_loss_samples
+        raw=stable_loss_samples(data['contact_stable'][:T],live)
+    elif stable_contact_frames:
         from .contact_phase import landing_phase_events
         end=clock.event_ends[event]-1
         required=clock.target_masks[end]&~clock.keep_masks[end]
@@ -191,7 +194,7 @@ def replay_loss(actor,wm,clock,geometry,context,normalize,default_q,data,*,
         if eligible.any():pair_probe=int(eligible.nonzero()[0])
     native_events={}
     evaluations,terminals,schedule=_replay_events(data,clock,event,stop,truncated,completion_mode,stage_plan,first_contact_targets,contact_window_frames,native_events,stable_contact_frames)
-    if check and stable_contact_frames:
+    if check and stable_contact_frames and not getattr(clock,'fixed_goal_mode',False):
         live=torch.arange(len(evaluations),device=device)[:,None]<stop[None]
         collected=data['contact_first'][:len(evaluations)]&live[...,None]&new[None]
         if not torch.equal(native_events['mask'],collected):
@@ -280,10 +283,11 @@ def replay_loss(actor,wm,clock,geometry,context,normalize,default_q,data,*,
                     point=torch.where(observed[...,None],swap(measured_proxy,measured),geometry(S1,end-1))
                 if region is not None:
                     if stable_contact_frames:
-                        # Same native witness as online completion and metrics;
-                        # only its fixed body-local derivative comes from FK/WM.
+                        # Stable native witness can precede the control endpoint.
+                        # Completion keeps its separate control-end observation;
+                        # the fixed body-local derivative still comes from FK/WM.
                         p,R=geometry.poses(S1)
-                        measured=data['point'][t]
+                        measured=data['contact_loss_point' if clock.fixed_goal_mode else 'point'][t]
                         local=(R.detach().transpose(-1,-2)@(measured-p.detach()).unsqueeze(-1)).squeeze(-1)
                         point=swap(p+(R@local.unsqueeze(-1)).squeeze(-1),measured)
                         delta=(point-target)/.05
@@ -395,6 +399,58 @@ def replay_loss(actor,wm,clock,geometry,context,normalize,default_q,data,*,
             if not value>0 or not torch.isfinite(pair_gradient).all():raise AssertionError('Gradient disconnected at command handoff')
             details['handoff_terminal_to_first_action_gradient']=value
     return loss,details
+
+
+@torch.no_grad()
+def loss_aligned_attempt_metrics(data,clock,contact_tolerances,root_tolerance,root_angle_tolerance):
+    """Report selected attempts using the exact stable witnesses used by loss.
+
+    A missing stable witness is unsuccessful, never a synthetic contact. Error
+    is conditional on every target part having a witness and uses the same
+    equal-per-part, equal-per-attempt weighting as the contact objective.
+    """
+    from .contact_loss_sampling import stable_loss_samples
+    from .contact_task import has_fallen
+    event=data['goal_index'][0];B=len(event);device=event.device
+    end_index=data['done'].long().argmax(0);ends=clock.event_ends[event]
+    live=torch.arange(len(data['done']),device=device)[:,None]<=end_index
+    selected=stable_loss_samples(data['contact_stable'],live)
+    has=selected.any(0);indices=selected.long().argmax(0)
+    batch=torch.arange(B,device=device)[:,None];parts=torch.arange(6,device=device)[None]
+    point=data['contact_loss_point'][indices,batch,parts]
+    target=clock.data['point'][ends-1]
+    required=clock.target_masks[ends-1]&~clock.keep_masks[ends-1]
+    complete=((~required)|has).all(-1)
+    distance=(point-target).norm(dim=-1)
+    mean_distance=(distance*required).sum(-1)/required.sum(-1).clamp_min(1)
+    contact_ok=((~required)|(has&(distance<=contact_tolerances[event,None]))).all(-1)
+    terminal=data['s1'][end_index,torch.arange(B,device=device)]
+    final=unflatten_state(terminal);reference=unflatten_state(clock.data['s1'][ends-1])
+    root=(final[0]-reference[0]).norm(dim=-1);angle=rot_angle_sq(final[1],reference[1]).sqrt()
+    angle_ok=torch.ones_like(contact_ok) if root_angle_tolerance is None else angle<root_angle_tolerance
+    failed=(~torch.isfinite(terminal).all(-1))|has_fallen(final)
+    success=contact_ok&(root<root_tolerance)&angle_ok&~failed
+    observed_error=mean_distance.masked_fill(~complete,0.)
+    fields=torch.stack((torch.ones_like(root),success.float(),complete.float(),observed_error*100,root*100,(end_index+1).float()),-1).double()
+    sums=fields.new_zeros(len(clock.event_ends),fields.shape[-1]).index_add_(0,event,fields)
+    totals=fields.sum(0);median=torch.nanmedian(mean_distance.masked_fill(~complete,float('nan')))*100
+    packed=torch.cat((sums.flatten(),totals,median[None],angle.mean()[None])).cpu().tolist()
+    width=fields.shape[-1];segments=[]
+    for segment in range(len(clock.event_ends)):
+        count,passed,observed,distance_sum,root_sum,steps=packed[segment*width:(segment+1)*width]
+        if not count:continue
+        segments.append(dict(segment=segment+1,attempts=int(count),success_rate=passed/count,
+            contact_rate=observed/count,best_contact_error_cm=distance_sum/observed if observed else None,
+            root_error_cm=root_sum/count,mean_terminal_step=steps/count))
+    count,passed,observed,distance_sum,root_sum,steps,med,ang=packed[len(clock.event_ends)*width:]
+    return dict(segments=segments,macro_success_rate=sum(s['success_rate'] for s in segments)/len(segments),
+        attempts=int(count),success_rate=passed/count,target_face_contact_rate=observed/count,
+        best_contact_error_cm=distance_sum/observed if observed else None,
+        best_contact_error_median_cm=med if observed else None,contact_error_samples=int(observed),
+        root_error_cm=root_sum/count,orientation_error_rad=ang,mean_terminal_step=steps/count,
+        contact_metric='loss_stable_witness_mean_part_error',face_matching=False,
+        missing_witness_attempts=int(count-observed),
+        scope='duration-selected first attempts; last qualified stable loss witness; missing witness counts as failure and is excluded from contact error')
 
 
 @torch.no_grad()
