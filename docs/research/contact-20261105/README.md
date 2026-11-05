@@ -51,8 +51,9 @@
 | 9 | — | 0.411 |
 | 10 | — | 0.553 |
 
-两个 run 的**完整链式成功都是 `0/4085`**。最好出现在 520 轮：4015 个尝试进入第 3 段，
-但没有一个通过。pure 的池只覆盖到第 3 段；第 3 段池在 590 轮从 `256` 降到 `0`，此后
+两个 run 的**完整链式成功都是 `0/4085`**。reference-producer 最好出现在 520 轮：
+4015 个尝试进入第 3 段，但没有一个通过。pure 在 520 轮有 2295 个进入第 3 段，同样
+没有通过。pure 的池只覆盖到第 3 段；第 3 段池在 590 轮从 `256` 降到 `0`，此后
 该段不再进入 actor 更新。
 
 ## 82 → 83 衔接诊断
@@ -138,8 +139,9 @@ ref 600 的 `stable_contact_loss=5.07`、`terminal_guidance_loss=8.25`，guidanc
    hard 段上失败，而 reference-start 单段可以很高；shared actor 被少数 hard case 的
    terminal 梯度支配，已学会的段被遗忘。
 3. **接触和 root/angle 不在同一时间/尺度上。** 稳定接触是局部 witness 监督；
-   root/orientation 只有终点 loss，并穿过冻结 WM 的 26–49 步反传。pure 600 的第 2 段
-   root 均值 `46.8 cm`，ref 为 `41.9 cm`，都大于入口的 `6.6 cm`；这不是接触阈值能解释的。
+   root/orientation 只有终点 loss，并穿过冻结 WM 的 26–49 步反传。最后一轮 native
+   batch 的第 2 段 root 均值：pure `46.8 cm`，ref `41.9 cm`，都大于入口的 `6.6 cm`；
+   这不是接触阈值能解释的。
 4. **success-only + `max_age=10` 的池是 loop 级放大器。** 第 3 段池在 590 轮过期后，
    frontier 不再进入更新；失败会直接导致断供。
 5. **链式指标是乘法的。** ref 600 的单段 native 乘积约 `2.6e-5`，4085 个环境的期望
