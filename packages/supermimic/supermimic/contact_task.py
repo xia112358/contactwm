@@ -22,6 +22,7 @@ class ContactTask:
         if contact_only and (not sequential or completion_mode!='accumulated_target'):
             raise ValueError('Contact-only diagnostic requires continuous accumulated contact execution')
         self.__dict__.update(locals());self.__dict__.pop('self')
+        self.fixed_goal_mode=getattr(clock,'fixed_goal_mode',False)
         self.ids=(env.task_ids==int(demo['xi'][0,33])).nonzero().flatten()
         self.background=(env.task_ids!=int(demo['xi'][0,33])).nonzero().flatten()
         self.N=len(self.ids);self.count=len(clock.event_ends);dev=env.device
@@ -67,9 +68,9 @@ class ContactTask:
         self.contact_tolerance=self.contact_tolerances_by_segment[self.segment,None]
         self.budgets=(all_stops-all_starts)[self.segment]+grace_steps
         self.last_terminal_steps=all_stops-all_starts+grace_steps
-        self.target_faces_by_segment=None if reader.direct else reader.target_faces(demo['point'][clock.event_ends-1],self.ids)
+        self.target_faces_by_segment=None if reader.direct else reader.target_faces(clock.data['point'][clock.event_ends-1],self.ids)
         self.target_faces=None if reader.direct else self.target_faces_by_segment[self.segment]
-        reader.set_targets(demo['point'][self.ends-1],self.ids)
+        reader.set_targets(clock.data['point'][self.ends-1],self.ids)
         self.attempts=torch.zeros(self.count,device=dev);self.successes=self.attempts.clone()
         self.root_sum=self.attempts.clone();self.point_sum=self.attempts.clone();self.point_count=self.attempts.clone()
         if stable_contact_frames:
@@ -81,10 +82,15 @@ class ContactTask:
             from .contact_stability import CONTRACT
             if getattr(clock,'reference_support_contract',None)!=CONTRACT:
                 raise ValueError('Stable support training requires rematerialized stable reference slices; old onset goals are incompatible')
-            self.contact_stability=NativeContactStability(CONTROL_DT)
-            clock.contact_phase_release_starts=reference_release_starts(clock,stable_contact_frames)
-            required=clock.target_masks[self.ends-1]&~clock.keep_masks[self.ends-1]
-            self.landing_phase=LandingPhaseTracker(clock.contact_phase_release_starts[self.segment],required,stable_contact_frames)
+            if self.fixed_goal_mode:
+                from .contact_gpu_stability import GPUContactLossMonitor
+                self.contact_monitor=GPUContactLossMonitor(env,reader)
+            else:
+                self.contact_stability=NativeContactStability(CONTROL_DT)
+            if not self.fixed_goal_mode:
+                clock.contact_phase_release_starts=reference_release_starts(clock,stable_contact_frames)
+                required=clock.target_masks[self.ends-1]&~clock.keep_masks[self.ends-1]
+                self.landing_phase=LandingPhaseTracker(clock.contact_phase_release_starts[self.segment],required,stable_contact_frames)
         self.previous_contact=torch.zeros((self.N,6),device=dev,dtype=torch.bool)
         self.recontact=torch.zeros_like(self.previous_contact)
         self.valid_contacts=torch.zeros_like(self.previous_contact)
@@ -159,7 +165,7 @@ class ContactTask:
             from .contact_library import initial_contact_indices
             initial=initial_contact_indices(self.clock,starts)
             self.previous_contact[slots]=self.demo['active'][initial]&self.demo['known'][initial]
-        if self.stable_contact_frames:self.landing_phase.reset(slots)
+        if self.stable_contact_frames and not self.fixed_goal_mode:self.landing_phase.reset(slots)
         self.arrival.reset(slots)
         self.recontact[slots]=False
         self.valid_contacts[slots]=False
@@ -178,7 +184,7 @@ class ContactTask:
         self.budgets=(self.fixed_budgets[self.segment] if hasattr(self,'fixed_budgets') else self.ends-self.starts+self.grace_steps)
         self.contact_tolerance=self.contact_tolerances_by_segment[self.segment,None]
         self.sequence_live.fill_(True);self.sequence_completed.zero_();self.sequence_progress.zero_();self.stage_step.zero_()
-        self.reader.set_targets(self.demo['point'][self.ends-1],self.ids)
+        self.reader.set_targets(self.clock.data['point'][self.ends-1],self.ids)
         self.reset(torch.arange(self.N,device=self.segment.device))
 
     @torch.no_grad()
@@ -210,10 +216,14 @@ class ContactTask:
         # the physical state and sensor context already read for the policy.
         step_kwargs={} if hasattr(self.clock,'segment_starts') else dict(precomputed_state=S)
         if getattr(self,'skip_student_tracking',False):step_kwargs['tracking_env_ids']=self.background
+        if self.stable_contact_frames and self.fixed_goal_mode:
+            initial=self.demo['active'][self.starts]&self.demo['known'][self.starts]
+            self.contact_monitor.begin_control(ids,self.contact_tolerance,initial)
         out=env.step(actions,**step_kwargs)
         evidence={k:v[ids] for k,v in self.reader.read_device().items()}
         if self.stable_contact_frames:
-            support=self.contact_stability.update(self.reader.last_view,self.reader.last_part_poses,env.ep_step)
+            support=(self.contact_monitor.summary() if self.fixed_goal_mode else
+                self.contact_stability.update(self.reader.last_view,self.reader.last_part_poses,env.ep_step))
             evidence.update({k:v[ids] for k,v in support.items()})
         state=unflatten_state(out['s1'][ids]);clock=self.clock
         target=clock.data['point'][self.ends-1];keep=clock.keep_masks[self.ends-1]
@@ -262,7 +272,7 @@ class ContactTask:
             valid=self.recontact&(torch.ones_like(observed) if self.target_faces is None else self.onset_face==self.target_faces)&((self.onset_point-target).norm(dim=-1)<=self.contact_tolerance)
             arrived=torch.where(has_new,((~new)|valid).all(-1),((~new)|in_goal).all(-1))
             completed=arrived&(root<self.root_tolerance)&angle_ok&torch.where(has_new,contact_end,kept)&~failed
-        if self.stable_contact_frames:
+        if self.stable_contact_frames and not self.fixed_goal_mode:
             # Confirm qualified native support after the demonstrated release.
             # Scraping/row changes cannot latch a target or end the attempt.
             first=self.landing_phase.update(evidence['active'],evidence['known'],evidence['contact_stable'])
@@ -365,7 +375,7 @@ class ContactTask:
         self.recontact[advance]=False
         self.onset_point[advance]=0
         self.onset_face[advance]=-1
-        self.reader.update_targets(self.demo['point'][self.ends[advance]-1],self.ids[advance])
+        self.reader.update_targets(self.clock.data['point'][self.ends[advance]-1],self.ids[advance])
 
     def grid_report(self):
         if not hasattr(self.clock,'target_grid'):return {}

@@ -1,0 +1,54 @@
+{
+  "candidate_pairs": 250,
+  "paired": 246,
+  "completed_pairs": 246,
+  "uninterrupted_success": 0,
+  "restored_success": 0,
+  "outcome_disagreements": 0,
+  "paired_steps": [
+    26.0,
+    26.0,
+    26.0
+  ],
+  "initial_state_max_abs": [
+    0.0,
+    2.9802322387695312e-08,
+    1.7881393432617188e-07
+  ],
+  "initial_sensor_max_abs": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "initial_history_max_abs": [
+    3.725290298461914e-09,
+    7.4803829193115234e-06,
+    9.000301361083984e-06
+  ],
+  "initial_action_max_abs": [
+    0.0,
+    1.1920928955078125e-06,
+    2.3245811462402344e-06
+  ],
+  "max_state_abs": [
+    0.0017668083310127258,
+    0.385114848613739,
+    5.826127529144287
+  ],
+  "max_xi_abs": [
+    0.0021948516368865967,
+    0.6064673662185669,
+    9.661039352416992
+  ],
+  "max_history_abs": [
+    0.0021948516368865967,
+    0.581578254699707,
+    9.661039352416992
+  ],
+  "max_action_abs": [
+    0.0002853572368621826,
+    0.05089715123176575,
+    1.5164003372192383
+  ],
+  "scope": "same actual #82 success state: uninterrupted versus restored into separate identical environment; no optimizer update"
+}

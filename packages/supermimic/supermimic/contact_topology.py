@@ -9,11 +9,11 @@ from .contact_stability import CONTRACT
 
 PARTS=('LF','RF','LH','RH','LK','RK')
 NAMES=('左脚','右脚','左手','右手','左膝','右膝')
-ADMISSION=dict(version='native_source_evidence_v2',
+ADMISSION=dict(version='native_successful_source_evidence_v3',
     source='finite continuous physical source interval and allocated native primary-surface evidence',
-    contact_goal='actual qualified native support after confirmed release',
-    trajectory_only='valid motion without a qualified contact goal is retained without point supervision',
-    collector_success='diagnostic only',tracking_restart='diagnostic only')
+    contact_goal='fixed actual native target from qualified observations within one support placement',
+    trajectory_only='retained for trajectory review; not admitted as a next-contact target task',
+    collector_success='required: whole tracking trajectory completed without termination',tracking_restart='diagnostic only')
 SCHEMA='native_motion_contact_slices_v3'
 TOPOLOGY_CONTRACT=dict(version='native_continuous_bearing_support_v7',
     entry='native bearing and measured motion; substep independent events require the recorded event_bearing_s, excluding gaps; keep physical onset and fast confirmation separately',

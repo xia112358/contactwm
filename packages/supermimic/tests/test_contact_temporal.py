@@ -121,7 +121,7 @@ def test_foot_to_knee_form_changes_only_at_observed_contact():
     d=data();bearing(d,0,0,6);land(d,4,14)
     t=segmentation_contact_state(d);cuts,_=load_transfer_slices(d,t)
     assert t['form_changes']==[dict(frame=14,limb=0,source_part=0,target_part=4)]
-    assert [(c['start'],c['stop']) for c in cuts]==[(0,14),(14,24)]
+    assert [(c['start'],c['stop']) for c in cuts]==[(0,6),(6,24)]
     assert roles(d,0,6)['contact_forms']['LL']=='foot'
     assert (t['forms'][6:14,0]==-1).all()
     assert roles(d,6,14)['contact_forms']['LL']=='none'
@@ -134,8 +134,9 @@ def test_foot_to_knee_form_changes_only_at_observed_contact():
 def test_form_and_nearby_arrival_arbitration_retains_every_event():
     d=data(30);bearing(d,0,0,10);land(d,4,18);land(d,2,5)
     t=segmentation_contact_state(d);cuts,_=load_transfer_slices(d,t)
-    assert 18 in [c['stop'] for c in cuts]
-    assert len({b for c in cuts for b in (c['start'],c['stop']) if 17<=b<=19})==1
+    assert 10 in [c['stop'] for c in cuts]
+    assert next(c for c in cuts if (18,4) in c['arrivals'])['start']==10
+    assert len({b for c in cuts for b in (c['start'],c['stop']) if 17<=b<=19})==0
     assert sorted((f,p) for c in cuts for f,p in c['arrivals'])==sorted((e['arrival'],e['part']) for e in t['transfers'] if e['arrival'] is not None)
     coverage=torch.zeros(30,dtype=torch.int)
     for c in cuts:coverage[c['start']:c['stop']]+=1
@@ -453,7 +454,7 @@ def test_observed_initial_departure_survives_short_unconfirmed_support():
 def test_adjacent_form_and_arrival_cuts_do_not_create_one_frame_fragment(offset):
     d=data(50+offset);bearing(d,4,0,20+offset);bearing(d,5,0,10+offset)
     land(d,1,19+offset);land(d,0,20+offset);land(d,3,18+offset)
-    motion=dict(start=0,stop=len(d['active']),posture_phases=[dict(start=0,stop=15+offset,kind='support_posture_motion')])
+    motion=dict(exclusions=[],start=0,stop=len(d['active']),posture_phases=[dict(start=0,stop=15+offset,kind='support_posture_motion')])
     cuts,hits=load_transfer_slices(d,source_motion=motion)
     assert [(c['start'],c['stop']) for c in cuts]==[(0,15+offset),(15+offset,20+offset),(20+offset,50+offset)]
     assert cuts[1]['arrivals']==[(18+offset,3),(19+offset,1)]
@@ -496,9 +497,10 @@ def test_new_unfinished_departure_preserves_preceding_completion():
 
 def test_independent_posture_is_retained_but_its_eventless_tail_is_absorbed():
     d=data(50);bearing(d,0,0,50);land(d,1,15)
-    motion=dict(start=0,stop=50,posture_phases=[dict(start=20,stop=40,kind='rise')])
+    motion=dict(exclusions=[],start=0,stop=50,posture_phases=[dict(start=20,stop=40,kind='rise')])
     cuts,_=load_transfer_slices(d,source_motion=motion)
     assert [(c['start'],c['stop']) for c in cuts]==[(0,20),(20,50)]
+    assert not motion['exclusions']
     assert cuts[-1]['phase_kind']=='rise'
 
 
@@ -529,7 +531,7 @@ def test_new_activity_after_idle_is_not_a_continuation_of_old_withdrawal():
     d['native_part_position'][40:51,2,0]=torch.linspace(-.2,.1,11)
     t=segmentation_contact_state(d)
     # A separate posture boundary closes the interval before the arrival.
-    motion=dict(start=0,stop=65,posture_phases=[dict(start=48,stop=65,kind='rise')])
+    motion=dict(exclusions=[],start=0,stop=65,posture_phases=[dict(start=48,stop=65,kind='rise')])
     cuts,_=load_transfer_slices(d,t,motion)
     assert [(c['start'],c['stop']) for c in cuts][:2]==[(0,31),(31,48)]
     assert any(c['start']==48 for c in cuts)  # independent posture remains
@@ -613,7 +615,7 @@ def test_posture_continuation_does_not_keep_confirmation_latency_fragment():
     event=next(e for e in temporal['transfers'] if e['part']==0)
     # A native substep window straddles the control-frame boundary.
     event['confirmed']=11
-    phases=dict(start=0,stop=30,posture_phases=[dict(start=11,stop=30,kind='rise')])
+    phases=dict(exclusions=[],start=0,stop=30,posture_phases=[dict(start=11,stop=30,kind='rise')])
     cuts,_=load_transfer_slices(d,temporal,phases)
     assert [(c['start'],c['stop']) for c in cuts]==[(0,10),(10,30)]
     assert cuts[-1]['phase_kind']=='rise'
@@ -624,7 +626,7 @@ def test_independent_posture_onset_outside_confirmation_window_is_preserved():
     d=data(35);bearing(d,4,0,10);bearing(d,0,10,35)
     temporal=segmentation_contact_state(d)
     next(e for e in temporal['transfers'] if e['part']==0)['confirmed']=11
-    phases=dict(start=0,stop=35,posture_phases=[dict(start=18,stop=35,kind='rise')])
+    phases=dict(exclusions=[],start=0,stop=35,posture_phases=[dict(start=18,stop=35,kind='rise')])
     cuts,_=load_transfer_slices(d,temporal,phases)
     assert any(c['start']==18 for c in cuts)
 
@@ -660,9 +662,40 @@ def test_stationary_initial_confirmation_does_not_become_new_engagement():
     assert [c['stop'] for c in cuts]==[30]
 
 
-def test_confirmation_inside_same_posture_does_not_split_its_first_frame():
+def test_incomplete_terminal_posture_is_dropped_even_with_an_arrival():
     d=data(50);bearing(d,4,0,20);land(d,0,20);bearing(d,1,0,35)
     d['native_part_position'][35:,1,0]=torch.arange(15)*.03
-    motion=dict(start=0,stop=50,posture_phases=[dict(start=20,stop=50,kind='rise')])
+    motion=dict(exclusions=[],start=0,stop=50,posture_phases=[dict(start=20,stop=50,kind='rise')])
     cuts,_=load_transfer_slices(d,source_motion=motion)
-    assert [(c['start'],c['stop']) for c in cuts]==[(0,20),(20,50)]
+    assert [(c['start'],c['stop']) for c in cuts]==[(0,20)]
+    assert motion['exclusions']==[dict(start=20,stop=50,reason='incomplete_terminal_action')]
+
+
+def test_population_selection_removes_event_without_rewriting_native_contact():
+    d=data(30);land(d,0,2);land(d,1,15)
+    raw=d['active'].clone();original=segmentation_contact_state(d)
+    assert {ep['part'] for ep in original['placements']}=={0,1}
+    d['consensus_support_allowed']=torch.zeros_like(raw)
+    d['consensus_support_allowed'][:,0]=True
+    selected=segmentation_contact_state(d)
+    assert {ep['part'] for ep in selected['placements']}=={0}
+    assert all(event['part']!=1 for event in selected['transfers'])
+    assert not selected['support'][:,1].any()
+    assert torch.equal(d['active'],raw)
+    cuts,_=load_transfer_slices(d,selected)
+    assert all(a['stop']==b['start'] for a,b in zip(cuts,cuts[1:]))
+
+
+@pytest.mark.parametrize('foot',[0,1])
+@pytest.mark.parametrize('offset',[0,11])
+def test_form_transfer_keeps_approach_and_arrival_together(foot,offset):
+    knee=foot+4;other=1-foot;d=data(60+offset)
+    bearing(d,knee,0,23+offset);bearing(d,other,0,8+offset)
+    land(d,other,21+offset);land(d,foot,40+offset)
+    t=segmentation_contact_state(d);cuts,_=load_transfer_slices(d,t)
+    owner=next(c for c in cuts if (40+offset,foot) in c['arrivals'])
+    assert owner['start']<40+offset
+    assert not any(c['stop']==40+offset for c in cuts)
+    assert not any(c['stop']-c['start']==1 for c in cuts)
+    for c in cuts:
+        for limb in range(4):assert len({p for p in t['forms'][c['start']:c['stop'],limb].tolist() if p>=0})<=1

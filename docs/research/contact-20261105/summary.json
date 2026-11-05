@@ -1,0 +1,836 @@
+{
+  "date": "2026-11-05",
+  "previous_snapshot": "contact-20261104",
+  "dataset": "partition-v8",
+  "verification": {
+    "tests_passed": 434,
+    "pytest_subtests_passed": 28
+  },
+  "handoff": {
+    "initialization": "checkpoint_000500.pt from the shared 500-update baseline",
+    "pure": {
+      "attempts": 426132,
+      "successful_attempts": 161147,
+      "success_rate": 0.37816216571391026,
+      "macro_success_rate": 0.3533201761012197,
+      "covered_goals": 3,
+      "mean_root_error_m": 0.2706131248283982,
+      "current_root_error_m": 0.15947990119457245,
+      "current_contact_error_m": 0.706381618976593
+    },
+    "reference_producer": {
+      "attempts": 585675,
+      "successful_attempts": 305329,
+      "success_rate": 0.5213283817817048,
+      "macro_success_rate": 0.5066215393508664,
+      "covered_goals": 10,
+      "mean_root_error_m": 0.11302806407270458,
+      "current_root_error_m": 0.16820284724235535,
+      "current_contact_error_m": 0.3565414845943451
+    },
+    "pure_per_segment": [
+      {
+        "segment": 1,
+        "attempts": 152101,
+        "success_rate": 0.9547668983109907,
+        "final_root_error_m": 0.06888207969129066,
+        "final_contact_error_m": 0.017970897822105963
+      },
+      {
+        "segment": 2,
+        "attempts": 151397,
+        "success_rate": 0.10519362999266828,
+        "final_root_error_m": 0.19712244029769413,
+        "final_contact_error_m": 0.06560308832867105
+      },
+      {
+        "segment": 3,
+        "attempts": 122634,
+        "success_rate": 0.0,
+        "final_root_error_m": 0.6115443744190029,
+        "final_contact_error_m": 0.42162385404084146
+      },
+      {
+        "segment": 4,
+        "attempts": 0,
+        "success_rate": null,
+        "final_root_error_m": null,
+        "final_contact_error_m": 0.0
+      },
+      {
+        "segment": 5,
+        "attempts": 0,
+        "success_rate": null,
+        "final_root_error_m": null,
+        "final_contact_error_m": 0.0
+      },
+      {
+        "segment": 6,
+        "attempts": 0,
+        "success_rate": null,
+        "final_root_error_m": null,
+        "final_contact_error_m": 0.0
+      },
+      {
+        "segment": 7,
+        "attempts": 0,
+        "success_rate": null,
+        "final_root_error_m": null,
+        "final_contact_error_m": 0.0
+      },
+      {
+        "segment": 8,
+        "attempts": 0,
+        "success_rate": null,
+        "final_root_error_m": null,
+        "final_contact_error_m": 0.0
+      },
+      {
+        "segment": 9,
+        "attempts": 0,
+        "success_rate": null,
+        "final_root_error_m": null,
+        "final_contact_error_m": 0.0
+      },
+      {
+        "segment": 10,
+        "attempts": 0,
+        "success_rate": null,
+        "final_root_error_m": null,
+        "final_contact_error_m": 0.0
+      }
+    ],
+    "reference_per_segment": [
+      {
+        "segment": 1,
+        "attempts": 44087,
+        "success_rate": 0.9621657177852881,
+        "final_root_error_m": 0.048129150839178785,
+        "final_contact_error_m": 0.012919680869637568
+      },
+      {
+        "segment": 2,
+        "attempts": 53150,
+        "success_rate": 0.18062088428974601,
+        "final_root_error_m": 0.18222369620178738,
+        "final_contact_error_m": 0.13312605379122042
+      },
+      {
+        "segment": 3,
+        "attempts": 48444,
+        "success_rate": 0.020663033605812897,
+        "final_root_error_m": 0.21831542122089423,
+        "final_contact_error_m": 0.13006658252789038
+      },
+      {
+        "segment": 4,
+        "attempts": 67624,
+        "success_rate": 0.814991718916361,
+        "final_root_error_m": 0.10974971672409203,
+        "final_contact_error_m": 0.5678076103496804
+      },
+      {
+        "segment": 5,
+        "attempts": 47505,
+        "success_rate": 0.616819282180823,
+        "final_root_error_m": 0.19451225528891697,
+        "final_contact_error_m": 0.16110586520387854
+      },
+      {
+        "segment": 6,
+        "attempts": 59771,
+        "success_rate": 0.17337839420454734,
+        "final_root_error_m": 0.11665058750271871,
+        "final_contact_error_m": 0.22221150138015686
+      },
+      {
+        "segment": 7,
+        "attempts": 78673,
+        "success_rate": 0.9380982039581559,
+        "final_root_error_m": 0.03838445296810056,
+        "final_contact_error_m": 0.03267160296086056
+      },
+      {
+        "segment": 8,
+        "attempts": 61372,
+        "success_rate": 0.39552238805970147,
+        "final_root_error_m": 0.0613985109506371,
+        "final_contact_error_m": 0.0650798909974757
+      },
+      {
+        "segment": 9,
+        "attempts": 68260,
+        "success_rate": 0.4107676530911222,
+        "final_root_error_m": 0.11607045470672796,
+        "final_contact_error_m": 0.08910664989286647
+      },
+      {
+        "segment": 10,
+        "attempts": 56789,
+        "success_rate": 0.5531881174171054,
+        "final_root_error_m": 0.09630913233911938,
+        "final_contact_error_m": 0.18591643466859506
+      }
+    ],
+    "chain": "0/4085 completed in both runs; best chain reached segment 3 at iteration 520 but 0 passed it",
+    "diagnosis": {
+      "reference": {
+        "entered": 501,
+        "attempts": 501,
+        "successes": 501,
+        "contact_goal_missed": 0,
+        "contact_unobserved": 0,
+        "root_over_25cm": 0,
+        "angle_over_04rad": 0,
+        "fallen": 0,
+        "terminal_step": [
+          15.0,
+          15.0,
+          15.0,
+          18.0
+        ],
+        "closest_contact_cm": [
+          1.928141713142395,
+          1.9290482997894287,
+          2.5620038509368896,
+          2.728006362915039
+        ],
+        "terminal_root_cm": [
+          3.289308786392212,
+          3.2894232273101807,
+          3.586864471435547,
+          4.232852935791016
+        ],
+        "terminal_angle_rad": [
+          0.042362798005342484,
+          0.04236842691898346,
+          0.05047578364610672,
+          0.06601128727197647
+        ],
+        "entry_root_cm": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "entry_angle_rad": [
+          0.001423572306521237,
+          0.001423572306521237,
+          0.001423572306521237,
+          0.001423572306521237
+        ],
+        "entry_joint_rms_rad": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "entry_joint_velocity_rms": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "entry_linear_velocity_difference": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "entry_history_rms": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "entry_sensor_rms": [
+          0.81431645154953,
+          0.81431645154953,
+          0.81431645154953,
+          0.81431645154953
+        ],
+        "entry_action_rms": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "required_parts": [
+          1
+        ],
+        "first_stage_steps": null,
+        "entry_motion_frame": null,
+        "reference_first_stage_length": 39,
+        "reference_second_start_motion_frame": 255
+      },
+      "handoff": {
+        "entered": 492,
+        "attempts": 492,
+        "successes": 0,
+        "contact_goal_missed": 492,
+        "contact_unobserved": 270,
+        "root_over_25cm": 452,
+        "angle_over_04rad": 391,
+        "fallen": 0,
+        "terminal_step": [
+          26.0,
+          26.0,
+          26.0,
+          26.0
+        ],
+        "closest_contact_cm": [
+          18.456710815429688,
+          21.51791763305664,
+          24.610889434814453,
+          49.078330993652344
+        ],
+        "terminal_root_cm": [
+          25.04298210144043,
+          29.56501007080078,
+          31.301055908203125,
+          33.30684280395508
+        ],
+        "terminal_angle_rad": [
+          0.38566550612449646,
+          0.4417712688446045,
+          0.5133293271064758,
+          0.5791433453559875
+        ],
+        "entry_root_cm": [
+          5.969532012939453,
+          6.595006465911865,
+          7.16695499420166,
+          7.9287238121032715
+        ],
+        "entry_angle_rad": [
+          0.08755526691675186,
+          0.09509718418121338,
+          0.10933325439691544,
+          0.17386658489704132
+        ],
+        "entry_joint_rms_rad": [
+          0.09401101619005203,
+          0.10195024311542511,
+          0.11137611418962479,
+          0.11992145329713821
+        ],
+        "entry_joint_velocity_rms": [
+          1.6415151357650757,
+          2.845639228820801,
+          3.2558021545410156,
+          5.069782257080078
+        ],
+        "entry_linear_velocity_difference": [
+          0.22023257613182068,
+          0.23682467639446259,
+          0.3208712637424469,
+          0.42292076349258423
+        ],
+        "entry_history_rms": [
+          0.18374527990818024,
+          0.20124748349189758,
+          0.3333905339241028,
+          0.46889159083366394
+        ],
+        "entry_sensor_rms": [
+          0.25474870204925537,
+          0.4991688132286072,
+          0.5175277590751648,
+          2.320899724960327
+        ],
+        "entry_action_rms": [
+          0.6186059713363647,
+          0.6313360929489136,
+          0.7214987874031067,
+          0.7828156352043152
+        ],
+        "required_parts": [
+          1
+        ],
+        "first_stage_steps": [
+          35.0,
+          35.0,
+          36.0,
+          39.0
+        ],
+        "entry_motion_frame": [
+          251.0,
+          251.0,
+          252.0,
+          255.0
+        ],
+        "reference_first_stage_length": 39,
+        "reference_second_start_motion_frame": 255
+      }
+    },
+    "paired_audit": {
+      "candidate_pairs": 250,
+      "paired": 246,
+      "completed_pairs": 246,
+      "uninterrupted_success": 0,
+      "restored_success": 0,
+      "outcome_disagreements": 0,
+      "paired_steps": [
+        26.0,
+        26.0,
+        26.0
+      ],
+      "initial_state_max_abs": [
+        0.0,
+        2.9802322387695312e-08,
+        1.7881393432617188e-07
+      ],
+      "initial_sensor_max_abs": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "initial_history_max_abs": [
+        3.725290298461914e-09,
+        7.4803829193115234e-06,
+        9.000301361083984e-06
+      ],
+      "initial_action_max_abs": [
+        0.0,
+        1.1920928955078125e-06,
+        2.3245811462402344e-06
+      ],
+      "max_state_abs": [
+        0.0017668083310127258,
+        0.385114848613739,
+        5.826127529144287
+      ],
+      "max_xi_abs": [
+        0.0021948516368865967,
+        0.6064673662185669,
+        9.661039352416992
+      ],
+      "max_history_abs": [
+        0.0021948516368865967,
+        0.581578254699707,
+        9.661039352416992
+      ],
+      "max_action_abs": [
+        0.0002853572368621826,
+        0.05089715123176575,
+        1.5164003372192383
+      ],
+      "scope": "same actual #82 success state: uninterrupted versus restored into separate identical environment; no optimizer update"
+    },
+    "gradient_attribution": {
+      "attempts": 4085,
+      "policy_loss": 26.719192504882812,
+      "full_gradient_norm": 866.2090454101562,
+      "details": {
+        "terminal_contact": 21.976484298706055,
+        "terminal_body": 4.721603870391846,
+        "process_regularization": 0.02110506221652031,
+        "unroll_steps": 37,
+        "action_replay_max_error": 6.67572021484375e-06,
+        "forward_state_max_error": 0.0,
+        "missing_contact_proxy_terms": 0,
+        "geometric_unobserved_terms": 1015,
+        "trajectories": 4085,
+        "truncated_trajectories": 0,
+        "required_contact_terms": 4544,
+        "stable_contact_terms": 3399,
+        "terminal_guidance_terms": 1145,
+        "contact_supervision_coverage": 1.0,
+        "stable_contact_loss": 9.95921516418457,
+        "terminal_guidance_loss": 12.017269134521484,
+        "terminal_to_first_action_gradient": 0.40576744079589844
+      },
+      "rows": [
+        {
+          "case": 82,
+          "n": 472,
+          "contact_contribution": 0.02801741659641266,
+          "stable_contribution": 0.027445942163467407,
+          "guidance_contribution": 0.0005714753060601652,
+          "root_contribution": 0.04155847057700157,
+          "prior_contribution": 0.0016568278660997748,
+          "missing_terms": 17,
+          "stable_terms": 455,
+          "stable_median_cm": 2.413388967514038,
+          "stable_p90_cm": 2.9744186401367188,
+          "stable_over20cm": 0,
+          "gradient_norm": 27.8769588470459,
+          "gradient_dot_total": 1385.622802734375,
+          "gradient_cosine_total": 0.057382162660360336
+        },
+        {
+          "case": 83,
+          "n": 472,
+          "contact_contribution": 2.9778804779052734,
+          "stable_contribution": 2.1206490993499756,
+          "guidance_contribution": 0.8572312593460083,
+          "root_contribution": 0.8559255599975586,
+          "prior_contribution": 0.003441446926444769,
+          "missing_terms": 144,
+          "stable_terms": 328,
+          "stable_median_cm": 24.27098846435547,
+          "stable_p90_cm": 29.881715774536133,
+          "stable_over20cm": 328,
+          "gradient_norm": 374.1285095214844,
+          "gradient_dot_total": 149667.59375,
+          "gradient_cosine_total": 0.4618322551250458
+        },
+        {
+          "case": 84,
+          "n": 487,
+          "contact_contribution": 1.6059656143188477,
+          "stable_contribution": 1.6059656143188477,
+          "guidance_contribution": 9.081501417540494e-08,
+          "root_contribution": 0.6797608137130737,
+          "prior_contribution": 0.0025583335664123297,
+          "missing_terms": 0,
+          "stable_terms": 487,
+          "stable_median_cm": 18.69501304626465,
+          "stable_p90_cm": 19.866395950317383,
+          "stable_over20cm": 42,
+          "gradient_norm": 165.5948486328125,
+          "gradient_dot_total": 21362.25390625,
+          "gradient_cosine_total": 0.14892840385437012
+        },
+        {
+          "case": 85,
+          "n": 459,
+          "contact_contribution": 1.1507163047790527,
+          "stable_contribution": 0.09079200029373169,
+          "guidance_contribution": 1.0599242448806763,
+          "root_contribution": 0.3415871858596802,
+          "prior_contribution": 0.001874206238426268,
+          "missing_terms": 346,
+          "stable_terms": 572,
+          "stable_median_cm": 5.4335808753967285,
+          "stable_p90_cm": 6.573488712310791,
+          "stable_over20cm": 0,
+          "gradient_norm": 128.0495147705078,
+          "gradient_dot_total": 23386.578125,
+          "gradient_cosine_total": 0.21084631979465485
+        },
+        {
+          "case": 86,
+          "n": 451,
+          "contact_contribution": 7.633475303649902,
+          "stable_contribution": 0.26343798637390137,
+          "guidance_contribution": 7.37003755569458,
+          "root_contribution": 1.946529507637024,
+          "prior_contribution": 0.0028034790884703398,
+          "missing_terms": 266,
+          "stable_terms": 185,
+          "stable_median_cm": 10.997461318969727,
+          "stable_p90_cm": 14.148280143737793,
+          "stable_over20cm": 7,
+          "gradient_norm": 437.3562927246094,
+          "gradient_dot_total": 179850.953125,
+          "gradient_cosine_total": 0.4747387170791626
+        },
+        {
+          "case": 88,
+          "n": 431,
+          "contact_contribution": 0.04857693240046501,
+          "stable_contribution": 0.04480724781751633,
+          "guidance_contribution": 0.0037696931976825,
+          "root_contribution": 0.016568470746278763,
+          "prior_contribution": 0.0012088622897863388,
+          "missing_terms": 129,
+          "stable_terms": 302,
+          "stable_median_cm": 3.6035635471343994,
+          "stable_p90_cm": 5.192312240600586,
+          "stable_over20cm": 0,
+          "gradient_norm": 20.084375381469727,
+          "gradient_dot_total": 2274.4052734375,
+          "gradient_cosine_total": 0.13073347508907318
+        },
+        {
+          "case": 89,
+          "n": 434,
+          "contact_contribution": 0.224104106426239,
+          "stable_contribution": 0.22327321767807007,
+          "guidance_contribution": 0.0008308881660923362,
+          "root_contribution": 0.13467057049274445,
+          "prior_contribution": 0.0013874677242711186,
+          "missing_terms": 9,
+          "stable_terms": 425,
+          "stable_median_cm": 7.374975204467773,
+          "stable_p90_cm": 7.757230281829834,
+          "stable_over20cm": 0,
+          "gradient_norm": 80.740966796875,
+          "gradient_dot_total": 7930.6318359375,
+          "gradient_cosine_total": 0.11339427530765533
+        },
+        {
+          "case": 90,
+          "n": 433,
+          "contact_contribution": 0.23531760275363922,
+          "stable_contribution": 0.22751860320568085,
+          "guidance_contribution": 0.007798999547958374,
+          "root_contribution": 0.10919538885354996,
+          "prior_contribution": 0.001989206997677684,
+          "missing_terms": 113,
+          "stable_terms": 320,
+          "stable_median_cm": 7.2655463218688965,
+          "stable_p90_cm": 12.189106941223145,
+          "stable_over20cm": 0,
+          "gradient_norm": 28.848867416381836,
+          "gradient_dot_total": -8724.8212890625,
+          "gradient_cosine_total": -0.3491443693637848
+        },
+        {
+          "case": 91,
+          "n": 446,
+          "contact_contribution": 8.072428703308105,
+          "stable_contribution": 5.355325222015381,
+          "guidance_contribution": 2.71710467338562,
+          "root_contribution": 0.5958081483840942,
+          "prior_contribution": 0.001296485192142427,
+          "missing_terms": 121,
+          "stable_terms": 325,
+          "stable_median_cm": 44.6791877746582,
+          "stable_p90_cm": 49.646053314208984,
+          "stable_over20cm": 325,
+          "gradient_norm": 611.1441650390625,
+          "gradient_dot_total": 373184.84375,
+          "gradient_cosine_total": 0.7049488425254822
+        }
+      ]
+    },
+    "contact_distance_ablation": {
+      "scope": "single successful #82 entry, replayed into segment 2; contact distance ignored",
+      "handoff": {
+        "attempts": 492,
+        "root_only_25cm": 40,
+        "angle_only_04rad": 101,
+        "joint_25cm_04rad": 0,
+        "joint_30cm_05rad": 264,
+        "joint_35cm_06rad": 492,
+        "thresholds": [
+          {
+            "root_cm": 25,
+            "angle_rad": 0.4,
+            "passed": 0,
+            "attempts": 492
+          },
+          {
+            "root_cm": 25,
+            "angle_rad": 0.45,
+            "passed": 13,
+            "attempts": 492
+          },
+          {
+            "root_cm": 25,
+            "angle_rad": 0.5,
+            "passed": 40,
+            "attempts": 492
+          },
+          {
+            "root_cm": 25,
+            "angle_rad": 0.6,
+            "passed": 40,
+            "attempts": 492
+          },
+          {
+            "root_cm": 30,
+            "angle_rad": 0.4,
+            "passed": 49,
+            "attempts": 492
+          },
+          {
+            "root_cm": 30,
+            "angle_rad": 0.45,
+            "passed": 179,
+            "attempts": 492
+          },
+          {
+            "root_cm": 30,
+            "angle_rad": 0.5,
+            "passed": 264,
+            "attempts": 492
+          },
+          {
+            "root_cm": 30,
+            "angle_rad": 0.6,
+            "passed": 287,
+            "attempts": 492
+          },
+          {
+            "root_cm": 35,
+            "angle_rad": 0.4,
+            "passed": 101,
+            "attempts": 492
+          },
+          {
+            "root_cm": 35,
+            "angle_rad": 0.45,
+            "passed": 262,
+            "attempts": 492
+          },
+          {
+            "root_cm": 35,
+            "angle_rad": 0.5,
+            "passed": 394,
+            "attempts": 492
+          },
+          {
+            "root_cm": 35,
+            "angle_rad": 0.6,
+            "passed": 492,
+            "attempts": 492
+          }
+        ]
+      },
+      "reference": {
+        "attempts": 501,
+        "joint_25cm_04rad": 501
+      }
+    },
+    "reference_start_ablation": {
+      "climb_58_mirror": {
+        "attempts": 336,
+        "original_success_rate": 0.6339285714285714,
+        "root_angle_pass_rate": 0.9940476190476191,
+        "contact_only_failure_rate": 0.3601190476190476
+      },
+      "climb_58_original": {
+        "attempts": 264,
+        "original_success_rate": 0.7916666666666666,
+        "root_angle_pass_rate": 1.0,
+        "contact_only_failure_rate": 0.20833333333333334
+      }
+    }
+  },
+  "loss_aligned": {
+    "attempts": 1305,
+    "successful_attempts": 1232,
+    "success_rate": 0.9440613026819923,
+    "macro_success_rate": 0.8735572374645222,
+    "covered_goals": 151,
+    "mean_root_error_m": 0.03834677542420639
+  },
+  "stable_loss_attribution": {
+    "N0": 4037,
+    "N275": 4050,
+    "old_total": 15.959334020000824,
+    "new_total": 14.057924205108975,
+    "old_continuous_total": 2.29648383136373,
+    "new_continuous_total": 9.10904878299334,
+    "rows": 150
+  },
+  "contact_old_support_fix": {
+    "iteration": 426,
+    "attempts": 37468,
+    "success_rate": 0.8452279278317497,
+    "macro_success_rate": 0.7537574466510721,
+    "covered_goals": 151,
+    "mean_root_error_m": 0.06872542053731513
+  },
+  "population159": {
+    "training": {
+      "iteration": 500,
+      "attempts": 5213145,
+      "success_rate": 0.9240427803178312,
+      "macro_success_rate": 0.8882210870834761,
+      "covered_goals": 151,
+      "mean_root_error_m": 0.052593839718832906
+    },
+    "dagger": {
+      "rounds": 80,
+      "updates": 8000,
+      "best_round": 79,
+      "fresh_native_student_transitions": 2263868,
+      "stop_reason": "max_rounds"
+    }
+  },
+  "pipeline_review": {
+    "traces": 12,
+    "successful_traces": 11,
+    "failed_trace_cases": [
+      39,
+      40,
+      41,
+      42,
+      43
+    ],
+    "target_terms": 166,
+    "control_target_terms_without_stable_point": 158
+  },
+  "previous_learning_audit": {
+    "run": "tmp/partition161-segment-goal-20261105/training",
+    "window": [
+      451,
+      500
+    ],
+    "scope": "training batches, not independent evaluation; boundary change is not proof of causal learning failure",
+    "cases": 161,
+    "poor_cases": [
+      12,
+      14,
+      15,
+      17,
+      23,
+      32,
+      43,
+      48,
+      56,
+      91,
+      99,
+      103,
+      104,
+      133,
+      145,
+      146,
+      157
+    ],
+    "very_poor_cases": [
+      14,
+      15,
+      17,
+      23,
+      32,
+      48,
+      133,
+      146
+    ],
+    "poor_groups": {
+      "failed_source_or_incomplete_edge": [
+        43,
+        146
+      ],
+      "boundary_regrouping": [
+        17,
+        32
+      ],
+      "minority_contact_cut_or_target": [
+        48,
+        56
+      ],
+      "target_far_from_successful_stable_clouds": [
+        91,
+        99,
+        133,
+        145,
+        157
+      ]
+    },
+    "data_revision_affected_count": 11,
+    "not_explained_by_checks": [
+      12,
+      14,
+      15,
+      23,
+      103,
+      104
+    ],
+    "causal_conclusion": "Data defects are established for specific tasks. Revision affects 11/17 low-success tasks, but changes or population distance are not proof of the cause; no corrected-data retraining/evaluation comparison has been run.",
+    "strong_example": {
+      "old_case": 48,
+      "old_frames": 14,
+      "same_source_consensus_frames": 38,
+      "spurious_left_hand_votes": 3,
+      "total_successful_executions": 9,
+      "late_training_success_rate": 0,
+      "late_training_contact_observation_rate": 0.14461538461538462
+    }
+  }
+}

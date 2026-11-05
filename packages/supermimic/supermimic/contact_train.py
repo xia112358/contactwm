@@ -2,6 +2,7 @@
 from __future__ import annotations
 import argparse
 import copy
+from contextlib import ExitStack
 import json
 from pathlib import Path
 from supermimic.paths import package_path
@@ -19,6 +20,7 @@ def main():
     parser.add_argument('--checkpoint',required=True,help='Original tracking teacher checkpoint')
     parser.add_argument('--recording',type=Path,required=True)
     parser.add_argument('--slices',type=Path,help='Exact validated cuts used by DAgger')
+    parser.add_argument('--initialize_from_dagger',action='store_true',help='Initialize weights on new slices; rebuild frame geometry and reset training state')
     parser.add_argument('--resume',type=Path,required=True,help='Accepted DAgger or contact WM checkpoint')
     parser.add_argument('--prior_checkpoint',type=Path,required=True,help='Accepted frozen DAgger initialization')
     parser.add_argument('--output',type=Path,required=True)
@@ -148,10 +150,11 @@ def main():
     if args.slices:
         import hashlib
         slices_sha=hashlib.sha256(args.slices.read_bytes()).hexdigest()
-        if resumed['config'].get('slices_sha256')!=slices_sha:raise ValueError('Resume uses different contact slices')
+        if not args.initialize_from_dagger and resumed['config'].get('slices_sha256')!=slices_sha:raise ValueError('Resume uses different contact slices')
         if args.sequence_length!=1 or args.policy_gradient!='dmo':raise ValueError('Explicit cuts require independent native DMO')
     validate_checkpoint(resumed.get('source_metadata',{}),metadata)
-    if resumed['schema']!='supermimic_contact_demo_v1' or Path(resumed['config']['recording']).resolve()!=args.recording.resolve():
+    if args.initialize_from_dagger and not resumed.get('dagger'):raise ValueError('New-slice initialization requires DAgger weights')
+    if resumed['schema']!='supermimic_contact_demo_v1' or (not args.initialize_from_dagger and Path(resumed['config']['recording']).resolve()!=args.recording.resolve()):
         raise ValueError('Resume must be from this exact recorded task')
     if bool(demo['term'].any()) and getattr(clock,'source_evidence_contract',None) is None:
         raise ValueError('Legacy source termination requires migration to per-slice native source-evidence admission')
@@ -161,14 +164,14 @@ def main():
         actor.requires_grad_(False)
         frozen_actor_state={k:v.detach().cpu().clone() for k,v in actor.state_dict().items()}
     prior_checkpoint=load_checkpoint_cpu(args.prior_checkpoint)
-    if args.slices and prior_checkpoint['config'].get('slices_sha256')!=slices_sha:raise ValueError('DAgger prior uses different slices')
+    if args.slices and not args.initialize_from_dagger and prior_checkpoint['config'].get('slices_sha256')!=slices_sha:raise ValueError('DAgger prior uses different slices')
     validate_checkpoint(prior_checkpoint.get('source_metadata',{}),metadata)
-    if not prior_checkpoint.get('dagger') or Path(prior_checkpoint['config']['recording']).resolve()!=args.recording.resolve():
+    if not prior_checkpoint.get('dagger') or (not args.initialize_from_dagger and Path(prior_checkpoint['config']['recording']).resolve()!=args.recording.resolve()):
         raise ValueError('Prior must be the accepted task-matched DAgger initialization')
     prior=copy.deepcopy(actor).eval().requires_grad_(False);prior.load_state_dict(prior_checkpoint['actor'])
     prior_checkpoint={'dagger':prior_checkpoint['dagger']}
     context=HeightForceContext(spec['tasks']);wm=WorldModel().to(device)
-    original_resume=resumed['config'].get('wm_implementation')=='original_tracking'
+    original_resume=not args.initialize_from_dagger and resumed['config'].get('wm_implementation')=='original_tracking'
     if not original_resume and int(resumed['wm_updates'])!=0:
         raise ValueError('Restart from DAgger initialization; legacy native-head optimization is retired')
     wm.load_state_dict(resumed['wm'] if original_resume else source['wm'],strict=True)
@@ -183,7 +186,7 @@ def main():
     if original_resume and (resumed_grid!=args.target_grid_span or resumed['config'].get('target_grid_segment')!=args.target_grid_segment):
         raise ValueError('Resume must retain its target grid')
     if resumed_grid:geometry.local_by_frame=geometry.local_by_frame.repeat(9,1,1)
-    geometry.load_state_dict(resumed['geometry'])
+    if not args.initialize_from_dagger:geometry.load_state_dict(resumed['geometry'])
     if args.target_grid_span:
         from supermimic.contact_target_grid import expand_target_grid
         selected=args.target_grid_segment-1
@@ -340,7 +343,7 @@ def main():
         nonlocal stopped
         stopped=True
     signal.signal(signal.SIGINT,stop);signal.signal(signal.SIGTERM,stop)
-    updates=int(resumed['policy_updates']);wm_updates=int(resumed['wm_updates']);start=int(resumed['iteration'])
+    updates=0 if args.initialize_from_dagger else int(resumed['policy_updates']);wm_updates=0 if args.initialize_from_dagger else int(resumed['wm_updates']);start=0 if args.initialize_from_dagger else int(resumed['iteration'])
     resumed={'config':resumed['config']}
     begin=time.perf_counter();sim_steps=0;task=None;native=None
     def status(phase,iteration,**extra):
@@ -356,7 +359,7 @@ def main():
             rng_cpu=torch.get_rng_state(),rng_cuda=torch.cuda.get_rng_state(),sim_steps=sim_steps),args.output/f'checkpoint_{tag}.pt')
     status('starting',start)
     cfg=make_sim(device,args)
-    with launch_simulation(cfg,args):
+    with launch_simulation(cfg,args), ExitStack() as contact_hooks:
         env=TrackingSim(cfg,args.num_envs,motion,mdp,eval_mode=True,task_world_counts=counts)
         config['solver_numerics']=getattr(env,'contact_solver_numerics',{}).get('contract','upstream')
         reader=NativeContacts(env,direct=True,primary_faces=True)
@@ -365,6 +368,15 @@ def main():
         task=ContactTask(env,actor,teacher,motion,mdp,clock,demo,context,default_q,reader,teacher_hist,goal_frames,args.segment_grace_steps,
                          None if args.segment is None else args.segment-1,args.root_tolerance,args.completion_mode,contact_tolerances,
                          sequential=args.sequence_length>1,sequence_length=args.sequence_length if args.sequence_length>1 else None,continuous_random=args.continuous_random,cache_reset_contacts=args.cache_reset_contacts,stable_contact_frames=args.stable_contact_frames)
+        if args.stable_contact_frames and clock.fixed_goal_mode:
+            contact_hooks.enter_context(task.contact_monitor)
+            config['stable_loss_sampling']=dict(version='native_substep_loss_witness_gpu_v3',
+                physics_dt=task.contact_monitor.dt,substeps_per_control=task.contact_monitor.substeps,
+                qualification='native known active + same-solve NativeContactStability',
+                sampling='last qualified new or goal-region support substep; exclude initial support until confirmed exit',
+                initial_support_exit_steps=task.contact_monitor.exit_steps,
+                completion='unchanged control-end native accumulated_target',
+                cuda_graph=env.sim.backend_manager._cfg.use_cuda_graph)
         task.skip_student_tracking=args.continuous_random and not args.full_tracking_diagnostics
         config['native_tracking_diagnostics']='background worlds only; unused student tracking rewards are zero and not optimized' if task.skip_student_tracking else 'all worlds'
         if fixed_budgets is not None:
@@ -392,7 +404,10 @@ def main():
                     normals_local=surface.atlas.normals_local.cpu().numpy(),
                     areas=surface.atlas.areas.cpu().numpy(),parts=np.asarray(surface.atlas.parts),
                     fingerprint=np.asarray(surface.atlas.fingerprint))
-        if args.stable_contact_frames:
+        if clock.fixed_goal_mode:
+            config['contact_loss_contract']=clock.fixed_goal_contract
+            config['completion_contract']='unchanged accumulated_target; stability gates loss witnesses only'
+        elif args.stable_contact_frames:
             from supermimic.contact_phase import VERSION
             from supermimic.contact_stability import CONTRACT
             config['contact_phase_contract']=dict(version=VERSION,support_qualification=CONTRACT,
@@ -409,6 +424,8 @@ def main():
             paired_force_w=((6,3),torch.float32),contact_count=(6,torch.long))
         if args.stable_contact_frames:
             extra.update(contact_stable=(6,torch.bool),contact_row_stable=(6,torch.bool),contact_material_speed=(6,torch.float32),contact_load=(6,torch.float32),contact_load_stable=(6,torch.bool))
+        if args.stable_contact_frames and clock.fixed_goal_mode:
+            extra['contact_loss_point']=((6,3),torch.float32)
         if args.sequence_length>1:extra.update(stage_step=((),torch.long),stage_done=((),torch.bool),stage_success=((),torch.bool),sequence_live=((),torch.bool))
         buffer=ReplayBuffer(args.buffer_steps,task.N,device,extra_fields=extra)
         profiler=None
@@ -543,7 +560,7 @@ def main():
             t2=time.perf_counter()
             objective=None;objective_parts=None;native_batch=None;update_diagnostics=None;lr_signal=None
             collected_policy_updates=updates
-            duration_filter=None;duration_stops=None;plan=None
+            duration_filter=None;duration_stops=None;plan=None;loss_aligned_batch=None
             selected=torch.arange(task.N,device=device)
             if args.policy_gradient=='dmo':
                 from supermimic.contact_dmo import native_attempt_metrics
@@ -557,8 +574,8 @@ def main():
                     torch.cuda.synchronize()
                     if duration_filter is not None:duration_filter['seconds']=time.perf_counter()-filter_begin
                 else:
-                    native_batch=native_attempt_metrics(buffer.recent(collected,('done','term','s1','goal_index','active','known','surface_local','point','contact_first')),clock,task.target_faces_by_segment,first_contact=args.stable_contact_frames>0 or args.completion_mode=='onset')
-                if args.stable_contact_frames and args.sequence_length==1:
+                    native_batch=native_attempt_metrics(buffer.recent(collected,('done','term','s1','goal_index','active','known','surface_local','point','contact_first')),clock,task.target_faces_by_segment,first_contact=(args.stable_contact_frames>0 and not clock.fixed_goal_mode) or args.completion_mode=='onset')
+                if args.stable_contact_frames and args.sequence_length==1 and not clock.fixed_goal_mode:
                     native_batch.update(contact_metric='reference_stable_support_native_point',
                         scope='first confirmed native point in demonstrated landing phase; same witness as contact loss and completion')
                 if args.duration_halfwidth is not None and args.sequence_length==1:
@@ -571,6 +588,11 @@ def main():
             if args.stable_contact_frames and duration_stops is not None:
                 done=buffer.recent(collected,('done',))['done']
                 duration_stops=done.long().argmax(0)+1
+            if args.policy_gradient=='dmo' and args.sequence_length==1 and args.stable_contact_frames and clock.fixed_goal_mode and len(selected):
+                from supermimic.contact_dmo import loss_aligned_attempt_metrics
+                recent=buffer.recent(collected,('done','s1','goal_index','contact_stable','contact_loss_point'))
+                selected_data={key:value[:,selected] for key,value in recent.items()}
+                loss_aligned_batch=loss_aligned_attempt_metrics(selected_data,clock,task.contact_tolerances_by_segment,task.root_tolerance,task.root_angle_tolerance)
             if not args.freeze_actor and len(selected):
                 actor_opt.zero_grad(set_to_none=True)
                 if args.policy_gradient=='dmo':
@@ -582,6 +604,7 @@ def main():
                             slots=selected[offset:offset+args.dmo_microbatch]
                             needed=('s','s1','xi','next_xi','a','a_prev','ep_step','goal_index','done','contact_goal','contact_first','active','known','point')
                             if args.stable_contact_frames:needed+=('contact_stable',)
+                            if args.stable_contact_frames and clock.fixed_goal_mode:needed+=('contact_loss_point',)
                             replay_rows=rows[:,None];replay_slots=slots[None,:]
                             batch={k:buffer.data[k][replay_rows,replay_slots] for k in needed}
                             entry=None if collection_initial_history is None else collection_initial_history[slots]
@@ -648,6 +671,7 @@ def main():
                 sim_steps=sim_steps,elapsed_s=t3-begin,objective_parts=objective_parts,native_batch=native_batch,collected_policy_updates=collected_policy_updates,update_diagnostics=update_diagnostics,learning_rate=actor_opt.param_groups[0]['lr'],lr_signal=lr_signal,
                 wm_fit_before=wm_means[0],wm_fit_after=wm_means[1])
             row['duration_filter']=duration_filter
+            if loss_aligned_batch is not None:row['loss_aligned_batch']=loss_aligned_batch
             with (args.output/'metrics.jsonl').open('a') as file:file.write(json.dumps(row)+'\n')
             if iteration%args.log_every==0 or iteration==start+1:
                 native=task.report(iteration,updates)

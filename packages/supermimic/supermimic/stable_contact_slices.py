@@ -24,6 +24,7 @@ def _boundary_decision(data,temporal,events,posture,form_cuts,arrivals_at,start,
     """
     from .contact_temporal import participation_interval,TEMPORAL_CONTRACT
     decision=dict(join_events=None,absorb_continuation=None,inherited_phase=None)
+    if boundary in form_cuts:return decision
     single_form=all(len([p for p in temporal['forms'][start:stop,limb].unique().tolist() if p>=0])<=1 for limb in range(4))
     if not single_form:return decision
 
@@ -55,7 +56,9 @@ def load_transfer_slices(data,temporal=None,source_motion=None):
     from .contact_temporal import segmentation_contact_state,TEMPORAL_CONTRACT
     if temporal is None:temporal=segmentation_contact_state(data)
     hits=torch.zeros_like(data['active']);groups=[]
-    form_cuts={x['frame'] for x in temporal['form_changes']}
+    # Separate actual old/new forms at the end of old support, so the
+    # subsequent reach and its establishment belong to the same segment.
+    form_cuts={e['source_support_stop'] for e in temporal['transfers'] if e['form_change']}
     events=sorted((e for e in temporal['transfers'] if e['arrival'] is not None),key=lambda e:(e['arrival'],e['part']))
     for event in events:
         t,p=event['arrival'],event['part'];hits[t,p]=True
@@ -77,10 +80,16 @@ def load_transfer_slices(data,temporal=None,source_motion=None):
     # interval describe one transition. Keep the actual form boundary; do not
     # carve its confirmation latency into a separate motion segment.
     for phase in posture:
-        overlaps=[e for e in events if e['arrival'] in form_cuts and e['arrival']<phase['start']<=e['confirmed']]
-        if overlaps:phase['start']=max(e['arrival'] for e in overlaps)
+        overlaps=[e for e in events if e['form_change'] and e['arrival']<=phase['start']<=e['confirmed']]
+        if overlaps:phase['start']=max(e['arrival']+int(e['source_support_stop']<e['arrival']) for e in overlaps)
 
     pose_cuts={v for phase in posture for v in (phase['start'],phase['stop'])}
+    # Reuse an existing completion/posture boundary in the airborne gap.
+    # Otherwise retain the actual old-support end; never cut at a future
+    # target's onset merely to label its form.
+    natural=pose_cuts|set(arrivals_at)
+    form_cuts={min([b for b in natural if e['source_support_stop']<=b<e['arrival']],default=e['source_support_stop'])
+               for e in events if e['form_change']}
     boundaries=sorted({first,last,*[b for b in form_cuts|pose_cuts|set(arrivals_at) if first<b<last]})
     # Resolve each cluster of close candidate cuts against its full interval.
     # Clusters are anchored to the FIRST original cut, never extended through
@@ -137,9 +146,26 @@ def load_transfer_slices(data,temporal=None,source_motion=None):
             support=keep&temporal['support'][begin:end].all(0),
             arrivals=[(e['arrival'],e['part']) for e in arrivals],releases=releases,
             transfer_ids=[e['id'] for e in temporal['transfers'] if e['start']<end and e['stop']>begin],
-            phase_kind=phase,
+            phase_kind=phase,incomplete_edge_activity=incomplete,
             boundary_reasons=(['main_form_change'] if end in form_cuts else [])+(['sustained_arrival'] if end in arrivals_at else [])+(['posture_phase'] if end in pose_cuts else [])+(['effective_end'] if end==last else []),
             contact_goal_complete=bool(arrivals) and all(t>=0 for t in releases) and all(bool(temporal['support'][e['arrival']:end,e['part']].all()) for e in arrivals),
             merged_arrival_boundaries=[dict(arrival_boundary=b,reason=merge_reasons[b]) for b in removed if begin<b<end],
             kind='load_contact_transfer' if arrivals else 'root_motion_tail'))
+    if source_motion is not None and cuts:
+        # Identify only activity already in progress at the original source
+        # start. Never recursively chase later overlapping movements.
+        initial=[e for e in events if e['initial'] and e['boundary_eligible'] and e['start']<=first and first<=e['arrival']<cuts[0]['stop']
+                 and not bool(data['active'][first,e['part']] and data['contact_load'][first,e['part']]>TEMPORAL_CONTRACT['enter_load_n'])
+                 and first+1<len(hits) and bool(temporal['moving'][first+1,e['part']])]
+        if initial:
+            stop=cuts[0]['stop']
+            source_motion['exclusions'].append(dict(start=first,stop=stop,reason='incomplete_initial_action',
+                evidence=dict(arrivals=[e['arrival'] for e in initial])))
+            source_motion['start']=stop;cuts=cuts[1:]
+        if cuts and any(e['arrival'] is None and not e['completed'] and e['start']<last<=e['stop']
+                        and e['motion_m']>TEMPORAL_CONTRACT['motion_excursion_m'] for e in temporal['transfers']):
+            tail=cuts.pop()
+            source_motion['exclusions'].append(dict(start=tail['start'],stop=tail['stop'],reason='incomplete_terminal_action'))
+            source_motion['stop']=tail['start']
+        source_motion['exclusions'].sort(key=lambda x:x['start'])
     return cuts,hits

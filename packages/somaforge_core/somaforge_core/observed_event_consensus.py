@@ -72,6 +72,15 @@ def build_consensus(masks, surfaces, *, stable_frames=3, max_dropout_frames=3):
     """
     sequences = [episodes(m, s, stable_frames=stable_frames, max_dropout_frames=max_dropout_frames)
                  for m, s in zip(masks, surfaces)]
+    return consensus_from_sequences(sequences, masks, stable_frames=stable_frames,
+                                    max_dropout_frames=max_dropout_frames)
+
+
+def consensus_from_sequences(sequences, masks, *, stable_frames, max_dropout_frames):
+    """Use the same population matching/votes on qualified native episodes.
+
+    Input adapters retain measured boundaries and their sampling contract.
+    """
     if len(sequences) < 3: raise ValueError('Need three complete executions')
     count = len(sequences); events = []; discarded = []
     # Content order makes consensus invariant to caller/environment ordering.

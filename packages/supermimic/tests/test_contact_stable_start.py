@@ -66,7 +66,8 @@ def test_confirmed_and_missing_parts_are_supervised_once_without_goal_filter():
     assert (evaluate&~native['mask']).sum()==2
 
 
-def test_same_native_witness_used_for_stable_loss_and_missing_has_geometry_gradient(monkeypatch):
+@__import__("pytest").mark.parametrize("fixed_goal",[False,True])
+def test_same_native_witness_used_for_stable_loss_and_missing_has_geometry_gradient(monkeypatch,fixed_goal):
     from torch import nn
     import supermimic.contact_dmo as dmo
     class Actor(nn.Module):
@@ -88,7 +89,15 @@ def test_same_native_witness_used_for_stable_loss_and_missing_has_geometry_gradi
     points=torch.full((T,B,6,3),1e6);points[3,0,0]=.2
     data=dict(s=state,s1=state,a=torch.zeros(T,B,29),a_prev=torch.zeros(T,B,29),xi=torch.zeros(T,B,52),next_xi=torch.zeros(T,B,52),ep_step=torch.arange(T)[:,None].expand(T,B),goal_index=torch.zeros(T,B,dtype=torch.long),done=done,active=active,known=torch.ones_like(active),contact_stable=torch.ones_like(active),contact_first=torch.zeros_like(active),contact_goal=torch.zeros_like(active),point=points)
     clock=clock_for(active[:,:1]);clock.data.update(point=torch.full((T,6,3),.1),s1=state[:,0]);clock.condition=lambda state,*a,**kw:state[0][:,:1]*0
-    geometry=SimpleNamespace(poses=lambda state:(state[0][:,None].expand(-1,6,-1),torch.eye(3).expand(B,6,3,3)))
+    clock.contact_tolerances_by_segment=torch.tensor([.05])
+    clock.fixed_goal_mode=fixed_goal
+    if fixed_goal:
+        data['contact_stable']=torch.zeros_like(active)
+        data['contact_stable'][3,0,0]=True
+        data['contact_loss_point']=points.clone()
+        data['point']=torch.full_like(points,1e6)
+        data['active']=torch.zeros_like(active)
+    geometry=SimpleNamespace(poses=lambda state:(state[0][:,None].expand(-1,6,-1),torch.eye(3).expand(len(state[0]),6,3,3)))
     actor=Actor();loss,details=dmo.replay_loss(actor,Model(),clock,geometry,None,lambda x:x,None,data,contact_surface=Region(),pose_weight=0,completion_mode='accumulated_target',stable_contact_frames=2)
     loss.backward()
     assert all(v is None or isinstance(v,(int,float)) for v in details.values())

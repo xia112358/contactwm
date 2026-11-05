@@ -1,0 +1,89 @@
+{
+  "scope": "single successful #82 entry, replayed into segment 2; contact distance ignored",
+  "handoff": {
+    "attempts": 492,
+    "root_only_25cm": 40,
+    "angle_only_04rad": 101,
+    "joint_25cm_04rad": 0,
+    "joint_30cm_05rad": 264,
+    "joint_35cm_06rad": 492,
+    "thresholds": [
+      {
+        "root_cm": 25,
+        "angle_rad": 0.4,
+        "passed": 0,
+        "attempts": 492
+      },
+      {
+        "root_cm": 25,
+        "angle_rad": 0.45,
+        "passed": 13,
+        "attempts": 492
+      },
+      {
+        "root_cm": 25,
+        "angle_rad": 0.5,
+        "passed": 40,
+        "attempts": 492
+      },
+      {
+        "root_cm": 25,
+        "angle_rad": 0.6,
+        "passed": 40,
+        "attempts": 492
+      },
+      {
+        "root_cm": 30,
+        "angle_rad": 0.4,
+        "passed": 49,
+        "attempts": 492
+      },
+      {
+        "root_cm": 30,
+        "angle_rad": 0.45,
+        "passed": 179,
+        "attempts": 492
+      },
+      {
+        "root_cm": 30,
+        "angle_rad": 0.5,
+        "passed": 264,
+        "attempts": 492
+      },
+      {
+        "root_cm": 30,
+        "angle_rad": 0.6,
+        "passed": 287,
+        "attempts": 492
+      },
+      {
+        "root_cm": 35,
+        "angle_rad": 0.4,
+        "passed": 101,
+        "attempts": 492
+      },
+      {
+        "root_cm": 35,
+        "angle_rad": 0.45,
+        "passed": 262,
+        "attempts": 492
+      },
+      {
+        "root_cm": 35,
+        "angle_rad": 0.5,
+        "passed": 394,
+        "attempts": 492
+      },
+      {
+        "root_cm": 35,
+        "angle_rad": 0.6,
+        "passed": 492,
+        "attempts": 492
+      }
+    ]
+  },
+  "reference": {
+    "attempts": 501,
+    "joint_25cm_04rad": 501
+  }
+}

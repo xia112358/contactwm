@@ -138,6 +138,12 @@ def segmentation_contact_state(data):
     if 'support_placement_resume' in data:
         from .contact_placement import placement_episodes
         placements,resumptions=placement_episodes(data,episodes)
+    if 'consensus_support_allowed' in data:
+        allowed=data['consensus_support_allowed']
+        placements=[ep for ep in placements if bool(allowed[ep['start']:ep['stop'],ep['part']].all())]
+        episodes=[ep for ep in episodes if bool(allowed[ep['start']:ep['stop'],ep['part']].all())]
+        resumptions=[r for r in resumptions if bool(allowed[r['resume'],r['part']])]
+        support &= allowed
     placement_support=torch.zeros_like(support);placement_forms=torch.full((T,4),-1,dtype=torch.long,device=active.device)
     for ep in placements:
         placement_support[ep['start']:ep['stop'],ep['part']]=True

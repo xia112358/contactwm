@@ -18,6 +18,7 @@ def load_slice_clock(recording, path):
             raise ValueError(f'Slice/recording identity mismatch: {key}')
     data=recording['data']; dev=data['s'].device
     clock=ContactClock.__new__(ContactClock)
+    clock.fixed_goal_mode='fixed_goal_points' in slices
     clock.reference_support_contract=None
     clock.source_evidence_contract=None
     motion_v3=slices['schema']=='native_motion_contact_slices_v3'
@@ -34,9 +35,15 @@ def load_slice_clock(recording, path):
         if not (slices['metadata']['contact_phase_version']==recording['metadata']['contact_phase_version']==VERSION):
             raise ValueError('Stable reference and runtime phase versions differ')
         new=slices['target_masks']&~slices['keep_masks']
-        if not bool((data['contact_stable'][slices['goals']]|~new).all()):
+        if not clock.fixed_goal_mode and not bool((data['contact_stable'][slices['goals']]|~new).all()):
             raise ValueError('A stable reference goal contains an unqualified required part')
         clock.reference_support_contract=CONTRACT
+    if clock.fixed_goal_mode:
+        points=slices['fixed_goal_points']
+        if points.shape!=(len(slices['goals']),6,3) or not torch.isfinite(points).all():raise ValueError('Invalid fixed segment targets')
+        clock.fixed_goal_contract=slices['metadata']['fixed_goal_contract']
+        data=dict(data,point=data['point'].clone())
+        data['point'][slices['goals']]=points
     clock.data=data; clock.length=len(data['s']); clock.hold=1
     clock.segment_starts=slices['starts']; clock.segment_stops=slices['stops']
     clock.event_ends=slices['goals']+1; clock.segment_motion=slices['motion_ids']

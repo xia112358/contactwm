@@ -76,3 +76,45 @@ def test_terminal_fall_needs_both_inversion_trend_and_downward_motion():
 def test_all_static_source_has_no_fabricated_training_segment():
     d=trace();t,a=analyze(d);cuts,_=load_transfer_slices(d,t,a)
     assert not cuts and a['start']==a['stop']
+
+
+def test_partial_edges_are_removed_as_whole_segments_not_retained_as_tasks():
+    d=trace(60);d['s1'][:,0]=torch.linspace(0,.6,60)
+    d['active'][:6,0]=False;d['contact_load'][:6,0]=0
+    d['native_part_position'][:7,0,0]=torch.linspace(-.2,0,7)
+    d['active'][12:25,0]=False;d['contact_load'][12:25,0]=0
+    d['native_part_position'][12:26,0,0]=torch.linspace(0,.2,14);d['native_part_position'][26:,0,0]=.2
+    d['active'][42:,1]=False;d['contact_load'][42:,1]=0
+    d['native_part_position'][42:,1,0]=torch.linspace(0,.3,18)
+    raw={k:v.clone() for k,v in d.items()};t,a=analyze(d);cuts,_=load_transfer_slices(d,t,a)
+    assert {e['reason'] for e in a['exclusions']}=={'incomplete_initial_action','incomplete_terminal_action'}
+    assert cuts and all(not c['incomplete_edge_activity'] for c in cuts)
+    assert any((25,0) in c['arrivals'] for c in cuts)
+    coverage=torch.zeros(60,dtype=torch.long)
+    for c in cuts:coverage[c['start']:c['stop']]+=1
+    for e in a['exclusions']:coverage[e['start']:e['stop']]+=1
+    assert (coverage==1).all()
+    assert all(torch.equal(d[k],v) for k,v in raw.items())
+
+
+def test_initial_edge_does_not_follow_a_long_concurrent_hand_reach():
+    d=trace(80);d['s1'][:,0]=torch.linspace(0,.8,80)
+    d['active'][:6,0]=False;d['contact_load'][:6,0]=0
+    d['native_part_position'][:7,0,0]=torch.linspace(-.2,0,7)
+    d['active'][60:,2]=True;d['contact_load'][60:,2]=100
+    d['native_part_position'][:61,2,0]=torch.linspace(0,1,61);d['native_part_position'][61:,2,0]=1
+    t,a=analyze(d);cuts,_=load_transfer_slices(d,t,a)
+    assert a['start']==7
+    assert any((60,2) in c['arrivals'] for c in cuts)
+
+
+def test_initial_support_confirmation_latency_is_not_a_truncated_action():
+    d=trace(50);d['s1'][:,0]=torch.linspace(0,.5,50)
+    d['contact_load'][:3,0]=0
+    d['native_part_position'][:4,0,0]=torch.linspace(0,.009,4);d['native_part_position'][4:,0,0]=.009
+    d['active'][12:25,0]=False;d['contact_load'][12:25,0]=0
+    d['native_part_position'][12:26,0,0]=torch.linspace(.009,.2,14);d['native_part_position'][26:,0,0]=.2
+    t,a=analyze(d);cuts,_=load_transfer_slices(d,t,a)
+    assert a['start']==0
+    assert any((25,0) in c['arrivals'] for c in cuts)
+    assert not any(e['reason']=='incomplete_initial_action' for e in a['exclusions'])
