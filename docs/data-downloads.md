@@ -16,6 +16,10 @@ stages into a workflow. Choose inputs explicitly for each command using the
 [modular WBT guide](wbt-modular-experiments.md) or the relevant Generator/Motion
 Edit recipe.
 
+## Current core checkpoints
+
+The [2026-11-12 checkpoint guide](checkpoints.md) lists six separately downloadable starting models, their roles and SHA256 verification. These assets use GitHub Release downloads directly; they are separate from the historical component catalog below.
+
 ## Select and download
 
 Run these commands from the checkout root:

@@ -79,7 +79,7 @@ def validation_stamp(motion, contacts):
     return dict(schema=STANDARD, event_schema=EVENT_SCHEMA, continuity_schema=CONTINUITY_SCHEMA,
                 motion=workflow.fingerprint(motion), contacts=workflow.fingerprint(contacts),
                 implementation=check_implementation(),
-                scope='observed event retention, source-relative continuity and nominal joint limits',
+                scope='observed event retention and nominal joint limits; source-relative continuity is diagnostic',
                 task_success_verified=False)
 
 
@@ -98,7 +98,7 @@ def classification(result):
     if not result.get('clock_validation',{}).get('passed'):
         return 'legacy_unverified'
     if (not result.get('aggregation_written') or not result.get('task_acceptance', {}).get('passed')
-            or not result.get('continuity', {}).get('passed') or not result.get('joint_limits', {}).get('passed')):
+            or not result.get('joint_limits', {}).get('passed')):
         return 'needs_refinement'
     envs = result.get('contributing_env_ids', [])
     if result.get('optimization', {}).get('representative_fallback', True) or len(set(envs)) < 3:

@@ -92,6 +92,8 @@ class DedicatedNewtonSceneQuery:
         self.model, self.solver, self.pipeline = model, solver, pipeline
         self.scene = None if scene is None else [np.asarray(x, np.float64) for x in scene]
         self.body_env, self.shape_surface = body_env, shape_surface
+        self.primitive_boxes = all(face.get("geometry_kind") == "box"
+                                   for faces in shape_surface.values() for face in faces)
         if any(not isinstance(v, list) for v in shape_surface.values()):
             raise ValueError('Query surface bindings require explicit face normals/classes, not mesh-as-top IDs')
         self.indices = np.asarray(joint_q_indices, int)
@@ -102,8 +104,15 @@ class DedicatedNewtonSceneQuery:
             if self.root.shape != (self.worlds,):
                 raise ValueError('Expected one free-root coordinate mapping per world')
             shape_world = model.shape_world.numpy()
-            if any(shape_world[shape] != -1 for shape in shape_surface):
-                raise ValueError('Batched native queries require actual globally shared terrain shapes')
+            # Worlds may share static shapes or own identical cloned terrain.
+            # q batches use one coordinate frame and one surface-ID catalog.
+            catalogs = []
+            for world in range(self.worlds):
+                catalog = {int(face['surface']): face for shape, faces in shape_surface.items()
+                           if shape_world[shape] in (-1, world) for face in faces}
+                catalogs.append(catalog)
+            if any(catalog != catalogs[0] for catalog in catalogs[1:]):
+                raise ValueError('Batched query worlds have different terrain geometry or surface IDs')
         self.provenance = model_provenance
         self.state = model.state(); self.contacts = pipeline.contacts()
         self._static_mapping_cache = {}
@@ -156,12 +165,13 @@ class DedicatedNewtonSceneQuery:
         raw = snapshot_solver_contacts(self.solver, self.model, state=self.state, contacts=self.contacts,
                                        static_mapping_cache=self._static_mapping_cache)
         before = physical_contact_signature(raw)
-        count = int(self.contacts.rigid_contact_count.numpy()[0])
-        keys = canonical_source_keys(self.source_capture.keys.numpy()[:count],
-            self.source_capture.shape_bits, self.source_capture.sub_key_bits)
-        if self.source_capture.analytic_sphere_types is not None:
-            keys = expand_native_sphere_triangle_keys(keys, self.source_capture.analytic_sphere_types)
-        attach_solver_sources(raw, self.solver, self.contacts, keys)
+        if not self.primitive_boxes:
+            count = int(self.contacts.rigid_contact_count.numpy()[0])
+            keys = canonical_source_keys(self.source_capture.keys.numpy()[:count],
+                self.source_capture.shape_bits, self.source_capture.sub_key_bits)
+            if self.source_capture.analytic_sphere_types is not None:
+                keys = expand_native_sphere_triangle_keys(keys, self.source_capture.analytic_sphere_types)
+            attach_solver_sources(raw, self.solver, self.contacts, keys)
         if before != physical_contact_signature(raw):
             raise AssertionError('Device audit export mutated physical contact evidence')
         raw['same_pass_source_mapping_verified'] = True
@@ -210,25 +220,13 @@ class DedicatedNewtonSceneQuery:
                     ))
             return values
 
-        values = realized_values()
-        positive = sorted({value for value in values if value > 0.0})
-        if not positive and hasattr(self.solver, "_update_geom_properties"):
-            # Newton main initializes some MJWarp geometry buffers lazily.
-            # Invoke its own property synchronization, then re-read the actual
-            # solver fields.  This changes no model margin/gap configuration.
-            self.solver._update_geom_properties()
-            values = realized_values()
-            positive = sorted({value for value in values if value > 0.0})
-        if not positive:
-            raise ValueError(
-                'Realized MJWarp task pairs have no positive includemargin: '
-                f'pair_values={sorted(set(values))[:16]}, '
-                f'model_shape_margin={sorted(set(map(float, self.model.shape_margin.numpy())))[-8:]}, '
-                f'model_shape_gap={sorted(set(map(float, self.model.shape_gap.numpy())))[-8:]}, '
-                f'mjw_geom_margin={sorted(set(map(float, self.solver.mjw_model.geom_margin.numpy().reshape(-1))))[-8:]}, '
-                f'mjw_geom_gap={sorted(set(map(float, self.solver.mjw_model.geom_gap.numpy().reshape(-1))))[-8:]}'
-            )
-        return positive
+        # Synchronize the solver's actual geometry buffers. Zero margin is
+        # valid (strict penetration activates contact); it is not missing data.
+        self.solver._update_geom_properties()
+        values = sorted(set(realized_values()))
+        if not values or not np.isfinite(values).all():
+            raise ValueError('Missing or nonfinite realized task-pair includemargins')
+        return values
 
     def _batch_snapshot(self, qpos, *, device_only=False):
         """One fixed-q FK/collision/constraint pass for independent stage outputs.
@@ -267,7 +265,7 @@ class DedicatedNewtonSceneQuery:
                 result = self._read_device()
             else:
                 result = capture_constraint_snapshot(self.pipeline, self.state, self.contacts, self.solver,
-                    self._constraint_snapshot, self.source_capture)
+                    self._constraint_snapshot, None if self.primitive_boxes else self.source_capture)
             if self.audit_device_reader and not torch.equal(coordinates[self._gpu_coordinate_indices],
                     q[:, [0, 1, 2, 4, 5, 6, 3, *range(7, 36)]]):
                 raise AssertionError('Fixed-q query changed supplied joint coordinates')
@@ -363,7 +361,7 @@ class DedicatedNewtonSceneQuery:
                 newton.eval_fk(self.model, self.state.joint_q, self.state.joint_qd, self.state)
                 from .newton_contact_sources import capture_constraint_snapshot
                 raw=capture_constraint_snapshot(self.pipeline,self.state,self.contacts,self.solver,
-                                                self._constraint_snapshot,self.source_capture)
+                                                self._constraint_snapshot,None if self.primitive_boxes else self.source_capture)
             from .newton_contacts import full_robot_separation
             full_separation=full_robot_separation(raw,body_env=self.body_env,shape_surface=self.shape_surface,env_id=world)
             witnesses=[full_separation[kind] for kind in ('worst_terrain','worst_self','closest_terrain','closest_self')]
@@ -442,8 +440,8 @@ class DedicatedNewtonSceneQuery:
                 if self.source_capture is not None else None),
             source_capture_contract=('single_collision_pass_raw_to_solver_verified_v2'
                 if self.source_capture is not None else None),
-            surface_attribution_schema=(SOURCE_NORMAL_FAN_SCHEMA
-                if self.source_capture is not None else 'legacy_nearest_face'),
+            surface_attribution_schema=('native_box_primary_face_v1' if self.primitive_boxes else
+                SOURCE_NORMAL_FAN_SCHEMA if self.source_capture is not None else 'legacy_nearest_face'),
             configured_terrain_includemargins=self.configured_terrain_includemargins,
             configured_margin_source='realized_mjwarp_contact_params_margin_sum_v2',
             surface_catalog=list(catalog.values()),

@@ -1,7 +1,7 @@
 """Repository boundaries distinguish temporary outputs from required inputs."""
 import ast
 import pytest
-from scripts.check_repository import configuration_temporary_inputs, temporary_input_errors
+from scripts.check_repository import configuration_temporary_inputs, documentation_link_errors, temporary_input_errors
 
 
 def test_release_notes_retain_unavailable_historical_paths_without_using_them_as_inputs():
@@ -157,3 +157,13 @@ def test_read():
         np.load({path})
 """
     assert bool(temporary_input_errors('tests/test_round_trip.py', ast.parse(source))) is not allowed
+
+
+def test_maintained_document_links_resolve_from_document_directory(tmp_path):
+    docs = tmp_path / 'docs'
+    docs.mkdir()
+    (docs / 'guide.md').write_text('# Guide')
+    text = '[guide](guide.md#section) [remote](https://example.org/guide) [section](#local)'
+    assert not documentation_link_errors('docs/index.md', text, tmp_path)
+    errors = documentation_link_errors('docs/index.md', '[retired](old.md)', tmp_path)
+    assert errors == ['docs/index.md:1: broken documentation link: old.md']

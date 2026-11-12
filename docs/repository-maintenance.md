@@ -12,6 +12,7 @@ baseline weights, contact labels or losses.
 
 | Area | Implementation | Entrypoint / tests |
 | --- | --- | --- |
+| Contact WM training | `packages/supermimic` | `supermimic.contact_train`; [current workflow](current-workflow.md) |
 | Assets, FK, contact semantics | `packages/somaforge_core` | `scripts/check_asset_manifest.py`, package tests |
 | Read-only motion/research playback | `packages/motion_edit` | `motion-edit review --input PATH`, package tests |
 | Predictor | `packages/generator` | `python -m generator.train_full1000_position`, package tests |
@@ -268,3 +269,58 @@ original is archived under
 with `gio trash`. Generated versions remain playback candidates until their own
 native validation. That historical cleanup did not change Predictor data, loss or weights.
 The generation entrypoint described in this record is now retired.
+
+## Retired Contact WM source
+
+The former `src/holosoma/holosoma/contact_wm/` implementation and nine associated
+tests are preserved in [the historical snapshot](history/contact-wm-legacy/README.md).
+They are outside installed packages and active test discovery. The current contact
+trainer uses the original SuperMimic WorldModel, not the old activation-head adapter.
+
+## Source organization, 2026-11-11
+
+The online single-box navigation implementation now belongs to
+`supermimic.contact_navigation`; retained diagnostic launchers only adapt its
+interface. The module has no temporary-source/data dependencies. Its distance
+and pose derivatives match the prior implementation on previously finite
+queries. Low overlapping queries no longer exit through the grounded box bottom
+below the floor; floating-box underpasses remain outside the declared scope.
+See [the navigation guide](contact-navigation.md).
+
+Five retired `direct_infiller*.md` experiment records were moved byte-for-byte
+from `docs/` to `docs/history/`. Entry documentation now links current workflow,
+package ownership and navigation scope. The repository audit checks relative
+links in seven maintained entry documents; frozen historical/upstream documents
+are not rewritten as current instructions.
+
+Root Python/pytest caches were removed and the inactive root MuJoCo diagnostic
+log was moved to external `logs/diagnostics/`. Its generated filename is ignored.
+Training defaults, existing source changes, canonical assets, raw data,
+checkpoints and running services were preserved. No training was started.
+
+Verification: 1,254 Python files statically parsed; source/configuration and
+portable-source checks passed. The selected regression set passed 108 CPU tests
+plus the five native GPU substep tests skipped in CPU mode. Six workflow launch
+plans were checked without execution. Navigation equivalence and archive hashes
+are recorded locally under `tmp/repository-audit-20261111/`. This is source and
+query validation, not full-training or new trajectory acceptance.
+
+## Code and model publication, 2026-11-12
+
+The current source update publishes material-point contact supervision, onset and
+release history, support-event/placement segmentation, collision objectives,
+source-pool and gradient handling, plus the maintained navigation distance module.
+The retired Contact WM implementation remains under `docs/history/`.
+
+[Six core starting checkpoints](checkpoints.md) are published separately as GitHub
+Release assets, with original bytes, purposes and SHA256. No training was started
+by this publication. No new runtime defensive branches were added during sync.
+
+Verification in the local workflow environment: 580 tests passed, 28 subtests
+passed, 12 skipped. One additional factory-installation check was run separately
+and failed because the installed Newton source does not match the pinned
+upstream SHA256; the compatibility guard is retained. The CPU test batch excludes
+that external-installation check. Static repository/documentation checks passed.
+The test fixture for raw substep evidence and the collision-stop expectations
+were updated to the current interfaces; the sensor-adapter unit test explicitly
+selects the native API branch it tests. Physics/training acceptance was not rerun.

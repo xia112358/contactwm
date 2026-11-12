@@ -644,3 +644,76 @@ user acceptance remains distinct from automatic passage and cannot waive the
 Newton event, clock, asset, or joint-limit gates. Only a fully verified release
 is registered in `catalog.json`; `--resume` verifies completed files against the
 same immutable publication plan. Publishing does not switch training manifests.
+
+
+## SuperMimic 成功轨迹重新合成入口（2026-11-08）
+
+`packages/supermimic/tools/synthesize_successful_contact_trajectories.py` 将已验证成功执行转成
+原 `native_rollout_consensus.run_jobs` 的候选格式。`--prepare` 接受 `--capture_root`、
+`--task_manifest`、`--population_report` 和 `--output`；population report 固定当前已使用的
+成功执行来源、子步稳定支撑事件及其多轨迹对应。随后逐任务用 `--task_manifest ... --jobs ...`
+调用原连续事件对齐、位姿残差融合、全身拟合、逐阶段 Newton 查询与标准 motion 导出。
+`--export POPULATION --output REFERENCES` 导出合成轨迹的 CSV 和来源清单。
+
+原采集入口 `rematerialize_stable_contact_slices.py --mode capture` 新增
+`--reference_manifest REFERENCES/manifest.json`。它只替换参考动作，保持原 checkpoint、
+机器人、地形及物理配置，重新采集每个真实物理子步的接触和载荷。合成位姿不继承源轨迹的
+动作、接触力或接触标签。这个回放入口仅用于诊断，不是合成轨迹的准入条件：
+旧 tracking 在未经合成的成功执行参考上也可能失败，不能用它的重跟踪结果否定合成。
+以上过程不更新策略或世界模型。新轨迹的实际接触和来源轨迹的受力证据分别记录，
+不能将来源载荷写成新轨迹的实测载荷。
+
+`aggregate_successful_event_evidence` 仅聚合事件证据与目标点云；它不是轨迹合成器。
+多数票定义合成意图，不再生成可遮蔽实际支撑的 `consensus_support_allowed`。
+切分始终读取待切轨迹自己的实际接触与稳定支撑。不同肢体的端点先后关系保留为对齐和诊断
+证据，不再作为接触事件失败门槛；同一部位的事件对应继续检查。
+
+合成查询支持实际零 margin 和同几何的克隆 box 地形，复用实时采集的主表面选择。
+原始激活、约束分配、raw-to-solver 行映射必须一致；box 接触不要求不存在的 mesh 三角形编号。
+运行时记录实际加载的 Newton 代码及依赖指纹，不再使用旧版版本号白名单。
+
+连续性指标保留作诊断及拟合目标，不再要求零违规才接受或优先选取候选。
+在保留实际事件的候选之间，按原多轨迹拟合目标比较，避免为了清零诊断项过度改写姿态。
+
+重新合成后的切分使用 `packages/supermimic/tools/partition_synthesized_contact_trajectories.py`：
+读取每条新 motion 对应的 Newton 标签，使用原统一主表面加载器，再将多条成功执行中
+已确认的子步支撑事件对应到新轨迹的实际接触。参与范围、首尾处理和边界合并复用
+`contact_temporal.describe_support_episodes`、`source_motion_analysis`、`load_transfer_slices`。
+输出区分来源支撑资格与新位姿实际接触，不复制动作或载荷，也不声明新轨迹已完成动态回放。
+
+`native_same_placement_v2` 修复真实离地被相同落点关联吞并：复用 `native_release_history`
+的已有时间与位移判据。确认离开后的重新接触必须成为新事件；仍实际接触时的卸载
+继续使用原落点关联。climb_76_mirror 在来源 314–339、345–356 帧的左脚支撑均为
+9/9 执行共有，旧关联却将其中五条并入旧支撑，制造了伪少数事件。
+本次修复后对应合成帧 315、343 的建立，新段分别止于 316、344（半开区间）。
+
+2026-11-08 产物：`tmp/trajectory-synthesis-restored-20261108/` 下
+`population-release-corrected` 保存原合成器的全部来源、时钟、候选与 Newton 原始接触；
+`references-release-corrected/manifest.json` 导出 12 条新参考；
+`partition-release-corrected/partition.json` 保存 173 段及事件绑定、首尾剔除与额外原生接触。
+可视化在现有 18765 服务的 `/trajectory-synthesis-review/` 子路径；不切换训练入口。
+
+### 2026-11-09：合成不得用断触换取更低拟合误差
+
+`consensus_support_preservation` 将来源完整支撑区间沿已验证的事件时钟映射到输出帧。
+当来源支撑票和同帧同面的原生接触票均过半，且融合位姿已实现接触，后续候选需要保持
+该接触。候选先比较事件丢失，再比较这些已实现支撑的丢失，最后比较位姿拟合目标。
+不改 Newton 激活阈值、不填接触标签；所有候选与最终 motion 都查询实际接触。
+不能使用 fixed-q 审计匹配到的单个短片段代替完整来源支撑区间。
+
+旧 climb_76_mirror 右脚在融合阶段 `[1,73)` 持续接触，0.04 秒平滑使其变为
+`[1,16)`、`[21,53)`、`[56,71)`；16–20 帧的最近点比实际激活边界高
+0.023–0.127 mm。修复后的选择保留 `fused_joint_bounded`，重新查询恢复 `[1,73)`。
+本次输出在 `tmp/trajectory-support-preserved-20261109`，包含候选审计、全部重新合成的
+motion/contact、切分、浏览器检查；没有启动策略或世界模型训练。
+
+
+### 2026-11-09：首尾裁剪保护完整动作
+
+切分仍以支撑建立和独立姿态阶段为边界。起始残留接触不作为新目标；
+首尾的不完整活动可以裁剪，但不能删除同段中另一部位已观测到开始与完成的动作。
+末尾裁剪保留完整动作的接近过程和落地，不能只留下单帧落地。
+不新增时长门槛，不更改实际接触、稳定判据、多源事件对齐或合成轨迹。
+全量复核：171 → 174 段；原有 171 段边界全部保留，恢复三个边缘动作。
+climb_76_mirror 首步 [0,29) 保留，左脚 12 离地、28 建立支撑；右脚 1 的起始接触不作新目标。
+结果：tmp/complete-action-edge-repair-20261109/partition-v4/partition.json。

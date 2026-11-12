@@ -41,7 +41,16 @@ data downloads and a one-step simulation check. Installation does not include
 trained policies or certify historical contact labels. The optional native
 PPO/Predictor environment has its own [installation recipe](docs/install.md).
 
-Latest contact segmentation and supervision status: [2026-11-05 progress](docs/research/contact-20261105/README.md), including loss-aligned native witnesses, handoff-chain experiments, and the 82→83 entry diagnosis.
+Current contact training uses `supermimic.contact_train` and the original SuperMimic
+WorldModel. See [contact training](packages/supermimic/README_CONTACT.md). The former
+`holosoma.contact_wm` implementation is [archived](docs/history/contact-wm-legacy/README.md).
+
+Contact segmentation and supervision snapshot: [2026-11-05 progress](docs/research/contact-20261105/README.md), including loss-aligned native witnesses, handoff-chain experiments, and the 82→83 entry diagnosis.
+
+Online whole-foot obstacle-navigation distance and its current limitations are described
+in [the navigation guide](docs/contact-navigation.md).
+
+Core starting models are available from the [2026-11-12 checkpoint release](https://github.com/xia112358/contactwm/releases/tag/core-starting-checkpoints-20261112-v1): 5k tracking and full continuation state, contact init/prior, and navigation experiment inputs. See [downloads and model roles](docs/checkpoints.md).
 
 ## Start here
 
@@ -82,9 +91,9 @@ packages/supermimic/        Current tracking, native collection, DAgger and cont
 packages/motion_edit/       Read-only motion/research playback and data utilities
 packages/generator/         Predictor, datasets and prediction training
 packages/contact_solver/    Contact objectives, collision gradients and projection
+packages/contact_observability/ Read-only contact observability diagnostics
 packages/climb00_pipeline/  Optional historical import/CLI compatibility
 packages/somaforge_core/    Shared assets, FK, contracts and Newton contact semantics
-OmniRetarget_Dataset/       Imported preprocessing tools
 scripts/run_workflow.py     Unified stage selector; original backend arguments pass through
 runtime/current/           Native SomaForge runtime alias
 runtime/supermimic/         SuperMimic external runtime alias

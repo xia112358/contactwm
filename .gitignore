@@ -86,3 +86,6 @@ src/holosoma/holosoma/data/robots/converted_rank0/*
 .env
 .env.*
 !.env.example
+
+# MuJoCo default diagnostic log (runtime output, not source).
+/MUJOCO_LOG.TXT

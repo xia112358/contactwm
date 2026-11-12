@@ -1,4 +1,4 @@
-# SomaForge documentation
+# ContactWM documentation
 
 Start with the [repository overview](../README.md) and
 [environment setup](environments.md). Run documented commands from the repository
@@ -8,6 +8,8 @@ have separate preparation or restoration requirements.
 
 | Task | Guide |
 | --- | --- |
+| Download current tracking/contact starting checkpoints | [Checkpoint downloads and purposes](checkpoints.md) |
+| Run tracking → native collection → DAgger → contact training | [Current workflow](current-workflow.md), [Contact training](../packages/supermimic/README_CONTACT.md) |
 | Create independent Miniforge + pip profiles without replacing an existing runtime | [Python environment profiles](python-environments.md) |
 | Install the pinned Isaac Lab / Newton runtime; check quaternion conventions | [Environments](environments.md) |
 | Download selected training inputs, reference models or extracted demonstrations | [Data downloads](data-downloads.md) |
@@ -15,6 +17,7 @@ have separate preparation or restoration requirements.
 | Configure dense, sparse or force experts and distillation independently | [Modular WBT experiments](wbt-modular-experiments.md) |
 | Review motions, Predictor outputs or diagnostics in the browser | [Read-only playback](../packages/motion_edit/README.md) |
 | Train or evaluate Predictor | [Generator](../packages/generator/README.md) |
+| Query obstacle-aware distances for online top-contact goals | [Navigation distance](contact-navigation.md) |
 | Use contact objectives, collision gradients or projection | [Contact Solver](../packages/contact_solver/README.md) |
 | Use shared assets, FK and evidence contracts | [SomaForge Core](../packages/somaforge_core/README.md) |
 | Diagnose whether contact targets are visible | [Contact observability](../packages/contact_observability/README.md) |

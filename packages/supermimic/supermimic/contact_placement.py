@@ -4,7 +4,7 @@ Actual solver meshes describe the occupied placement region, not activation.
 All geometry below is used only after native support on both ends is known.
 The anchor stays fixed through a chain of resumptions, preventing drift.
 """
-import hashlib,json
+import hashlib,json,math
 from pathlib import Path
 import numpy as np
 import torch
@@ -15,11 +15,11 @@ from .contact_temporal import TEMPORAL_CONTRACT,LIMB_PARTS
 from .contact_source_motion import SOURCE_MOTION_CONTRACT
 from .contact_substep_support import control_support_episodes
 
-PLACEMENT_CONTRACT=dict(version='native_same_placement_v1',
+PLACEMENT_CONTRACT=dict(version='native_same_placement_v2',
     max_unload_s=SOURCE_MOTION_CONTRACT['quiet_frames']*SOURCE_MOTION_CONTRACT['dt'],
     max_clearance_change_m=TEMPORAL_CONTRACT['motion_excursion_m'],
     geometry='actual serialized surface_v2 solver mesh, shared canonical body frames',
-    identity='same part and measured terrain face; shrinking common footprint throughout each gap, never move the anchor to follow successive resumptions; no large vertical excursion or intervening main-form change',
+    identity='no confirmed native release; same part and measured terrain face; shrinking common footprint throughout each gap, never move the anchor to follow successive resumptions; no large vertical excursion or intervening main-form change',
     evidence='episode association only; native activation, force, measured support and point-loss masks are not filled through gaps')
 
 
@@ -92,6 +92,9 @@ def associate_support_placements(data,evidence,world):
     episodes=control_support_episodes(data,physics_bounds=True);T,S,_=data['substep_support_state'].shape
     resume=torch.zeros(T,6,dtype=torch.bool);audit=[]
     base=int(data['ep_step'][0])*S;pos=evidence['position'][base:base+T*S,world];rot=evidence['rotation'][base:base+T*S,world];faces=evidence['surfaces'][base:base+T*S,world];known=evidence['known'][base:base+T*S,world]
+    from .contact_release import native_release_history
+    exit_steps=math.ceil(TEMPORAL_CONTRACT['exit_frames']*TEMPORAL_CONTRACT['dt']/evidence['dt'])
+    phase,_,_=native_release_history(faces!=-1,known,pos,exit_steps)
     for parts in LIMB_PARTS:
         previous=None;anchor=None
         for ep in (e for e in episodes if e['part'] in parts):
@@ -101,8 +104,9 @@ def associate_support_placements(data,evidence,world):
                 a=previous['physics_stop'];b=begin
                 duration=(b-a)*evidence['dt'];face0=int(faces[max(0,a-1),p]);face1=int(faces[b,p]);observed=faces[max(0,a-1):b+1,p]
                 same_face=face0>=0 and face1==face0 and bool(((observed==-1)|(observed==face0)).all())
-                qualified=0<=duration<=PLACEMENT_CONTRACT['max_unload_s'] and same_face and bool(known[max(0,a-1):b+1,p].all())
-                item=dict(part=p,previous_start=previous['start'],previous_stop=previous['stop'],start=ep['start'],confirmed=ep['confirmed'],gap_s=duration,same_face=same_face,linked=False)
+                released=bool((known[max(0,a-1):b,p]&~phase[max(0,a-1):b,p]).any())
+                qualified=not released and 0<=duration<=PLACEMENT_CONTRACT['max_unload_s'] and same_face and bool(known[max(0,a-1):b+1,p].all())
+                item=dict(part=p,previous_start=previous['start'],previous_stop=previous['stop'],start=ep['start'],confirmed=ep['confirmed'],gap_s=duration,same_face=same_face,native_released=released,linked=False)
                 if qualified:
                     metric,retained=placement_link(anchor,anchor_floor,(pos[max(0,a-1):b+1,p],rot[max(0,a-1):b+1,p]),mesh)
                     item.update(metric);joined=metric['matched'];item['linked']=joined

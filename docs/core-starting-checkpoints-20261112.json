@@ -1,0 +1,49 @@
+{
+  "repository": "xia112358/contactwm",
+  "source_commit": "d54b71f7708d4d82eb5f477b223464872c239f60",
+  "local_source_has_uncommitted_changes": true,
+  "files": [
+    {
+      "asset": "tracking-5k.pt",
+      "source": "tmp/original12-newton-2ms-lr20k-fresh-20261101/tracking/ckpt_005000.pt",
+      "bytes": 84876253,
+      "sha256": "7e16bfabd011c9aa51f7469bcfc768498d03f47e8fd9e31675b9c83f6da28c8a",
+      "role": "Current original12 tracking teacher / WM source"
+    },
+    {
+      "asset": "tracking-5k-full-state.pt",
+      "source": "tmp/original12-newton-2ms-lr20k-fresh-20261101/tracking/last.pt",
+      "bytes": 258255973,
+      "sha256": "e98d4964ade11d737a0efa8fa971b2d79afb1003f88512db6f5c7f2e26d5704a",
+      "role": "Full saved tracking continuation state alongside 5k teacher"
+    },
+    {
+      "asset": "contact-init.pt",
+      "source": "tmp/bottleneck-handoff-retention-20261108/init.pt",
+      "bytes": 123584138,
+      "sha256": "24625b270cf1be33e73020e8b6b48bda76939f2bcd23c3714083f80e340370ae",
+      "role": "Current contact / navigation-chain training initialization"
+    },
+    {
+      "asset": "contact-prior.pt",
+      "source": "tmp/bottleneck-handoff-retention-20261108/prior.pt",
+      "bytes": 41441495,
+      "sha256": "e0e3cccf9c04ac989e6861fc6e5fd594f1cd23641ac164ed1f315d8ae88d6a60",
+      "role": "Fixed contact actor prior"
+    },
+    {
+      "asset": "contact-start-160.pt",
+      "source": "tmp/bottleneck-chain100-prefix-fresh-20261110/training/checkpoint_000160.pt",
+      "bytes": 123590899,
+      "sha256": "4776f09a9cb01d09afcc30e12655ed383f2abde07d48be478f78650905243f6a",
+      "role": "Starting checkpoint used by selected navigation comparisons"
+    },
+    {
+      "asset": "navigation-reference-wm.pt",
+      "source": "tmp/contact-navigation-current/reference/wm.pt",
+      "bytes": 111003593,
+      "sha256": "c33b7448ae7b964395e3d92172b7c69059cc59c75d6eb68db8cd145600f7330d",
+      "role": "Frozen locally refitted WM for single-scene navigation diagnostics"
+    }
+  ]
+}

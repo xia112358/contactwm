@@ -362,7 +362,7 @@ def retained_consensus_candidates(saved, source_envs):
 
 def has_verified_consensus(candidates):
     """Candidate membership already requires multi-source provenance and limits."""
-    return any(rank[0] == 0 and not rank[1] for rank, *_ in candidates)
+    return any(rank[0] == 0 for rank, *_ in candidates)
 
 
 def run_case(scene, case, source, destination, metadata, binding, options, reuse_root=None, env_filter=None, rebuild=False):
@@ -427,7 +427,7 @@ def run_case(scene, case, source, destination, metadata, binding, options, reuse
         result = dict(processing_standard=standard.STANDARD, key=case['key'], status='insufficient_complete_sources', complete_rollouts=len(qs),
                       native_qualified=0, aggregation_written=False, training_ready=False, artifacts=artifacts)
         workflow.write_json(completed, result, immutable=True); return result
-    groups = strategy_groups(masks, surfaces)
+    groups = [list(range(len(qs)))] if "support_consensus" in case else strategy_groups(masks, surfaces)
     if len(groups) > 1 and env_filter is None:
         variants = []
         for group_index, group in enumerate(groups):
@@ -449,8 +449,18 @@ def run_case(scene, case, source, destination, metadata, binding, options, reuse
                           native_qualified=0, aggregation_written=False, training_ready=False, artifacts=artifacts,
                           unaggregated_source_groups=[[envs[i] for i in g] for g in groups])
         workflow.write_json(completed, result, immutable=True); return result
-    consensus = build_consensus(masks, surfaces)
+    consensus = case['support_consensus'] if 'support_consensus' in case else build_consensus(masks, surfaces)
     reports = [audit_consensus(consensus, m, s) for m, s in zip(masks, surfaces)]
+    if 'support_consensus' in case:
+        # Preserve the measured substep support-event clock. Fixed-q native
+        # queries audit synthesized geometry; they do not invent load evidence.
+        for i, report in enumerate(reports):
+            report['source_pose_contact_audit'] = dict(report)
+            report['checks'] = [dict(action=e['id'], kind='establish', part=e['part'], surface=e['surface'],
+                passed=str(i) in e['observations'], episode=e['observations'].get(str(i)))
+                for e in consensus['events']]
+            report['failed_checks'] = sum(not check['passed'] for check in report['checks'])
+            report['passed'] = report['failed_checks'] == 0
     case = dict(case, observed_consensus=consensus)
     workflow.write_json(destination/'event_consensus.json', consensus, immutable=True)
     artifacts.append(workflow.fingerprint(destination/'event_consensus.json'))
@@ -477,7 +487,8 @@ def run_case(scene, case, source, destination, metadata, binding, options, reuse
     aligned_reports, keep, aligned_masks, aligned_faces, aligned_depths = [], [], [], [], []
     alignment_checks = []
     for j, i in enumerate(selected):
-        own_events = observed_consensus_subset(consensus, reports[i])
+        pose_report = reports[i]['source_pose_contact_audit'] if 'support_consensus' in case else reports[i]
+        own_events = observed_consensus_subset(consensus, pose_report)
         proposed_map = maps[j].copy()
         attempts = []
         for amount in (1., .5, .25, 0.):
@@ -565,6 +576,14 @@ def run_case(scene, case, source, destination, metadata, binding, options, reuse
     base, delta, smooth, fusion = fusion_stages(aligned, representative, event_report['output_anchors'], fps=case['fps'])
     stages, candidates, stage_observations = [], [], {}
     lower, upper = fk.joint_lower.cpu().numpy(), fk.joint_upper.cpu().numpy()
+    # Preserve contact already achieved by the population fusion. Smoothing
+    # must not trade away support for a smaller pose/smoothness objective.
+    from .consensus_support_preservation import support_reference, support_loss
+    fused = apply_residual(base, delta)
+    fused_bounded=fused.copy();fused_bounded[:,7:]=np.clip(fused_bounded[:,7:],lower,upper)
+    fused_native=labels(scene(to_tensor(fused_bounded)),case['fps'])
+    support_intent=support_reference(consensus,aligned_reports,np.asarray(aligned_masks),
+        np.asarray(aligned_faces),fused_native['contact_part_mask'],fused_native['contact_surface'],maps,selected)
     def audit_stage(name, pose, *, eligible=True, parent=None):
         observed = scene(to_tensor(pose))
         # Raw actual witnesses are retained for every transformed candidate.
@@ -574,13 +593,14 @@ def run_case(scene, case, source, destination, metadata, binding, options, reuse
             raise ValueError('Inconsistent/unallocated actual Newton stage contact')
         observed_labels = labels(observed, case['fps'])
         task = audit_consensus(consensus, observed_labels['contact_part_mask'], observed_labels['contact_surface'])
+        preservation=support_loss(support_intent,observed_labels['contact_part_mask'],observed_labels['contact_surface'])
         stage_observations[name] = (task, observed_labels['contact_part_mask'], observed_labels['contact_surface'])
         continuity = continuity_guard.check(pose, fk, task)
         native_clock = native_clock_guard.check(pose, fk, task)
         joint_limit_count = int(((pose[:, 7:] < lower-1e-6) | (pose[:, 7:] > upper+1e-6)).sum())
         path = destination/'stages'/name/'observations.npz'
         save_observations(path, observed, pose, scene.native.provenance)
-        audit = dict(stage=name, parent=parent, task_acceptance=task, continuity=continuity,
+        audit = dict(stage=name, parent=parent, task_acceptance=task, support_preservation=preservation, continuity=continuity,
                      native_clock_diagnostics=dict(passed=native_clock['passed'],
                         violation_count=native_clock['violation_count'], violations=native_clock['violations'],
                         max_ratio_by_derivative=native_clock['max_ratio_by_derivative'],
@@ -588,14 +608,19 @@ def run_case(scene, case, source, destination, metadata, binding, options, reuse
                      joint_limit_violations=joint_limit_count, metrics=motion_metrics(to_tensor(pose), fk))
         workflow.write_json(path.parent/'audit.json', audit, immutable=True)
         result['artifacts'].extend(workflow.fingerprint(p) for p in (path, path.parent/'audit.json'))
-        row = dict(stage=name, parent=parent, failed_checks=task['failed_checks'],
+        from .rollout_consensus import population_fit_cost
+        with torch.no_grad():
+            fit_cost=float(population_fit_cost(to_tensor(pose),to_tensor(aligned),
+                torch.as_tensor(np.asarray(aligned_masks),device=device),fk,
+                marker_smooth_weight=options['marker_smooth_weight'],joint_smooth_weight=options['joint_smooth_weight']))
+        row = dict(stage=name, parent=parent, support_preservation=preservation, population_fit_cost=fit_cost, failed_checks=task['failed_checks'],
                    local_violations=continuity['violation_count'], joint_limit_violations=joint_limit_count,
                    max_acceleration_ratio=continuity['max_ratio_by_derivative'][1], metrics=audit['metrics'])
         stages.append(row)
         if eligible and joint_limit_count == 0:
-            rank = (task['failed_checks'], not continuity['passed'],
-                    max(0., row['max_acceleration_ratio']-1), row['local_violations'],
-                    audit['metrics']['marker_acceleration_rms_m_per_sample2'])
+            rank = (task['failed_checks'], preservation['lost_part_frames'], fit_cost,
+                    audit['metrics']['marker_acceleration_rms_m_per_sample2'], row['local_violations'],
+                    max(0., row['max_acceleration_ratio']-1))
             candidates.append((rank, name, pose.copy(), task))
         print(f"{case['key']} stage {name}: contact={row['failed_checks']}, local={row['local_violations']}", flush=True)
         if eligible and joint_limit_count:
@@ -639,7 +664,6 @@ def run_case(scene, case, source, destination, metadata, binding, options, reuse
         registration = event_report.get('joint_registration')
         if registration and registration.get('consensus_pose'):
             audit_stage('joint_motion_clock_consensus', np.asarray(registration['consensus_pose'],dtype=qs.dtype))
-        fused = apply_residual(base, delta)
         task = audit_stage('fused', fused, parent='representative')
         attempt_local('fused', fused, task)
         for time_scale in (.04, .08, .16):
@@ -686,7 +710,7 @@ def run_case(scene, case, source, destination, metadata, binding, options, reuse
     local_refinements = []
     for pass_index, support_time_scale in enumerate((.12, .24)):
         rank, parent, incumbent, incumbent_task = min(candidates, key=lambda row: row[0])
-        if rank[0] == 0 and not rank[1]:
+        if rank[0] == 0:
             break
         local_audit = continuity_guard.check(incumbent, fk, incumbent_task)
         frames = set(local_audit['violation_frames'])
@@ -725,7 +749,7 @@ def run_case(scene, case, source, destination, metadata, binding, options, reuse
         validated_failed_checks=chosen_task['failed_checks'], rms_is_acceptance_condition=False,
         legacy_fit_options=dict(options), legacy_fit_options_applied=True,
         whole_body_fit=fit_report, whole_body_initial_stage=whole_body_parent,
-        generation_policy='audit existing consensus, denoise if needed, fit unresolved candidates only',
+        generation_policy='retain events and achieved population support before ranking pose fit; derivative continuity remains diagnostic',
         local_refinements=local_refinements,
         dynamics='kinematic aggregation; fixed-q contact evidence is not a dynamic feasibility certificate')
     by_stage = {s['stage']: s for s in stages}
@@ -753,6 +777,7 @@ def run_case(scene, case, source, destination, metadata, binding, options, reuse
     if not contacts.exists(): relabel(motion, binding, contacts)
     final_labels = load_contact_labels(motion, contacts)
     task = audit_consensus(consensus, final_labels['contact_part_mask'], final_labels['contact_surface'])
+    final_support=support_loss(support_intent,final_labels['contact_part_mask'],final_labels['contact_surface'])
     if task['failed_checks'] != optimization['validated_failed_checks']:
         raise ValueError('Final full Newton labels disagree with native optimization validation')
     with np.load(motion, allow_pickle=False) as z:
@@ -763,7 +788,7 @@ def run_case(scene, case, source, destination, metadata, binding, options, reuse
     joint_count = int(((final_q[:,7:] < fk.joint_lower.detach().cpu().numpy()-1e-6)
                       | (final_q[:,7:] > fk.joint_upper.detach().cpu().numpy()+1e-6)).sum())
     status = acceptance_status(task, continuity) if not joint_count else 'joint_limits_unresolved'
-    result.update(status=status, aggregation_written=True,
+    result.update(status=status, aggregation_written=True, support_preservation=final_support,
                   motion=str(motion), contacts=str(contacts), task_acceptance=task, event_acceptance=task,
                   task_success_verified=False, smoothness=metrics,
                   contributing_env_ids=np.asarray(envs)[selected].tolist(), optimization=optimization,

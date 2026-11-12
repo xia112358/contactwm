@@ -18,6 +18,31 @@ def load_slice_clock(recording, path):
             raise ValueError(f'Slice/recording identity mismatch: {key}')
     data=recording['data']; dev=data['s'].device
     clock=ContactClock.__new__(ContactClock)
+    clock.material_goal_mode='fixed_material_targets' in slices
+    if clock.material_goal_mode:
+        if slices['metadata'].get('material_phase_status') == 'invalid':
+            raise ValueError('Unresolved material target data: '+slices['metadata']['material_phase_reason'])
+        from .contact_material import CONTRACT
+        if slices['metadata']['material_goal_contract'] != CONTRACT:
+            raise ValueError('Material goal contract mismatch')
+        local=slices['fixed_material_local'];targets=slices['fixed_material_targets']
+        if local.shape!=(len(slices['goals']),6,4,3) or targets.shape!=(len(slices['goals']),6,4,3):
+            raise ValueError('Invalid material goal shapes')
+        if not torch.isfinite(local).all() or not torch.isfinite(targets).all():
+            raise ValueError('Non-finite material goals')
+        clock.material_local=local;clock.material_targets=targets;clock.material_goal_contract=CONTRACT
+        if 'paired_material_local' in slices:
+            from .contact_paired_material import CONTRACT as PAIRED_CONTRACT
+            if slices['metadata'].get('paired_material_contract') != PAIRED_CONTRACT:
+                raise ValueError('Paired material contract mismatch')
+            candidates=slices['paired_material_local'];goals=slices['paired_material_targets'];valid=slices['paired_material_valid']
+            if candidates.ndim!=4 or candidates.shape[:2]!=(len(slices['goals']),6) or candidates.shape[-1]!=3 or goals.shape!=candidates.shape or valid.shape!=candidates.shape[:-1]:
+                raise ValueError('Invalid paired material goal shapes')
+            if not bool(valid[...,0].all()) or not torch.isfinite(candidates).all() or not torch.isfinite(goals).all():
+                raise ValueError('Invalid paired material candidates')
+            if not torch.equal(candidates[:,:,0],local[:,:,0]) or not torch.equal(goals[:,:,0],targets[:,:,0]):
+                raise ValueError('Primary paired material must retain the original target')
+            clock.paired_material_local=candidates;clock.paired_material_targets=goals;clock.paired_material_valid=valid
     clock.fixed_goal_mode='fixed_goal_points' in slices
     clock.reference_support_contract=None
     clock.source_evidence_contract=None

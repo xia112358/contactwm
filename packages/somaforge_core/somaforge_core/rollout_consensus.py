@@ -57,6 +57,25 @@ class FitConvergence:
         return self.samples >= 3 and step-self.start >= self.patience
 
 
+def population_fit_cost(pose, sources, masks, fk, *, marker_smooth_weight=.05, joint_smooth_weight=.2):
+    """Original shared whole-body fitting objective, without admission gates."""
+    import torch
+    offsets=pose.new_tensor([[0,0,0],[.1,0,0],[0,.1,0],[0,0,.1]])
+    def markers(q):
+        position,rotation=fk.link_poses(q,LINKS)
+        return position[...,None,:]+torch.einsum('...ij,kj->...ki',rotation,offsets)
+    observed,predicted=markers(sources),markers(pose)
+    weights=pose.new_ones(len(pose),len(LINKS))
+    for part,name in enumerate(PART_LINKS):
+        weights[:,LINKS.index(name)]+=3*masks.float().mean(0)[:,part]
+    error=(((predicted[None]-observed)/.01).square().mean((-1,-2))*weights[None]).mean(-1)
+    data=(2*(torch.sqrt(1+error)-1)).mean()
+    prior=(2*(torch.sqrt(1+((pose[None,:,7:]-sources[:,:,7:])/.1).square().mean(-1))-1)).mean()
+    smooth=(torch.diff(predicted,n=2,dim=0)/.001).square().mean()
+    joint=(torch.diff(pose[:,7:],n=2,dim=0)/.01).square().mean()
+    return data+.02*prior+marker_smooth_weight*smooth+joint_smooth_weight*joint
+
+
 def fit_consensus(q, reference, boundaries, pairs, catalog, *, device="cpu", steps=600,
                   band=10, marker_smooth_weight=.05, joint_smooth_weight=.2,
                   mappings=None, contact_guard=None, continuity_guard=None, initial_pose=None,
@@ -199,9 +218,11 @@ def fit_consensus(q, reference, boundaries, pairs, catalog, *, device="cpu", ste
     if initial_pose is not None and contact_guard is not None and continuity_guard is not None:
         incumbent = tensor(initial_pose)
         with torch.no_grad():
-            _, validation = contact_guard(-1, incumbent, fk, final=True)
-            _, count, excess = continuity_objective(incumbent, validation)
-        best_rank = (validation['failed_checks'], int(count > 0), excess if count else 0., count, float('inf'))
+            retention, validation = contact_guard(-1, incumbent, fk, final=True)
+            local_cost, count, excess = continuity_objective(incumbent, validation)
+            incumbent_loss=float(population_fit_cost(incumbent,tensor(aligned),tensor(votes),fk,
+                marker_smooth_weight=marker_smooth_weight,joint_smooth_weight=joint_smooth_weight)+retention+continuity_weight*local_cost)
+        best_rank = (validation['failed_checks'], incumbent_loss, int(count > 0), count, excess)
         best_step, best_loss, result = -1, None, np.asarray(initial_pose).copy()
     history = []
     convergence = FitConvergence(convergence_patience, convergence_rtol)
@@ -240,7 +261,7 @@ def fit_consensus(q, reference, boundaries, pairs, catalog, *, device="cpu", ste
             raise ValueError("Nonfinite consensus objective")
         value = float(loss.detach())
         rank = (0 if contact_guard is None else validation["failed_checks"],
-                int(violations > 0), 0 if violations == 0 else excess, violations, value) if validation is not None or contact_guard is None else None
+                value, int(violations > 0), violations, excess) if validation is not None or contact_guard is None else None
         if rank is not None and rank < best_rank and (contact_guard is None or step > 0):
             best_rank = rank
             best_loss, best_step, result = value, step, pose.detach().cpu().numpy().copy()
@@ -276,7 +297,7 @@ def fit_consensus(q, reference, boundaries, pairs, catalog, *, device="cpu", ste
         rms_is_acceptance_condition=False,
         local_continuity_violations=best_rank[3] if continuity_guard is not None else None,
         selected_existing_aggregate=best_step == -1,
-        candidate_priority=['actual contact failures', 'continuity passed', 'worst local excess', 'violation count', 'fit and smoothness loss'],
+        candidate_priority=['actual contact failures', 'fit and smoothness objective', 'continuity diagnostics'],
         release_supervision="disabled without independent action evidence",
         contact_retention="majority shape/primary-face source geometry; guide only, not new contact truth",
         source_sampling="recorded solve points and post-integration FK are distinct; geometric fitting guide",

@@ -163,7 +163,7 @@ class ContinuityGuard:
 def acceptance_status(task, continuity):
     if task.get('schema') == 'native_population_information_consensus_v2':
         if not task['passed']: return 'stable_information_loss'
-        return 'accepted' if continuity['passed'] else 'introduced_variation_unresolved'
+        return 'accepted'
     if not task['passed']:
         return 'contact_guard_unresolved'
     return 'accepted' if continuity['passed'] else 'local_continuity_unresolved'

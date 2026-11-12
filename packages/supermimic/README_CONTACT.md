@@ -1,4 +1,30 @@
-# Single-segment contact learning
+# Contact training: current SuperMimic pipeline
+
+The sole maintained WM training entrypoint is `supermimic.contact_train`, using
+SuperMimic's original `WorldModel`, force predictor and native replay. Both DMO
+and imagination modes belong to this entrypoint. Single stages, adjacent windows
+and continuous collection share this implementation.
+
+For setup and current artifact availability, follow
+[the current workflow](../../docs/current-workflow.md). The historical
+`accepted-baseline.json` and its original `checkpoint_dagger.pt` are missing;
+paths and scores below document earlier experiments, not available restart inputs.
+Select and validate an initialization before a new training run.
+
+The old Holosoma adapters, activation head and stream trainer are preserved only
+in [the historical snapshot](../../docs/history/contact-wm-legacy/README.md).
+
+Published starting files are now available: [checkpoint downloads and purposes](../../docs/checkpoints.md), including the 5k tracking teacher, full tracking state, contact initialization/prior and navigation diagnostic inputs.
+
+## Selected obstacle-navigation diagnostic (2026-11-11)
+
+The maintained query implementation is `supermimic.contact_navigation`;
+see [navigation distance](../../docs/contact-navigation.md) for the API, scope,
+fixed-goal training comparison and remaining final-pose limitation.
+Local diagnostic models and replay records are indexed by
+`tmp/contact-navigation-current/scheme.json`; they are not distributed training
+inputs or the full-training default. Native Newton contacts still decide
+stability, success and unexpected-contact termination.
 
 ## Current contact data source
 
@@ -199,7 +225,7 @@ visualization server. The current browser URL is
 http://127.0.0.1:18767/contact-segment-wm/ . It displays training success rates,
 actual updates, collection/WM/policy timings, and terminal state.
 
-## Preserved artifacts and removed flows
+## Historical artifacts and removed flows
 
 The accepted initialization is
 `tmp/contact-tracker-20261027-v1/demo0-dagger-mse-v2/checkpoint_dagger.pt`
@@ -230,15 +256,15 @@ fixed for the initial experiment. It does not guarantee correct local derivative
 
 Frozen-policy comparisons can explicitly use `--freeze_actor --freeze_wm
 --completion_mode accumulated_target --root_tolerance 0.25`: each part's actual
-same-face contact within 5 cm is accumulated during the episode, and success
+allocated contact within the configured radius is accumulated during the episode, and success
 requires the root/pose test at the current frame. A first inaccurate touch does
 not end the attempt. The original demonstration-plus-10-frame deadline and
 physical failure rule still apply. DMO training supports this mode: a part contributes once at its first valid goal contact; parts still missing at the native endpoint use the endpoint contact/FK error. Root loss is evaluated at that native endpoint. Imagination-mode learning does not support this completion mode.
 
-## Accepted restart baseline
+## Historical restart baseline
 
-Use `tmp/contact-tracker-20261027-v1/demo0-dagger-mse-v2/checkpoint_dagger.pt`
-for the next actor initialization, with the original tracking WM. The canonical
+The historical restart used `tmp/contact-tracker-20261027-v1/demo0-dagger-mse-v2/checkpoint_dagger.pt`
+with the original tracking WM. The canonical
 artifact pointer is `tmp/contact-tracker-20261027-v1/accepted-baseline.json`.
 The frozen initialization recheck passed 14/19 first attempts under the explicit
 25 cm root / accumulated-target criterion. Degraded full-segment optimization
@@ -248,7 +274,7 @@ are not restart candidates. The DMO implementation itself is retained.
 Single-task DMO verification uses `--segment 7 --completion_mode accumulated_target
 --policy_gradient dmo --dmo_microbatch 4096 --root_tolerance .25 --freeze_wm`,
 restarting from the accepted DAgger actor. `native_batch` in each metrics row
-contains first-attempt success, target-face contact coverage, closest measured
+contains first-attempt success, target-contact coverage, closest measured
 contact error, and endpoint root/pose error for the very trajectories used in
 that update. `collected_policy_updates` identifies the actor that generated them;
 the optimizer update logged on the same row happens afterward. Missing contacts

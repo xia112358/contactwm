@@ -12,6 +12,7 @@ class OriginalContext:
 
     def __init__(self, tasks):
         self.count = len(tasks)
+        self.tasks = tasks
 
 
 class HeightContactContext:
@@ -25,6 +26,7 @@ class HeightContactContext:
     def __init__(self, tasks):
         from .rotations import quat_to_mat
         self.count = len(tasks)
+        self.tasks = tasks
         self.resolution = 0.05
         # A task-wide raster is sampled into a heading-aligned local patch.
         all_boxes = [box for task in tasks for box in task["boxes"]]
@@ -130,6 +132,7 @@ class ForceOnlyContext(HeightForceContext):
     def __init__(self, tasks):
         # No terrain raster is constructed or queried in this ablation.
         self.count = len(tasks)
+        self.tasks = tasks
 
     def features(self, state, xi):
         return self.local_forces(state, xi[..., self.contact_slice])

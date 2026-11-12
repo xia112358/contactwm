@@ -66,8 +66,9 @@ def main():
     parser.add_argument('--inherited_band_metrics',type=Path,help='Single-stage metrics.jsonl with native durations collected by the exact resumed actor')
     parser.add_argument('--fixed_inherited_duration',action='store_true',help='Fixed per-stage deadline from resumed single-stage duration history plus halfwidth; no secondary duration filtering')
     parser.add_argument('--continuous_random',action='store_true',help='Random segment starts; continue until failure or trajectory end; independent stage gradients')
+    parser.add_argument('--case_gradient_guard',action='store_true',help='Compute each independent segment gradient, cap dominant case norms and project conflicting components')
     parser.add_argument('--full_tracking_diagnostics',action='store_true',help='Also compute unused original tracking rewards/termination for continuous contact worlds')
-    parser.add_argument('--sequence_length',type=int,choices=(1,2),default=1,help='Independent single segments or all adjacent two-stage windows')
+    parser.add_argument('--sequence_length',type=int,default=1,help='Number of consecutive segments per continuous window')
     parser.add_argument('--segment',type=int,help='Run only this segment (1-based); default runs all segments')
     parser.add_argument('--save_every',type=int,default=50)
     parser.add_argument('--log_every',type=int,default=10)
@@ -86,6 +87,7 @@ def main():
     if args.target_grid_span and (not args.slices or args.target_grid_segment is None or args.segment is not None or args.sequence_length!=1 or args.policy_gradient!='dmo'):
         raise ValueError('Target grid requires explicit slices, a source segment, and independent DMO')
     if args.continuous_random:args.sequence_length=19
+    if args.case_gradient_guard and (args.policy_gradient!='dmo' or args.sequence_length!=1 or args.freeze_actor):raise ValueError('Case gradient guard requires trainable independent DMO segments')
     if args.adaptive_lr and (args.policy_gradient!='dmo' or args.freeze_actor):raise ValueError('Native LR scheduling requires DMO actor updates')
     if not 0<args.min_learning_rate<=args.learning_rate:raise ValueError('Invalid LR floor')
     if args.headless:args.visualizer=None
@@ -98,8 +100,8 @@ def main():
         raise ValueError('Stable contact scoring requires surface_region terminal guidance')
     if args.stable_contact_frames < 0:
         raise ValueError('Stable contact frames must be nonnegative')
-    if args.stable_contact_frames and (args.policy_gradient!='dmo' or args.sequence_length>1):
-        raise ValueError('Stable contact start currently requires independent single-segment DMO')
+    if args.stable_contact_frames and args.policy_gradient!='dmo':
+        raise ValueError('Stable contact scoring requires DMO')
     if min(args.utd,args.iterations,args.wm_batches,args.wm_diagnostic_every,args.log_every,args.save_every)<=0:raise ValueError('Positive training budgets required')
     if args.completion_mode=='accumulated_target' and not args.freeze_actor and args.policy_gradient!='dmo':raise ValueError('Accumulated-target learning requires DMO')
     if args.probe_update_path and not (args.freeze_actor and args.freeze_wm):raise ValueError('Update probe requires both networks frozen')
@@ -151,7 +153,7 @@ def main():
         import hashlib
         slices_sha=hashlib.sha256(args.slices.read_bytes()).hexdigest()
         if not args.initialize_from_dagger and resumed['config'].get('slices_sha256')!=slices_sha:raise ValueError('Resume uses different contact slices')
-        if args.sequence_length!=1 or args.policy_gradient!='dmo':raise ValueError('Explicit cuts require independent native DMO')
+        if args.policy_gradient!='dmo':raise ValueError('Explicit cuts require native DMO')
     validate_checkpoint(resumed.get('source_metadata',{}),metadata)
     if args.initialize_from_dagger and not resumed.get('dagger'):raise ValueError('New-slice initialization requires DAgger weights')
     if resumed['schema']!='supermimic_contact_demo_v1' or (not args.initialize_from_dagger and Path(resumed['config']['recording']).resolve()!=args.recording.resolve()):
@@ -219,7 +221,7 @@ def main():
     if original_resume:wm_opt.load_state_dict(resumed['wm_optimizer'])
     if args.segment is not None and not 1<=args.segment<=len(clock.event_ends):raise ValueError('Segment out of range')
     if hasattr(clock,'segment_motion'):
-        if args.sequence_length!=1:raise ValueError('Multi-motion contact transfers must use independent episodes')
+        if args.sequence_length!=1 and clock.segment_motion.unique().numel()!=1:raise ValueError('Continuous windows require a single motion and terrain')
         counts=case_world_counts(clock,len(spec['tasks']),args.num_envs,
             None if args.segment is None else args.segment-1)
         selected_motions=clock.segment_motion.unique().tolist() if args.segment is None else [int(clock.segment_motion[args.segment-1])]
@@ -241,6 +243,9 @@ def main():
         training_loop='collect -> WM fit -> policy BPTT; existing UTD scheduling',
         contact_tolerances_m=contact_tolerances,contact_loss_scale_m=.05,
         completion=f'actual contact inside per-segment target radius ({radius_description}; native contact; no face matching), root <{args.root_tolerance*100:g}cm/<0.4rad; no historical keep veto; no dwell')
+    if getattr(clock,'material_goal_mode',False):
+        config['completion_evidence_contract']='first_stable_completion_latched_v1'
+        config['metric_sample_scope']='all collected first attempts; duration selection only affects actor loss'
     config['target_grid']=getattr(clock,'target_grid',None)
     if args.target_grid_span:config['segment_start']='nine commands from identical recorded start; world XY target offsets only'
     config['physical_failure_rule']='nonfinite state, root z < 0.15 m, or pelvis up-axis points downward (Rzz <= 0)'
@@ -259,7 +264,7 @@ def main():
         windows=len(clock.event_ends) if args.continuous_random else len(clock.event_ends)-args.sequence_length+1
         if args.segment is not None and not 1<=args.segment<=windows:raise ValueError('Sequence start out of range')
         starts=[args.segment-1] if args.segment else range(windows)
-        config['horizon']=max(clock.bounds[-1]-clock.bounds[i]+(len(clock.event_ends)-i)*args.segment_grace_steps for i in starts) if args.continuous_random else max(clock.bounds[i+args.sequence_length]-clock.bounds[i] for i in starts)+args.sequence_length*args.segment_grace_steps
+        config['horizon']=max(int((case_stops-case_starts)[i:(len(clock.event_ends) if args.continuous_random else i+args.sequence_length)].sum())+(len(clock.event_ends)-i if args.continuous_random else args.sequence_length)*args.segment_grace_steps for i in starts)
         config['segment_start']='exact recorded start of adjacent window; no state/history reset at handoff'
     config['policy_batch']=1 if args.segment else len(clock.event_ends)
     config['terminal_steps_source']='latest completed attempt of first native world per segment; fallback demonstration length + grace'
@@ -273,6 +278,9 @@ def main():
         config['policy_objective']='simulator-forward / original-WM-backward BPTT; per-part onset loss and final root loss; missing-contact terminal FK proxy'
         if args.completion_mode=='accumulated_target':config['policy_objective']='simulator-forward / original-WM-backward; per-part first valid goal contact loss, terminal fallback for missing goals, and final root loss'
         config['training_loop']='WM one-step fit on previous native replay -> fresh full native attempts -> full-batch DMO backward -> one actor update'
+        from supermimic.contact_case_gradient import ACTOR_GRADIENT_GROUP_SIZE, ACTOR_GRADIENT_OUTLIER_RATIO
+        config['actor_gradient_outlier_cap']=dict(group_size=ACTOR_GRADIENT_GROUP_SIZE,median_ratio=ACTOR_GRADIENT_OUTLIER_RATIO)
+        config['collision_objective_version']='all_frame_collision_surface_clearance_v1'
         config['wm_fit']='DMO deterministic one-step residual MSE on real replay; tracking normalization and existing force6 supervision retained'
         config['wm_fit_order']='before fresh actor rollout, following DMO Algorithm 1'
         config['lr_schedule_rule']='mean success over recent 3 native training batches; 3 non-improving observations (absolute improvement >0.01); halve LR to floor' if args.adaptive_lr else 'constant'
@@ -370,12 +378,16 @@ def main():
                          sequential=args.sequence_length>1,sequence_length=args.sequence_length if args.sequence_length>1 else None,continuous_random=args.continuous_random,cache_reset_contacts=args.cache_reset_contacts,stable_contact_frames=args.stable_contact_frames)
         if args.stable_contact_frames and clock.fixed_goal_mode:
             contact_hooks.enter_context(task.contact_monitor)
-            config['stable_loss_sampling']=dict(version='native_substep_loss_witness_gpu_v3',
+            config['stable_loss_sampling']=dict(version='native_substep_loss_witness_gpu_v7_outside_region',
                 physics_dt=task.contact_monitor.dt,substeps_per_control=task.contact_monitor.substeps,
                 qualification='native known active + same-solve NativeContactStability',
-                sampling='last qualified new or goal-region support substep; exclude initial support until confirmed exit',
+                sampling='last qualified new support substep; actual entry support excluded until confirmed exit; airborne entry armed immediately',
                 initial_support_exit_steps=task.contact_monitor.exit_steps,
-                completion='unchanged control-end native accumulated_target',
+                completion='per-part native onset holds only its limb until observed stability; no confirmation timer; all target parts required; original total segment deadline and placement/root thresholds',
+                cuda_graph=env.sim.backend_manager._cfg.use_cuda_graph)
+        if task.contact_only:
+            config['stable_loss_sampling']=dict(task.contact_monitor.monitor.contract,
+                completion='new support establishment after entry support exits; no landing-distance or root gate',
                 cuda_graph=env.sim.backend_manager._cfg.use_cuda_graph)
         task.skip_student_tracking=args.continuous_random and not args.full_tracking_diagnostics
         config['native_tracking_diagnostics']='background worlds only; unused student tracking rewards are zero and not optimized' if task.skip_student_tracking else 'all worlds'
@@ -416,16 +428,31 @@ def main():
                 release='known inactive after demonstrated target release boundary',
                 witness='same first phase-confirmed native point for loss, completion and metrics',
                 missing='terminal surface-region guidance reported separately')
-            config['duration_loss_scope']='duration band selects attempts; selected attempts retain their real terminal to preserve landing confirmation'
+            config['duration_loss_scope']='duration band selects attempts; preserve native terminal only when all target parts have stable witnesses; otherwise truncate'
         config['target_faces_by_segment']=None if task.target_faces_by_segment is None else task.target_faces_by_segment.cpu().tolist()
         (args.output/'config.json').write_text(json.dumps(config,default=str,indent=2))
+        if getattr(clock,'material_goal_mode',False) and (args.policy_gradient!='dmo' or not args.stable_contact_frames):
+            raise ValueError('Fixed material targets require DMO with native stable-substep sampling')
+        if getattr(clock,'material_goal_mode',False):
+            config['contact_objective']=clock.material_goal_contract
+            config['stable_loss_sampling']['pose_witness']='same qualifying native substep; position and rotation retained together'
+            (args.output/'config.json').write_text(json.dumps(config,default=str,indent=2))
         extra=dict(contact_goal=(6,torch.bool),contact_first=(6,torch.bool),next_xi=(demo['xi'].shape[-1],torch.float32),goal_index=((),torch.long),term=((),torch.bool),
             active=(6,torch.bool),known=(6,torch.bool),surface_local=(6,torch.long),point=((6,3),torch.float32),force=((6,3),torch.float32),load=(6,torch.float32),
             paired_force_w=((6,3),torch.float32),contact_count=(6,torch.long))
         if args.stable_contact_frames:
             extra.update(contact_stable=(6,torch.bool),contact_row_stable=(6,torch.bool),contact_material_speed=(6,torch.float32),contact_load=(6,torch.float32),contact_load_stable=(6,torch.bool))
+        if task.new_contact_stop:
+            extra.update(contact_entry_blocked=(6,torch.bool),collision_mask=(6,torch.bool),collision_local=((6,3),torch.float32),collision_point=((6,3),torch.float32),collision_normal=((6,3),torch.float32),collision_gap=(6,torch.float32),collision_speed=(6,torch.float32),collision_in_region=(6,torch.bool))
+            extra.update(action_held=(29,torch.bool),body_endpoint_valid=((),torch.bool),contact_interrupted=((),torch.bool),
+                contact_new_event=(6,torch.bool),contact_event_parts=(6,torch.bool),contact_stop_substep=(6,torch.int32),
+                contact_confirmation_steps=(6,torch.int32),contact_confirmation_done=(6,torch.bool),contact_confirmation_lost=(6,torch.bool),contact_failed_parts=(6,torch.bool))
         if args.stable_contact_frames and clock.fixed_goal_mode:
             extra['contact_loss_point']=((6,3),torch.float32)
+            if getattr(clock,'material_goal_mode',False):
+                extra.update(contact_loss_position=((6,3),torch.float32),contact_loss_rotation=((6,3,3),torch.float32))
+                if hasattr(clock,'paired_material_local'):extra['contact_loss_candidate']=(6,torch.long)
+                if hasattr(clock,'paired_material_local'):extra.update(contact_raw_stable=(6,torch.bool),contact_raw_point=((6,3),torch.float32),contact_raw_position=((6,3),torch.float32),contact_raw_rotation=((6,3,3),torch.float32))
         if args.sequence_length>1:extra.update(stage_step=((),torch.long),stage_done=((),torch.bool),stage_success=((),torch.bool),sequence_live=((),torch.bool))
         buffer=ReplayBuffer(args.buffer_steps,task.N,device,extra_fields=extra)
         profiler=None
@@ -501,7 +528,7 @@ def main():
             for item in prior_audit['segments']:duration_prior[item['segment']-1]=item['center']
             config['duration_prior_centers']=duration_prior.cpu().tolist()
             config['duration_prior_source']='initial collection at DAgger/reset policy; demonstrated duration fallback if unreliable'
-            config['duration_loss_scope']='long attempts get terminal contact/root loss at cutoff; short attempts discarded; native metrics and WM use all data'
+            config['duration_loss_scope']=('all target parts stable: retain native terminal; otherwise truncate at duration cutoff; short attempts discarded; native metrics and WM use all data' if args.stable_contact_frames else 'long attempts get terminal contact/root loss at cutoff; short attempts discarded; native metrics and WM use all data')
             (args.output/'duration-prior.json').write_text(json.dumps(prior_audit,indent=2))
             (args.output/'config.json').write_text(json.dumps(config,default=str,indent=2))
         if args.duration_halfwidth is not None and duration_history is None and duration_prior is not None:
@@ -567,7 +594,10 @@ def main():
                 rows=(buffer.ptr-collected+torch.arange(collected,device=device))%buffer.T
                 if args.sequence_length>1:
                     from supermimic.contact_sequence import sequence_plan,sequence_attempt_metrics,slice_plan
-                    raw=buffer.recent(collected,('done','term','s1','goal_index','active','known','point','stage_step','stage_done','stage_success'))
+                    fields=('done','term','s1','goal_index','active','known','point','stage_step','stage_done','stage_success')
+                    if getattr(clock,'material_goal_mode',False):fields+=('contact_stable','contact_loss_point','contact_loss_position','contact_loss_rotation')
+                    if hasattr(clock,'paired_material_local'):fields+=('contact_loss_candidate',)
+                    raw=buffer.recent(collected,fields)
                     native_batch=sequence_attempt_metrics(raw,clock,args.sequence_length,continuous=args.continuous_random)
                     torch.cuda.synchronize();filter_begin=time.perf_counter()
                     selected,plan,duration_filter=sequence_plan(raw,args.sequence_length,duration_history,args.duration_halfwidth or 0,args.duration_min_success,args.duration_min_mass)
@@ -586,13 +616,37 @@ def main():
                         args.duration_halfwidth,args.duration_min_success,args.duration_min_mass)
                     torch.cuda.synchronize();duration_filter['seconds']=time.perf_counter()-filter_begin
             if args.stable_contact_frames and duration_stops is not None:
-                done=buffer.recent(collected,('done',))['done']
-                duration_stops=done.long().argmax(0)+1
+                from supermimic.contact_loss_sampling import stable_duration_stops
+                recent=buffer.recent(collected,('done','contact_stable','goal_index'))
+                ends=clock.event_ends[recent['goal_index'][0]]-1
+                required=clock.target_masks[ends]&~clock.keep_masks[ends]
+                upper=torch.empty(len(clock.event_ends),device=duration_stops.device,dtype=torch.long)
+                for row in duration_filter['segments']:upper[row['segment']-1]=row['upper']
+                native=recent['done'].long().argmax(0)+1
+                cutoffs=torch.minimum(native,upper[recent['goal_index'][0]])
+                duration_stops=stable_duration_stops(recent['done'],recent['contact_stable'],required,cutoffs)
+            if args.case_gradient_guard:
+                # Every segment continues contributing even if its entire batch
+                # was discarded by the duration selector; use its real attempts.
+                event_all=buffer.data['goal_index'][rows[0]]
+                present=torch.unique(event_all[selected]);expected=torch.unique(task.segment)
+                missing=expected[~torch.isin(expected,present)]
+                recovered=[]
+                for case in missing.tolist():
+                    slots=(event_all==case).nonzero().flatten()
+                    if not len(slots):raise ValueError('A sampled segment has no collected attempts')
+                    selected=torch.cat((selected,slots));recovered.append(dict(segment=case+1,attempts=len(slots)))
+                if duration_filter is not None:duration_filter['guard_unfiltered_recovered']=recovered
             if args.policy_gradient=='dmo' and args.sequence_length==1 and args.stable_contact_frames and clock.fixed_goal_mode and len(selected):
                 from supermimic.contact_dmo import loss_aligned_attempt_metrics
-                recent=buffer.recent(collected,('done','s1','goal_index','contact_stable','contact_loss_point'))
-                selected_data={key:value[:,selected] for key,value in recent.items()}
-                loss_aligned_batch=loss_aligned_attempt_metrics(selected_data,clock,task.contact_tolerances_by_segment,task.root_tolerance,task.root_angle_tolerance)
+                fields=('done','s1','goal_index','contact_stable','contact_loss_point')
+                if task.new_contact_stop:fields+=('contact_interrupted',)
+                if getattr(clock,'material_goal_mode',False):fields+=('contact_loss_position','contact_loss_rotation')
+                if hasattr(clock,'paired_material_local'):fields+=('contact_loss_candidate',)
+                recent=buffer.recent(collected,fields)
+                # Metrics cover every collected attempt; duration selection only affects actor loss.
+                loss_aligned_batch=loss_aligned_attempt_metrics(recent,clock,task.contact_tolerances_by_segment,task.root_tolerance,task.root_angle_tolerance)
+                if getattr(clock,'material_goal_mode',False):native_batch=loss_aligned_batch
             if not args.freeze_actor and len(selected):
                 actor_opt.zero_grad(set_to_none=True)
                 if args.policy_gradient=='dmo':
@@ -600,11 +654,18 @@ def main():
                     if lr_schedule:lr_signal=lr_schedule.observe(native_batch['macro_success_rate'])
                     objective_value=0.;objective_parts={}
                     def ordinary_batches():
-                        for offset in range(0,len(selected),args.dmo_microbatch):
-                            slots=selected[offset:offset+args.dmo_microbatch]
+                        if args.case_gradient_guard:
+                            event_all=buffer.data['goal_index'][rows[0]]
+                            slot_groups=[selected[event_all[selected]==case] for case in torch.unique(event_all[selected],sorted=True)]
+                        else:
+                            slot_groups=[selected[offset:offset+args.dmo_microbatch] for offset in range(0,len(selected),args.dmo_microbatch)]
+                        for slots in slot_groups:
                             needed=('s','s1','xi','next_xi','a','a_prev','ep_step','goal_index','done','contact_goal','contact_first','active','known','point')
+                            if task.new_contact_stop:needed+=('action_held','body_endpoint_valid','contact_interrupted','contact_entry_blocked','collision_mask','collision_local','collision_point','collision_normal','collision_gap','collision_speed','collision_in_region')
                             if args.stable_contact_frames:needed+=('contact_stable',)
                             if args.stable_contact_frames and clock.fixed_goal_mode:needed+=('contact_loss_point',)
+                            if getattr(clock,'material_goal_mode',False):needed+=('contact_loss_position','contact_loss_rotation')
+                            if hasattr(clock,'paired_material_local'):needed+=('contact_loss_candidate','contact_raw_stable','contact_raw_point','contact_raw_position','contact_raw_rotation')
                             replay_rows=rows[:,None];replay_slots=slots[None,:]
                             batch={k:buffer.data[k][replay_rows,replay_slots] for k in needed}
                             entry=None if collection_initial_history is None else collection_initial_history[slots]
@@ -614,12 +675,20 @@ def main():
                         batches=(item+(None,) for item in stage_batches(buffer,rows,plan,actor,context,default_q,args.dmo_microbatch))
                     else:batches=ordinary_batches()
                     processed=0;next_training_progress=0.
+                    gradient_rows=[];gradient_weights=[]
+                    case_gradients=[];case_loss_rows=[];guard_parameters=list(actor.parameters()) if args.case_gradient_guard else []
                     stage_loss_sums=torch.zeros((len(clock.event_ends),4),device=device,dtype=torch.float64) if args.continuous_random else None
                     for batch,cutoffs,entry_history,weight,total,batch_plan in batches:
                         attempt_losses={} if args.continuous_random else None
+                        if not args.case_gradient_guard:
+                            from supermimic.contact_grouped_gradient import GroupedActorGradients
+                            from supermimic.contact_case_gradient import ACTOR_GRADIENT_GROUP_SIZE
+                            group_ids=torch.arange(len(batch['goal_index'][0]),device=device)//ACTOR_GRADIENT_GROUP_SIZE
+                            grouped=GroupedActorGradients(actor,group_ids)
+                            grouped.__enter__()
                         part,details=replay_loss(actor,wm,clock,geometry,context,normalize_xi,default_q,batch,
                             pose_weight=args.pose_weight,prior_actor=prior,prior_weight=args.prior_weight,
-                            check=args.check_dmo and iteration==start+1,completion_mode=args.completion_mode,
+                            check=args.check_dmo and iteration==start+1 and (not args.case_gradient_guard or processed==0),completion_mode=args.completion_mode,
                             stop_steps=cutoffs,stage_plan=batch_plan,initial_history=entry_history,per_attempt_losses=attempt_losses,contact_surface=surface,
                             stable_contact_frames=args.stable_contact_frames)
                         processed+=len(batch['goal_index'][0])
@@ -632,14 +701,33 @@ def main():
                             if processed==len(batch['goal_index'][0]):native=task.report(iteration,updates)
                             status('training',iteration,dmo_processed=processed,dmo_total=total,duration_filter=duration_filter)
                             next_training_progress=time.perf_counter()+args.progress_interval_seconds
-                        (part*weight).backward();objective_value+=float(part.detach())*weight
+                        if args.case_gradient_guard:
+                            actor_opt.zero_grad(set_to_none=True);part.backward()
+                            gradient=torch.cat([(p.grad if p.grad is not None else torch.zeros_like(p)).flatten() for p in guard_parameters]).detach().clone()
+                            case_gradients.append(gradient)
+                            case_loss_rows.append(dict(segment=int(batch['goal_index'][0,0])+1,samples=len(batch['goal_index'][0]),loss=float(part.detach()),contact_loss=details['terminal_contact'],gradient_norm=float(gradient.norm())))
+                        else:
+                            torch.autograd.grad(part,tuple(actor.parameters()),allow_unused=True)
+                            matrix=grouped.matrix()
+                            grouped.__exit__(None,None,None)
+                            gradient_rows.append(matrix)
+                            gradient_weights.append(grouped.counts.to(matrix.dtype)*(weight/grouped.batch))
+                        objective_value+=float(part.detach())*weight
                         for key,value in details.items():
                             if value is None:continue
-                            if key in ('terminal_contact','terminal_body','process_regularization','stable_contact_loss','terminal_guidance_loss','contact_supervision_coverage'):
+                            if key in ('process_collision','collision_prefix','terminal_contact','terminal_body','process_regularization','stable_contact_loss','terminal_guidance_loss','contact_supervision_coverage'):
                                 objective_parts[key]=objective_parts.get(key,0.)+weight*value
                             elif key in ('trajectories','missing_contact_proxy_terms','geometric_unobserved_terms','truncated_trajectories','required_contact_terms','stable_contact_terms','terminal_guidance_terms'):
                                 objective_parts[key]=objective_parts.get(key,0)+value
                             else:objective_parts[key]=max(objective_parts.get(key,0),value)
+                    if args.case_gradient_guard:
+                        from supermimic.contact_case_gradient import guarded_case_gradient
+                        direction,guard=guarded_case_gradient(torch.stack(case_gradients),rotation=iteration%len(case_gradients))
+                        cursor=0
+                        for parameter in guard_parameters:
+                            size=parameter.numel();parameter.grad=direction[cursor:cursor+size].reshape_as(parameter).clone();cursor+=size
+                        guard['segments']=[row['segment'] for row in case_loss_rows]
+                        objective_parts['case_gradient_guard']=guard;objective_parts['case_losses']=case_loss_rows
                     if args.continuous_random:
                         objective_parts['stage_losses']=[dict(segment=g+1,samples=int(n),continuation_samples=int(continued),contact=contact/n,root=root/n)
                             for g,(n,continued,contact,root) in enumerate(stage_loss_sums.cpu().tolist()) if n]
@@ -650,12 +738,32 @@ def main():
                         segment_indices=None if args.segment is None else [args.segment-1],return_details=True,
                         contact_surface=surface)
                     objective.backward()
+                if args.policy_gradient=='dmo' and not args.case_gradient_guard:
+                    from supermimic.contact_case_gradient import cap_gradient_outliers
+                    direction,gradient_cap=cap_gradient_outliers(torch.cat(gradient_rows),torch.cat(gradient_weights))
+                    offset=0
+                    for parameter in actor.parameters():
+                        width=parameter.numel()
+                        parameter.grad=direction[offset:offset+width].view_as(parameter)
+                        offset+=width
+                    objective_parts['gradient_outlier_cap']=gradient_cap
                 raw_grad_norm=torch.nn.utils.clip_grad_norm_(actor.parameters(),1.,error_if_nonfinite=True)
                 if args.update_diagnostics:
                     params=[p for p in actor.parameters() if p.grad is not None]
                     before=torch.cat([p.detach().flatten() for p in params])
                     gradient=torch.cat([p.grad.detach().flatten() for p in params])
+                if args.case_gradient_guard:
+                    pre_step=torch.cat([parameter.detach().flatten().clone() for parameter in guard_parameters])
                 actor_opt.step();updates+=1
+                if args.case_gradient_guard:
+                    from supermimic.contact_case_gradient import guard_adam_displacement
+                    after_step=torch.cat([parameter.detach().flatten() for parameter in guard_parameters])
+                    applied,step_guard=guard_adam_displacement(after_step-pre_step,torch.stack(case_gradients))
+                    with torch.no_grad():
+                        cursor=0
+                        for parameter in guard_parameters:
+                            size=parameter.numel();parameter.copy_((pre_step[cursor:cursor+size]+applied[cursor:cursor+size]).reshape_as(parameter));cursor+=size
+                    objective_parts['case_gradient_guard']['adam_step']=step_guard
                 if args.update_diagnostics:
                     delta=torch.cat([p.detach().flatten() for p in params])-before
                     cosine=lambda x,y:float(torch.dot(x,y)/(x.norm()*y.norm()).clamp_min(1e-30))

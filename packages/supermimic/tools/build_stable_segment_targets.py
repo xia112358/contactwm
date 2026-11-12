@@ -29,6 +29,9 @@ def main():
     report=dict(partition_cases=len(cat['cases']),contact_training_cases=len(accepted),source_success_required=True,targets=proof,excluded_training_cases=rejected,ready=not unresolved,raw_points_changed=False,partition_boundaries_changed=False)
     (a.output/'target-audit.json').write_text(json.dumps(report,indent=2))
     if unresolved:raise ValueError('Unresolved target quality; audit saved, training artifact not published')
+    from supermimic.contact_material_targets import add_material_targets
+    packed,material_audit=add_material_targets(packed,proof)
+    (a.output/'material-target-audit.json').write_text(json.dumps(material_audit,indent=2))
     torch.save(packed,a.output/'cases.pt');print(json.dumps({k:v for k,v in report.items() if k not in ['targets','excluded_training_cases']}))
 
 

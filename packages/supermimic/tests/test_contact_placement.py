@@ -24,7 +24,7 @@ def test_return_to_same_place_after_real_excursion_is_not_continuation():
         assert not metric['matched']
 
 
-def evidence(onset=80,unknown=False,other_face=False):
+def evidence(onset=80,unknown=False,other_face=False,unload_only=False):
     T=max(200,onset+80);P=torch.zeros(T,1,6,3);R=torch.eye(3).expand(T,1,6,3,3).clone()
     known=torch.ones(T,1,6,dtype=torch.bool);active=torch.zeros_like(known);active[:40,0,0]=True;active[onset:,0,0]=True
     if unknown:known[50,0,0]=False
@@ -37,12 +37,13 @@ def evidence(onset=80,unknown=False,other_face=False):
         samples.append(model.update(obs,features,(P[t],R[t]),torch.tensor([t])))
     data={'substep_support_'+k:torch.stack([s[k][0] for s in samples]).reshape(-1,10,6) for k in samples[0]}
     data.update(ep_step=torch.arange(T//10),surface_local=surfaces[::10,0])
+    if unload_only:surfaces[:,0,0]=0
     raw=dict(position=P.numpy(),rotation=R.numpy(),surfaces=surfaces.numpy(),known=known.numpy(),dt=.002,meshes=[mesh() for _ in range(6)])
     return data,raw
 
 
 def test_same_surface_short_unload_associated_without_changing_observations():
-    d,e=evidence();before=e['known'].copy();f,a=associate_support_placements(d,e,0)
+    d,e=evidence(unload_only=True);before=e['known'].copy();f,a=associate_support_placements(d,e,0)
     assert f['support_placement_resume'][8,0]
     assert not d['substep_support_state'][6,0,0]
     assert np.array_equal(e['known'],before)
@@ -53,3 +54,10 @@ def test_unknown_face_change_and_long_idle_are_not_associated():
     for kw in [dict(unknown=True),dict(other_face=True),dict(onset=240)]:
         d,e=evidence(**kw);f,a=associate_support_placements(d,e,0)
         assert not f['support_placement_resume'].any()
+
+
+def test_confirmed_native_flight_cannot_resume_old_placement_even_at_same_point():
+    d,e=evidence()
+    flags,audit=associate_support_placements(d,e,0)
+    assert not flags['support_placement_resume'].any()
+    assert audit[0]['native_released'] and not audit[0]['linked']

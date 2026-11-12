@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 import re
 import subprocess
+from urllib.parse import unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 RETIRED_SUPPORT_PATHS = (
@@ -22,6 +23,32 @@ RETIRED_ENTRYPOINT_PATHS = (
     'packages/motion_edit/motion_edit/generation/newton_collision.py',
     'packages/motion_edit/motion_edit/generation/newton_collision_filter.py',
 )
+MAINTAINED_DOCUMENTS = (
+    'README.md',
+    'docs/README.md',
+    'docs/current-workflow.md',
+    'docs/repository-maintenance.md',
+    'docs/contact-navigation.md',
+    'packages/supermimic/README_CONTACT.md',
+    'packages/supermimic/README_UNIFIED.md',
+)
+
+
+def documentation_link_errors(name: str, text: str, root: Path) -> list[str]:
+    """Check relative file links at maintained documentation boundaries."""
+    errors = []
+    for match in re.finditer(r'\]\(([^)]+)\)', text):
+        destination = match.group(1).split()[0].strip('<>')
+        link = urlsplit(destination)
+        if link.scheme or link.netloc or not link.path or link.path.startswith('/'):
+            continue
+        target = (root / name).parent / unquote(link.path)
+        if not target.exists():
+            line = text.count('\n', 0, match.start()) + 1
+            errors.append(f'{name}:{line}: broken documentation link: {destination}')
+    return errors
+
+
 CANONICAL_ENVIRONMENT_PATHS = (
     'scripts/source_somaforge.sh',
     'scripts/setup_isaaclab3_newton.sh',
@@ -345,6 +372,12 @@ def audit(root: Path = ROOT) -> dict:
             for script in re.findall(r'\bpython(?:3)?\s+(scripts/[\w./-]+\.py)\b', path.read_text()):
                 if not (root / script).is_file():
                     errors.append(f'{name}: workflow calls missing script {script}')
+    for name in MAINTAINED_DOCUMENTS:
+        path = root / name
+        if not path.is_file():
+            errors.append(f'{name}: maintained documentation is missing')
+            continue
+        errors.extend(documentation_link_errors(name, path.read_text(), root))
     for path in root.iterdir():
         if path.is_symlink() and not path.exists():
             errors.append(f'Broken root symlink: {path.name}')
@@ -353,6 +386,7 @@ def audit(root: Path = ROOT) -> dict:
     status = git('status', '--porcelain', '--untracked-files=all')
     return dict(schema='somaforge_repository_audit_v1', root=str(root),
                 tracked_files=len(tracked), python_files_parsed=python_count,
+                documentation_files_checked=len(MAINTAINED_DOCUMENTS),
                 changes=dict(Counter(line[:2] for line in status)),
                 tracked_data=binaries, temporary_config_references=temporary_references,
                 errors=errors, warnings=warnings,

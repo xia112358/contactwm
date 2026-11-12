@@ -29,6 +29,12 @@ normalizer, recording and checkpoint contracts are unchanged. Existing
 SuperMimic source/actor checkpoints remain explicit inputs; PPO weights are a
 different backend format and are not implicitly converted to `pi`/`wm`.
 
+The maintained single-box online navigation primitive lives in
+`supermimic.contact_navigation`; see [its API and validation scope](../../docs/contact-navigation.md).
+Retained diagnostic launchers import that implementation instead of duplicating
+it under temporary experiment directories. This does not change the default
+contact trainer or the checkpoint format.
+
 Inherited old-checkout paths in archived manifests/checkpoints are provenance.
 Pass current resource paths explicitly; do not rewrite frozen artifact hashes or
 pretend different training routes are equivalent. Installed SomaForge packages

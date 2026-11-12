@@ -304,7 +304,11 @@ def reduce_snapshot(snapshot, *, body_labels, body_env, shape_surface, env_id=0,
             # a mesh shape ID alone cannot distinguish box top from its sides.
             normal = np.asarray(snapshot['frame_w'][row])[0] * (1 if side == 1 else -1)
             terrain_point = np.asarray(snapshot[f'geometry_point{1-side}_w'][row])
-            if 'source_key' in snapshot:
+            if binding[0].get('geometry_kind') == 'box':
+                # Primitive boxes have no emitting mesh triangle. Use the same
+                # realized face attribution as live native contact collection.
+                matching = actual_contact_faces(terrain_point, normal, binding)
+            elif 'source_key' in snapshot:
                 from .newton_contact_sources import source_face_metadata
                 contact_source = source_face_metadata(snapshot['source_key'][row],shape,
                     snapshot['shape0'][row],snapshot['shape1'][row],binding,normal,terrain_point)

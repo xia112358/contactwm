@@ -35,3 +35,5 @@ CLI 标准：
 - `--headless` 优先级最高，强制无窗口。
 - `training.headless=False` 不再作为打开 Kit 窗口的 CLI 入口，只接受最终 AppLauncher/CLI 状态同步。
 - `--enable_cameras`、`--device`、`--experience`、`--kit_args` 等官方 AppLauncher 参数归 AppLauncher 解析，不让 tyro 当成项目配置吞掉。
+
+单段策略训练不再采用等范数平衡：不启用 `--case_norm_balance` 或依赖它的 `--grouped_case_backward`，直接反传整体 loss。此规则不更改衔接训练的独立设置。

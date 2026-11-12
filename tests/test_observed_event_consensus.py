@@ -25,12 +25,13 @@ def test_population_clock_not_representative_and_minority_not_anchor():
     assert not c['original_reference_used'] and not c['task_success_verified']
 
 
-def test_overlap_and_order_come_from_new_executions():
+def test_cross_limb_overlap_is_alignment_evidence_not_a_failure_gate():
     data = [evidence(t) for t in (20,25,30)]
     c = build_consensus(*zip(*data))
     m,s = evidence(45)  # Loses the observed contact overlap.
     report = audit_consensus(c,m,s)
-    assert not report['passed']
+    assert report['passed']
+    assert report['relation_information_loss_count'] == 0
     assert all(r['passed'] for r in report['checks'])
     assert any(not r['passed'] for r in report['relation_checks'])
 
@@ -93,7 +94,8 @@ def test_transport_does_not_promote_minority_incidental_contacts():
     c=build_consensus(*zip(*data));r=audit_consensus(c,*data[0])
     own=observed_consensus_subset(c,r)
     assert audit_consensus(own,*evidence(25))['passed']
-    assert not audit_consensus(own,*evidence(45))['passed']
+    shifted=audit_consensus(own,*evidence(45))
+    assert shifted['passed'] and shifted['relation_variation_count']
 
 
 def test_exclusive_endpoint_is_valid_for_continuity_bounds():

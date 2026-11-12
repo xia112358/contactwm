@@ -96,7 +96,13 @@ def _replay_events(data, clock, event, stop, truncated, completion_mode, stage_p
     frames=torch.arange(T,device=device)[:,None];live=frames<stop[None]
     if stable_contact_frames and getattr(clock,'fixed_goal_mode',False):
         from .contact_loss_sampling import stable_loss_samples
-        raw=stable_loss_samples(data['contact_stable'][:T],live)
+        if getattr(clock,'material_goal_mode',False):
+            from .contact_loss_sampling import completed_stable_samples, material_witness_errors
+            subset={key:value[:T] for key,value in data.items()}
+            errors=material_witness_errors(subset,clock)
+            raw=subset['contact_stable']
+        else:
+            raw=stable_loss_samples(data['contact_stable'][:T],live)
     elif stable_contact_frames:
         from .contact_phase import landing_phase_events
         end=clock.event_ends[event]-1
@@ -106,6 +112,7 @@ def _replay_events(data, clock, event, stop, truncated, completion_mode, stage_p
     else:
         raw=data['contact_first' if first_contact_targets or completion_mode!='accumulated_target' else 'contact_goal'][:T]
     evaluate=torch.zeros_like(raw);terminal=torch.zeros_like(live)
+    required_terms=torch.zeros_like(raw[0],dtype=torch.long)
     length=1 if stage_plan is None else stage_plan['length']
     for k in range(length):
         if stage_plan is None:
@@ -114,10 +121,23 @@ def _replay_events(data, clock, event, stop, truncated, completion_mode, stage_p
         else:
             selected=data['goal_index'][:T]==event[None]+k
             enabled=stage_plan['enabled'][k];endpoint=stage_plan['ends'][k];cut=stage_plan['truncated'][k]
+        interrupted=torch.zeros_like(enabled)
+        initial_guidance=torch.zeros_like(enabled)
+        if 'contact_interrupted' in data:
+            native_endpoint=data['done'].long().argmax(0)+1 if stage_plan is None else stage_plan['ends'][k]
+            interrupted=data['contact_interrupted'][native_endpoint-1,torch.arange(len(stop),device=device)]
+            # Failed contact guidance uses the actual collected stop pose.
+            # Interruption still excludes a successful body endpoint below.
         end=clock.event_ends[event+k]-1
         new=clock.target_masks[end]&~clock.keep_masks[end]
-        eligible=live&selected&enabled[None]&(frames<endpoint[None])
-        hits=raw&new[None]&eligible[...,None]
+        required_terms+=new.long()*enabled[:,None]
+        eligible=live&selected&enabled[None]&(frames<endpoint[None])&~initial_guidance[None]
+        if stable_contact_frames and getattr(clock,'material_goal_mode',False):
+            stage_witness=completed_stable_samples(raw,eligible,errors,
+                clock.material_contact_tolerances[subset['goal_index']][...,None])
+        else:
+            stage_witness=raw
+        hits=stage_witness&new[None]&eligible[...,None]
         if first_contact_targets and contact_window_frames > 1 and not stable_contact_frames:
             from .contact_arrival import arrival_indices
             subset={key:data[key][:T] for key in ('done','known','active','point','contact_first')}
@@ -126,13 +146,24 @@ def _replay_events(data, clock, event, stop, truncated, completion_mode, stage_p
         if not first_contact_targets and not stable_contact_frames:hits &= ~cut[None,:,None]
         if native_events is not None:
             native_events['mask']=native_events.get('mask',torch.zeros_like(raw))|hits
-        seen=hits.to(torch.int8).cummax(0).values.bool()
+        guidance=torch.zeros_like(hits)
+        if stable_contact_frames and hasattr(clock,'paired_material_local'):
+            from .contact_loss_sampling import stable_loss_samples
+            raw_guidance=stable_loss_samples(data['contact_raw_stable'][:T],eligible)
+            knees=torch.tensor([False,False,False,False,True,True],device=device)
+            guidance=raw_guidance&new[None]&knees&~hits.any(0)[None]
+        choices=hits|guidance
+        seen=choices.to(torch.int8).cummax(0).values.bool()
         before=torch.cat((torch.zeros_like(seen[:1]),seen[:-1]),0)
         final=(frames+1==endpoint[None])&enabled[None]&live&selected
-        terminal|=final
-        # Every required part is supervised once. Unconfirmed parts use
-        # terminal collision-surface guidance, never unstable measured points.
-        evaluate|=(hits|final[...,None]&new[None])&~before
+        # Failed attempts keep the contact goal at the actual stop, but never
+        # acquire a successful body endpoint from a collision.
+        body_final=final&~interrupted[None]
+        terminal|=body_final if 'body_endpoint_valid' not in data else body_final&data['body_endpoint_valid'][:T]
+        # A matched witness wins; otherwise the latest stable native row can
+        # guide material alignment without becoming a success witness.
+        evaluate|=(choices|final[...,None]&new[None])&~before
+    if native_events is not None:native_events['required_terms']=required_terms
     # Part 6 denotes a root endpoint. Coordinates are sorted time/world/part.
     coordinates=torch.cat((evaluate,terminal[...,None]),-1).nonzero().cpu().tolist()
     schedule={};indices=[]
@@ -194,6 +225,7 @@ def replay_loss(actor,wm,clock,geometry,context,normalize,default_q,data,*,
         if eligible.any():pair_probe=int(eligible.nonzero()[0])
     native_events={}
     evaluations,terminals,schedule=_replay_events(data,clock,event,stop,truncated,completion_mode,stage_plan,first_contact_targets,contact_window_frames,native_events,stable_contact_frames)
+    expected=native_events['required_terms']
     if check and stable_contact_frames and not getattr(clock,'fixed_goal_mode',False):
         live=torch.arange(len(evaluations),device=device)[:,None]<stop[None]
         collected=data['contact_first'][:len(evaluations)]&live[...,None]&new[None]
@@ -204,6 +236,12 @@ def replay_loss(actor,wm,clock,geometry,context,normalize,default_q,data,*,
     stable_evaluations=evaluations&native_events['mask'] if stable_contact_frames else torch.zeros_like(evaluations)
     guidance_evaluations=evaluations&~stable_evaluations if stable_contact_frames else torch.zeros_like(evaluations)
     stable_total=target.new_zeros(B);guidance_total=target.new_zeros(B)
+    collision_total=target.new_zeros(B)
+    if 'collision_mask' in data:
+        from .contact_collision_objective import ContinuousClearance
+        if not hasattr(contact_surface,'continuous_clearance'):
+            contact_surface.continuous_clearance=ContinuousClearance(contact_surface,context.tasks,clock)
+        clearance=contact_surface.continuous_clearance
     contact_total=target.new_zeros(B);body_total=contact_total.clone();regular_total=contact_total.clone()
     diagnostic_totals={k:target.new_zeros(B) for k in ('root_position','root_orientation','root_velocity','dagger_prior','action_smoothness','action_magnitude')} if detailed_losses is not None or per_attempt_losses is not None else None
     action_error=target.new_zeros(());forward_error=target.new_zeros(())
@@ -225,6 +263,12 @@ def replay_loss(actor,wm,clock,geometry,context,normalize,default_q,data,*,
                 reference=unflatten_state(clock.data['s1'][end-1])
             condition=clock.condition(S,start,ends=end)
             action_pred=actor(hist,condition)
+            if 'action_held' in data:
+                # Confirmation repeats the last executed setpoint. Its gradient
+                # belongs to that earlier decision, not a new policy output.
+                held=data['action_held'][t]
+                if held.ndim==1:held=held[:,None]  # archived whole-action hold recordings
+                action_pred=torch.where(held,previous,action_pred)
             if check and t==0:
                 early_action=action_pred;early_action.retain_grad()
             action_error=torch.maximum(action_error,(action_pred.detach()-data['a'][t]).abs().masked_fill(~live[:,None],0).max())
@@ -240,6 +284,12 @@ def replay_loss(actor,wm,clock,geometry,context,normalize,default_q,data,*,
             actual=unflatten_state(data['s1'][t])
             S1=tuple(swap(p,r) for p,r in zip(predicted,actual))
             xi1=swap(predicted_xi,data['next_xi'][t])
+            if 'collision_mask' in data:
+                cp,cR=geometry.poses(S1)
+                motions=clock.segment_motion[event]
+                impact=clearance.loss(cp,cR,event,motions,new&live[:,None],data['contact_entry_blocked'][t])
+                collision_total+=impact.sum(-1)/new.sum(-1).clamp_min(1)
+
             if endpoint_probe is not None and t==endpoint_probe['frame']:
                 endpoint_probe['state']=S1
             if check:
@@ -262,6 +312,9 @@ def replay_loss(actor,wm,clock,geometry,context,normalize,default_q,data,*,
             if arrival_state is None and scheduled is not None and len(scheduled['contact']):
                 # A measured contact uses its measured body-local material point.
                 # With no contact, retain the established FK endpoint proxy.
+                pre_action=native_events.get('pre_action_guidance')
+                use_initial=torch.zeros(B,device=device,dtype=torch.bool) if pre_action is None else pre_action[t]
+                contact_state=tuple(torch.where(use_initial.reshape((-1,)+(1,)*(a.ndim-1)),a,b) for a,b in zip(S,S1))
                 observed=measured_mask[t]
                 region=None
                 if contact_surface is not None and hasattr(contact_surface,'region_loss'):
@@ -269,24 +322,24 @@ def replay_loss(actor,wm,clock,geometry,context,normalize,default_q,data,*,
                     # worlds/parts, not B x six dense surface fields per frame.
                     slots=scheduled['contact'];parts=scheduled['parts']
                     selected_normals=None if goal_normals is None else torch.broadcast_to(goal_normals,target.shape)[slots]
-                    selected=contact_surface.region_loss(tuple(v[slots] for v in S1),target[slots],parts,normals=selected_normals,
+                    selected=contact_surface.region_loss(tuple(v[slots] for v in contact_state),target[slots],parts,normals=selected_normals,
                         normal_weight=normal_weight,tangent_weight=tangent_weight)
                     region={key:target.new_zeros(target.shape[:2]).index_copy(0,slots,value)
                             for key,value in selected.items()}
                 elif contact_surface is not None:
-                    point=contact_surface.contact_points(S1,target,surface_parts)
+                    point=contact_surface.contact_points(contact_state,target,surface_parts)
                 else:
-                    p,R=geometry.poses(S1)
+                    p,R=geometry.poses(contact_state)
                     measured=data['point'][t]
                     local=(R.detach().transpose(-1,-2)@(measured-p.detach()).unsqueeze(-1)).squeeze(-1)
                     measured_proxy=p+(R@local.unsqueeze(-1)).squeeze(-1)
-                    point=torch.where(observed[...,None],swap(measured_proxy,measured),geometry(S1,end-1))
+                    point=torch.where(observed[...,None],swap(measured_proxy,measured),geometry(contact_state,end-1))
                 if region is not None:
                     if stable_contact_frames:
                         # Stable native witness can precede the control endpoint.
                         # Completion keeps its separate control-end observation;
                         # the fixed body-local derivative still comes from FK/WM.
-                        p,R=geometry.poses(S1)
+                        p,R=geometry.poses(contact_state)
                         measured=data['contact_loss_point' if clock.fixed_goal_mode else 'point'][t]
                         local=(R.detach().transpose(-1,-2)@(measured-p.detach()).unsqueeze(-1)).squeeze(-1)
                         point=swap(p+(R@local.unsqueeze(-1)).squeeze(-1),measured)
@@ -300,6 +353,27 @@ def replay_loss(actor,wm,clock,geometry,context,normalize,default_q,data,*,
                             measured_cost=normal_weight*measured_normal+tangent_weight*measured_tangent
                         region={key:torch.where(stable_evaluations[t],value,region[key])
                             for key,value in [('loss',measured_cost),('normal',measured_normal),('tangent',measured_tangent)]}
+                    if getattr(clock,'material_goal_mode',False):
+                        from .contact_material import world_points, point_error_sq
+                        p,R=geometry.poses(contact_state)
+                        predicted=world_points(p,R,clock.material_local[event])
+                        actual=world_points(data['contact_loss_position'][t],data['contact_loss_rotation'][t],clock.material_local[event])
+                        points=torch.where(stable_evaluations[t,:,:,None,None],swap(predicted,actual),predicted)
+                        cost=point_error_sq(points,clock.material_targets[event])/.05**2
+                        if hasattr(clock,'paired_material_local'):
+                            from .contact_paired_material import paired_material_error_sq
+                            use=stable_evaluations[t]
+                            position=torch.where(use[...,None],swap(p,data['contact_loss_position'][t]),p)
+                            rotation=torch.where(use[...,None,None],swap(R,data['contact_loss_rotation'][t]),R)
+                            paired,_=paired_material_error_sq(position,rotation,data['contact_loss_point'][t],use,clock.paired_material_local[event],clock.paired_material_targets[event],clock.paired_material_valid[event],data['contact_loss_candidate'][t])
+                            raw_use=guidance_evaluations[t]&data['contact_raw_stable'][t]&~use_initial[:,None]
+                            raw_position=swap(p,data['contact_raw_position'][t]);raw_rotation=swap(R,data['contact_raw_rotation'][t])
+                            from .contact_paired_material import paired_raw_guidance_error_sq
+                            raw_cost=paired_raw_guidance_error_sq(raw_position,raw_rotation,data['contact_raw_point'][t],clock.paired_material_local[event],clock.paired_material_targets[event],clock.paired_material_valid[event])
+                            paired=torch.where(raw_use,raw_cost,paired)
+                            cost=torch.cat((cost[:,:4],paired[:,4:]/.05**2),dim=-1)
+                        hand=torch.tensor([False,False,True,True,False,False],device=cost.device)
+                        region={key:torch.where(hand,region[key],value) for key,value in [('loss',cost),('normal',cost),('tangent',torch.zeros_like(cost))]}
                     errors=region['loss']
                     normal_total+=(region['normal']*evaluate).sum(-1)/new.sum(-1).clamp_min(1)
                     tangent_total+=(region['tangent']*evaluate).sum(-1)/new.sum(-1).clamp_min(1)
@@ -347,17 +421,20 @@ def replay_loss(actor,wm,clock,geometry,context,normalize,default_q,data,*,
             S=tuple(torch.where(live.reshape((-1,)+(1,)*(p.ndim-1)),p,old) for p,old in zip(S1,S))
             xi=torch.where(live[:,None],xi1,xi);hist=torch.where(live[:,None,None],next_hist,hist)
             previous=torch.where(live[:,None],action,previous)
+    # Kept as a diagnostic field: continuous clearance replaces the old prefix term.
+    prefix_per_attempt=target.new_zeros(B)
     contact_total=contact_total/stage_divisor;body_total=body_total/stage_divisor
     if diagnostic_totals is not None:
         for name in diagnostic_totals:
             if name.startswith('root_'):diagnostic_totals[name]=diagnostic_totals[name]/stage_divisor
     c=contact_total.mean();b=body_total.mean();r=(regular_total/stop).mean()
-    loss=c+pose_weight*b+r
-    if component_losses is not None:component_losses.update(contact=c,body=pose_weight*b,regularization=r)
+    collision=(collision_total/stage_divisor).mean()
+    loss=c+pose_weight*b+r+collision
+    if component_losses is not None:component_losses.update(contact=c,body=pose_weight*b,regularization=r,process_collision=collision,collision_prefix=(prefix_per_attempt/stage_divisor).mean())
     if detailed_losses is not None:
-        detailed_losses.update(contact=c,**{name:(pose_weight*value.mean() if name.startswith('root_') else (value/stop).mean()) for name,value in diagnostic_totals.items()})
+        detailed_losses.update(contact=c,process_collision=collision,**{name:(pose_weight*value.mean() if name.startswith('root_') else (value/stop).mean()) for name,value in diagnostic_totals.items()})
     if per_attempt_losses is not None:
-        per_attempt_losses.update(contact=contact_total,**{name:(pose_weight*value if name.startswith('root_') else value/stop) for name,value in diagnostic_totals.items()})
+        per_attempt_losses.update(contact=contact_total,process_collision=collision_total/stage_divisor,**{name:(pose_weight*value if name.startswith('root_') else value/stop) for name,value in diagnostic_totals.items()})
     clipped=truncated.sum() if stage_plan is None else (stage_plan['truncated']&stage_plan['enabled']).sum()
     metrics=[c.detach(),b.detach(),r.detach(),action_error,forward_error,missing,clipped]
     if goal_normals is not None:metrics.extend([(normal_total/stage_divisor).mean().detach(),(tangent_total/stage_divisor).mean().detach()])
@@ -367,7 +444,7 @@ def replay_loss(actor,wm,clock,geometry,context,normalize,default_q,data,*,
     if values[3]>1e-4:
         warnings.warn(f"Action replay numerical difference {values[3]:.8g}; continuing with recorded simulator actions",RuntimeWarning)
     if check and values[4]!=0:raise AssertionError('Forward state differs from simulator')
-    details=dict(terminal_contact=values[0],terminal_body=values[1],
+    details=dict(process_collision=float(collision.detach()),collision_prefix=float(prefix_per_attempt.mean().detach()),terminal_contact=values[0],terminal_body=values[1],
         process_regularization=values[2],unroll_steps=unroll,
         action_replay_max_error=values[3],forward_state_max_error=values[4] if check else None,
         missing_contact_proxy_terms=int(values[5]) if contact_surface is None else 0,
@@ -403,7 +480,7 @@ def replay_loss(actor,wm,clock,geometry,context,normalize,default_q,data,*,
 
 @torch.no_grad()
 def loss_aligned_attempt_metrics(data,clock,contact_tolerances,root_tolerance,root_angle_tolerance):
-    """Report selected attempts using the exact stable witnesses used by loss.
+    """Report all supplied attempts using the exact completion witnesses used by loss.
 
     A missing stable witness is unsuccessful, never a synthetic contact. Error
     is conditional on every target part having a witness and uses the same
@@ -414,7 +491,12 @@ def loss_aligned_attempt_metrics(data,clock,contact_tolerances,root_tolerance,ro
     event=data['goal_index'][0];B=len(event);device=event.device
     end_index=data['done'].long().argmax(0);ends=clock.event_ends[event]
     live=torch.arange(len(data['done']),device=device)[:,None]<=end_index
-    selected=stable_loss_samples(data['contact_stable'],live)
+    if getattr(clock,'material_goal_mode',False):
+        from .contact_loss_sampling import completed_stable_samples, material_witness_errors
+        errors=material_witness_errors(data,clock)
+        selected=completed_stable_samples(data['contact_stable'],live,errors,contact_tolerances[event][None,:,None])
+    else:
+        selected=stable_loss_samples(data['contact_stable'],live)
     has=selected.any(0);indices=selected.long().argmax(0)
     batch=torch.arange(B,device=device)[:,None];parts=torch.arange(6,device=device)[None]
     point=data['contact_loss_point'][indices,batch,parts]
@@ -422,6 +504,16 @@ def loss_aligned_attempt_metrics(data,clock,contact_tolerances,root_tolerance,ro
     required=clock.target_masks[ends-1]&~clock.keep_masks[ends-1]
     complete=((~required)|has).all(-1)
     distance=(point-target).norm(dim=-1)
+    if getattr(clock,'material_goal_mode',False):
+        from .contact_material import world_points, mixed_error_sq
+        position=data['contact_loss_position'][indices,batch,parts]
+        rotation=data['contact_loss_rotation'][indices,batch,parts]
+        actual=world_points(position,rotation,clock.material_local[event])
+        distance=mixed_error_sq(actual,clock.material_targets[event],point,target).sqrt()
+        if hasattr(clock,'paired_material_local'):
+            from .contact_paired_material import paired_material_error_sq
+            paired,_=paired_material_error_sq(position,rotation,point,has,clock.paired_material_local[event],clock.paired_material_targets[event],clock.paired_material_valid[event],data['contact_loss_candidate'][indices,batch,parts])
+            distance=torch.cat((distance[:,:4],paired[:,4:].sqrt()),dim=-1)
     mean_distance=(distance*required).sum(-1)/required.sum(-1).clamp_min(1)
     contact_ok=((~required)|(has&(distance<=contact_tolerances[event,None]))).all(-1)
     terminal=data['s1'][end_index,torch.arange(B,device=device)]
@@ -430,6 +522,30 @@ def loss_aligned_attempt_metrics(data,clock,contact_tolerances,root_tolerance,ro
     angle_ok=torch.ones_like(contact_ok) if root_angle_tolerance is None else angle<root_angle_tolerance
     failed=(~torch.isfinite(terminal).all(-1))|has_fallen(final)
     success=contact_ok&(root<root_tolerance)&angle_ok&~failed
+    if 'contact_interrupted' in data:
+        success &= ~data['contact_interrupted'][end_index,torch.arange(B,device=device)]
+    worst=distance.masked_fill(~required,0.).amax(-1)
+    missing=~complete
+    over=complete&~contact_ok
+    root_bad=root>=root_tolerance
+    angle_bad=~angle_ok
+    reason_masks={'missing_stable_contact':missing&~failed,
+        'contact_over_tolerance':over&~failed,
+        'root_position':contact_ok&root_bad&~failed,
+        'root_orientation':contact_ok&~root_bad&angle_bad&~failed,
+        'fallen_or_nonfinite':failed}
+    diagnostic_rows=[]
+    for i in range(len(clock.event_ends)):
+        mask=event==i
+        if not bool(mask.any()):continue
+        observed=mask&complete
+        diagnostic_rows.append(dict(
+            case_id=int(clock.case_ids[i]) if hasattr(clock,'case_ids') else i+1,
+            contact_error_samples=int(observed.sum()),missing_witness_attempts=int((mask&missing).sum()),
+            worst_part_error_cm=float(worst[observed].mean()*100) if bool(observed.any()) else None,
+            failure_reasons={name:int((mask&value).sum()) for name,value in reason_masks.items()},
+            part_error_cm=[float(distance[mask&has[:,part],part].mean()*100) if bool(required[mask,part].any()) and bool((mask&has[:,part]).any()) else None for part in range(6)],
+            part_missing_attempts=[int((mask&required[:,part]&~has[:,part]).sum()) for part in range(6)]))
     observed_error=mean_distance.masked_fill(~complete,0.)
     fields=torch.stack((torch.ones_like(root),success.float(),complete.float(),observed_error*100,root*100,(end_index+1).float()),-1).double()
     sums=fields.new_zeros(len(clock.event_ends),fields.shape[-1]).index_add_(0,event,fields)
@@ -442,15 +558,19 @@ def loss_aligned_attempt_metrics(data,clock,contact_tolerances,root_tolerance,ro
         segments.append(dict(segment=segment+1,attempts=int(count),success_rate=passed/count,
             contact_rate=observed/count,best_contact_error_cm=distance_sum/observed if observed else None,
             root_error_cm=root_sum/count,mean_terminal_step=steps/count))
+    for row,diagnostics in zip(segments,diagnostic_rows):row.update(diagnostics)
     count,passed,observed,distance_sum,root_sum,steps,med,ang=packed[len(clock.event_ends)*width:]
     return dict(segments=segments,macro_success_rate=sum(s['success_rate'] for s in segments)/len(segments),
         attempts=int(count),success_rate=passed/count,target_face_contact_rate=observed/count,
         best_contact_error_cm=distance_sum/observed if observed else None,
         best_contact_error_median_cm=med if observed else None,contact_error_samples=int(observed),
         root_error_cm=root_sum/count,orientation_error_rad=ang,mean_terminal_step=steps/count,
-        contact_metric='loss_stable_witness_mean_part_error',face_matching=False,
+        contact_metric=('stable_hand_contact_fixed_foot_knee_material' if getattr(clock,'material_goal_mode',False) else 'loss_stable_witness_mean_part_error'),face_matching=False,
         missing_witness_attempts=int(count-observed),
-        scope='duration-selected first attempts; last qualified stable loss witness; missing witness counts as failure and is excluded from contact error')
+        failure_reasons={name:int(value.sum()) for name,value in reason_masks.items()},
+        worst_part_error_cm=float(worst[complete].mean()*100) if bool(complete.any()) else None,
+        scope='all collected first attempts; first qualified completion per part, latest qualified witness while incomplete; missing witnesses are failures, excluded from conditional error',
+        completion_contract='first_stable_completion_latched_v1')
 
 
 @torch.no_grad()

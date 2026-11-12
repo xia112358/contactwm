@@ -131,13 +131,11 @@ def consensus_from_sequences(sequences, masks, *, stable_frames, max_dropout_fra
                     # Strict population majority; consensus median clock must
                     # realize the relation, avoiding voting cycles.
                     if negative*2 > count and a['interval'][u] < b['interval'][v]:
-                        relations.append(dict(row, information_required=(a['part'] == b['part'] or
-                            (u == 0 and v == 1 and negative == count)),
+                        relations.append(dict(row, information_required=a['part'] == b['part'],
                             role='observed_relation_not_task_rule'))
                     elif positive*2 > count and b['interval'][v] < a['interval'][u]:
                         relations.append(dict(row, left=row['right'], right=row['left'],
-                            information_required=(a['part'] == b['part'] or
-                                (v == 0 and u == 1 and positive == count)),
+                            information_required=a['part'] == b['part'],
                             role='observed_relation_not_task_rule'))
                     else: disputed.append(row)
     return dict(schema='native_population_information_consensus_v2', events=events, relations=relations,
@@ -179,6 +177,7 @@ def audit_consensus(consensus, mask, surface):
         checks.append(dict(action=e['id'], kind='establish', part=e['part'], surface=e['surface'],
                            passed=observed is not None, episode=observed))
     relation_checks = []
+    parts_by_event = {event['id']: event['part'] for event in consensus['events']}
     for r in consensus['relations']:
         a, u = r['left']; b, v = r['right']
         available = a in assigned and b in assigned
@@ -186,7 +185,7 @@ def audit_consensus(consensus, mask, surface):
         passed = available and (assigned[a]['interval'][u] < assigned[b]['interval'][v] or same_episode)
         relation_checks.append(dict(r, passed=bool(passed) if available else None,
             evaluable=available, status='observed' if available else 'missing_event_already_counted',
-            information_required=r.get('information_required', False)))
+            information_required=r.get('information_required', False) and parts_by_event[a] == parts_by_event[b]))
     missing = sum(not r['passed'] for r in checks)
     relation_loss = sum(r['evaluable'] and r['information_required'] and not r['passed'] for r in relation_checks)
     failed = missing+relation_loss

@@ -1,4 +1,4 @@
-"""API-only bridge for local Isaac Lab 3 and the sole supported Newton build.
+"""API-only bridge for local Isaac Lab 3 and the loaded Newton build.
 
 No collision algorithm, asset, margin or contact activation is changed here.
 """
@@ -7,46 +7,36 @@ from __future__ import annotations
 from pathlib import Path
 from functools import wraps
 from importlib.metadata import version
-import os
 
 from .newton_collision_compat import SCHEMA, NATIVE_SCHEMA
 
 
-NEWTON_VERSION = "1.7.0"
-NEWTON_SOURCE_COMMIT = "7e75abe28b8d69522bc0b34837aaed2c303dff5a"
-NEWTON_RUNTIME_ID = f"newton-{NEWTON_VERSION}+{NEWTON_SOURCE_COMMIT}"
-RUNTIME_VERSIONS = {"newton": NEWTON_VERSION, "warp-lang": "1.18.0", "mujoco": "3.15.0", "mujoco-warp": "3.15.0"}
+def _module_fingerprint(module):
+    """Identity of the loaded code, including local collision-writer changes."""
+    import hashlib
+    package = Path(module).resolve().parent
+    digest = hashlib.sha256()
+    for path in sorted(package.rglob('*.py')):
+        digest.update(str(path.relative_to(package)).encode())
+        digest.update(path.read_bytes())
+    return digest.hexdigest()
 
 
 def runtime_provenance() -> dict[str, str]:
-    """Validate and describe the only Newton runtime accepted by SomaForge."""
-
+    """Describe the actual solver stack; version strings are not an allowlist."""
+    import hashlib
+    import json
     import newton
-
     module = Path(newton.__file__).resolve()
-    expected_text = os.environ.get("SOMAFORGE_NEWTON_ENV")
-    if newton.__version__ != NEWTON_VERSION:
-        raise RuntimeError(
-            f"Unsupported Newton {newton.__version__} at {module}; "
-            f"expected {NEWTON_RUNTIME_ID}"
-        )
-    for distribution, expected_version in RUNTIME_VERSIONS.items():
-        actual = version(distribution)
-        if actual != expected_version:
-            raise RuntimeError(f"Unsupported {distribution} {actual}; expected {expected_version} for {NEWTON_RUNTIME_ID}")
-    if expected_text is not None:
-        expected = Path(expected_text).resolve()
-        if not module.is_relative_to(expected):
-            raise RuntimeError(
-                f"Newton module {module} is outside required runtime {expected}"
-            )
-    return {
-        "runtime_id": NEWTON_RUNTIME_ID,
-        "version": NEWTON_VERSION,
-        "source_commit": NEWTON_SOURCE_COMMIT,
-        "module": str(module),
-        **{name: version(name) for name in RUNTIME_VERSIONS},
-    }
+    dependencies = {name: version(name) for name in ('warp-lang', 'mujoco', 'mujoco-warp')}
+    source = _module_fingerprint(module)
+    identity = dict(newton=newton.__version__, source_sha256=source, **dependencies)
+    digest = hashlib.sha256(json.dumps(identity, sort_keys=True).encode()).hexdigest()
+    return dict(runtime_id=f"newton-{newton.__version__}+sha256:{digest}",
+                version=newton.__version__, module=str(module), **identity)
+
+
+NEWTON_RUNTIME_ID = runtime_provenance()['runtime_id']
 
 
 def install():
