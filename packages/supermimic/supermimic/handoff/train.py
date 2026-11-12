@@ -279,7 +279,7 @@ def main():
         config['training_loop']='WM one-step fit on previous native replay -> fresh full native attempts -> full-batch DMO backward -> one actor update'
         from supermimic.contact_case_gradient import ACTOR_GRADIENT_GROUP_SIZE, ACTOR_GRADIENT_OUTLIER_RATIO
         config['actor_gradient_outlier_cap']=dict(group_size=ACTOR_GRADIENT_GROUP_SIZE,median_ratio=ACTOR_GRADIENT_OUTLIER_RATIO)
-        config['collision_objective_version']='all_frame_collision_surface_clearance_v1' 
+        config['collision_objective_version']='whole_foot_terminal_navigation_v1'
         config['wm_fit']='DMO deterministic one-step residual MSE on real replay; tracking normalization and existing force6 supervision retained'
         config['wm_fit_order']='before fresh actor rollout, following DMO Algorithm 1'
         config['lr_schedule_rule']='mean success over recent 3 native training batches; 3 non-improving observations (absolute improvement >0.01); halve LR to floor' if args.adaptive_lr else 'constant'
