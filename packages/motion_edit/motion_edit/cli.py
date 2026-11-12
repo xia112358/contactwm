@@ -960,28 +960,10 @@ def _add_catalog_commands(sub) -> None:
     p.set_defaults(func=_cmd_summarize)
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Manage motion catalogs, inspect recorded data, export canonical segments, and review experiments.")
+    parser = argparse.ArgumentParser(description="Manage motion catalogs, inspect recorded data, and export canonical segments.")
     sub = parser.add_subparsers(dest="command", required=True)
     _add_catalog_commands(sub)
-    for name in ("review", "contact-editor"):
-        command = sub.add_parser(
-            name,
-            help="launch read-only motion playback" if name == "review" else "compatibility alias for read-only review",
-        )
-        source = command.add_mutually_exclusive_group()
-        source.add_argument("--input", "--review", dest="input", help="canonical NPZ, report JSON or case manifest")
-        source.add_argument("--motion-id", "--motion-asset-id", dest="motion_id", help="registered motion or version ID")
-        command.add_argument("--terrain", help="terrain OBJ for playback")
-        command.add_argument("--host", default="127.0.0.1")
-        command.add_argument("--port", type=int, default=8094)
-        command.add_argument("--no-browser", action="store_true")
-        command.set_defaults(func=_cmd_review)
     return parser
-
-def _cmd_review(args: argparse.Namespace) -> None:
-    from .web.server import run_review
-    run_review(motion_id=args.motion_id, review_path=args.input, review_terrain=args.terrain,
-               host=args.host, port=args.port, open_browser=not args.no_browser)
 
 def main() -> None:
     args = build_parser().parse_args()

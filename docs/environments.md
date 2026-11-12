@@ -35,7 +35,6 @@ python3 scripts/bootstrap_runtime.py
 python3 scripts/manage_environment.py create --profile main
 python3 scripts/manage_environment.py check --profile main
 source scripts/source_isaaclab3_newton_setup.sh
-python scripts/train_php_wbt.py --help
 packages/motion_edit/motion-edit --help
 ```
 
@@ -48,8 +47,7 @@ its pinned Lab snapshot without inheriting the retired overlays.
 Use `--visualizer kit` for a window. With no visualizer argument the launch is
 headless; explicit `--headless` takes precedence. Official AppLauncher arguments
 such as `--device` and `--enable_cameras` are parsed before project configuration.
-Read-only browser playback uses `motion-edit review --input PATH` in the same
-managed environment. Canonicalization and native contact queries use retained
+Canonicalization and native contact queries use retained
 core helpers; there is no trajectory-generation worker to launch. The standalone
 Retargeting package and its bundled models/examples were retired on 2026-10-23;
 current input data is supplied separately.

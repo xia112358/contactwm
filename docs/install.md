@@ -109,22 +109,6 @@ For the independent expert, contact recording and student commands, see
 new native DistillPPO student use different checkpoint/network schemas; installing
 the runtime does not convert between them.
 
-## Read-only browser playback
-
-Motion playback uses the unified `main` environment. No trajectory editor,
-Infiller or IK-worker installation is required; those entrypoints are retired.
-Shared Newton FK, native queries and the next-contact Predictor remain available.
-
-```bash
-python3 scripts/manage_environment.py check --profile main
-packages/motion_edit/motion-edit review --help
-packages/motion_edit/motion-edit review --input /path/to/canonical.npz
-```
-
-JSON diagnostic reports and case collections are also supported. See the
-[playback guide](../packages/motion_edit/README.md#read-only-playback) for input
-and evidence requirements. Playback is read-only and does not run a policy.
-
 ## Verification and remote access
 
 ```bash

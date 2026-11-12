@@ -56,8 +56,8 @@ class Launch:
 def parser() -> argparse.ArgumentParser:
     result = argparse.ArgumentParser(description=__doc__)
     result.add_argument("stage", choices=("tracking", "collect", "initialize", "contact", "predictor"))
-    result.add_argument("--backend", choices=("supermimic", "ppo"),
-                        help="tracking algorithm (default: supermimic); valid only for tracking")
+    result.add_argument("--backend", choices=("supermimic",),
+                        help="tracking algorithm (supermimic); valid only for tracking")
     result.add_argument("--python", dest="python", help="explicit interpreter for the selected runtime profile")
     result.add_argument("--resources", type=Path,
                         help="resource registry (default: SOMAFORGE_RESOURCES or configs/workflow_resources.local.json, then configs/workflow_resources.json)")
@@ -111,13 +111,10 @@ def build_launch(options: argparse.Namespace, backend_args: list[str], *,
     if runtime.is_relative_to(root):
         raise ValueError(f"Runtime must resolve outside the source checkout: {runtime}; configure an external data directory")
 
-    if options.stage == "tracking" and backend == "ppo":
-        entrypoint = (str(root / "scripts/train_php_wbt.py"),)
-    else:
-        module = {"tracking": "supermimic.train", "collect": "supermimic.contact_collect",
-                  "initialize": "supermimic.contact_initialize", "contact": "supermimic.contact_train",
-                  "predictor": "generator.train_full1000_position"}[options.stage]
-        entrypoint = ("-m", module)
+    module = {"tracking": "supermimic.train", "collect": "supermimic.contact_collect",
+              "initialize": "supermimic.contact_initialize", "contact": "supermimic.contact_train",
+              "predictor": "generator.train_full1000_position"}[options.stage]
+    entrypoint = ("-m", module)
 
     python_paths = [str(root / relative) for relative in LOCAL_PACKAGES] + [str(root)]
     environment = {

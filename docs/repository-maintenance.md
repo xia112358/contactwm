@@ -13,11 +13,10 @@ baseline weights, contact labels or losses.
 | Area | Implementation | Entrypoint / tests |
 | --- | --- | --- |
 | Assets, FK, contact semantics | `packages/somaforge_core` | `scripts/check_asset_manifest.py`, package tests |
-| Read-only motion/research playback | `packages/motion_edit` | `motion-edit review --input PATH`, package tests |
+| Shared motion/contact data utilities | `packages/motion_edit` | package tests |
 | Predictor | `packages/generator` | `python -m generator.train_full1000_position`, package tests |
 | Contact optimization | `packages/contact_solver` | package API; diagnostics under `research/`; package tests |
 | Newton WBT | `src/holosoma` | `train_agent.py`, `eval_agent.py`, `replay.py`, `run_sim.py`; `scripts/train_motion_edit_policy_finetune.py` for explicitly supplied references |
-| PHP grouped experts | `scripts/train_php_wbt.py` | Explicit group training; use `--help` for current arguments |
 | Modular experts and distillation | Native WBT managers and `RoutedDistillPPO` | [Configuration and invocation guide](wbt-modular-experiments.md); dense/sparse/force experts and student |
 | Native contact-reference preparation | `scripts/record_wbt_contact_reference.py`, `scripts/combine_wbt_manifests.py` | Independent recording/manifest commands; manually supplied expert checkpoints |
 
@@ -68,22 +67,8 @@ and do not load that checkpoint. Cleanup does not approve historical data varian
 
 ## Visualization
 
-The supported browser entry is `motion-edit review --input PATH`. It opens a
-canonical NPZ motion, JSON diagnostic report or case collection in a read-only
-Three.js page. Add `--terrain PATH` when the input does not specify its terrain.
-See the [playback documentation](../packages/motion_edit/README.md#read-only-playback).
-The packaged page references the current JS/CSS bundle in `web_dist/index.html`.
-Historical diagnostic contact flags remain unverified; playback does not infer
-contact truth from geometry or force thresholds.
-
-The contact editor and trajectory generation routes are retired. There is no
-maintained standalone Viser, workbench server or force-retarget CLI.
-Simulation Kit rendering is controlled by AppLauncher.
-Remote simulation playback uses the same evaluator with `--visualizer kit` and
-`--livestream 1`; see the [modular playback guide](wbt-modular-experiments.md#evaluate-or-replay-separately)
-and [installation guide](install.md). TensorBoard reads the selected training run
-directory independently of Kit. Browser review does not run the policy or
-certify native contact execution.
+Browser playback is retired. Simulator visualization remains separate from
+training and uses its existing native interfaces.
 
 ## Data and retention
 

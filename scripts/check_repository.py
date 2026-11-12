@@ -322,7 +322,7 @@ def audit(root: Path = ROOT) -> dict:
                         errors.append(f'{name}:{node.lineno}: solver must not import the editing application')
                 if name.startswith(('packages/motion_edit/', 'packages/contact_solver/')):
                     if any(m == 'viser' or m.startswith('viser.') or m == 'viser_utils' for m in modules):
-                        errors.append(f'{name}:{node.lineno}: retired Viser UI; use motion-edit contact-editor')
+                        errors.append(f'{name}:{node.lineno}: retired Viser UI')
             # Canonical implementations must not depend on their historical aliases.
             if name.startswith(('packages/generator/generator/', 'packages/contact_solver/contact_solver/',
                                 'packages/somaforge_core/somaforge_core/')):

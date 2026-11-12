@@ -37,7 +37,6 @@ def launch(workspace, values, forwarded=(), env=None):
 
 @pytest.mark.parametrize('backend,entrypoint', [
     ('supermimic', ('-m', 'supermimic.train')),
-    ('ppo', ('scripts/train_php_wbt.py',)),
 ])
 def test_tracking_uses_existing_implementation_and_preserves_native_arguments(workspace, backend, entrypoint):
     root, _, runtime = workspace
@@ -64,10 +63,9 @@ def test_remaining_stages_use_current_entrypoints(workspace, stage, module, prof
     assert plan.profile == profile
 
 
-@pytest.mark.parametrize('stage', ['collect', 'initialize', 'contact', 'predictor'])
-def test_ppo_selection_is_only_the_original_tracking_stage(workspace, stage):
-    with pytest.raises(ValueError, match='applies only to tracking'):
-        launch(workspace, [stage, '--backend', 'ppo'])
+def test_retired_ppo_tracking_is_rejected():
+    with pytest.raises(SystemExit):
+        workflow.parse_args(['tracking', '--backend', 'ppo'])
 
 
 def test_default_main_flow_preserves_supermimic_teacher_and_dagger_artifact_arguments(workspace):
@@ -164,7 +162,7 @@ def test_ppo_runtime_symlink_preserves_existing_external_layout(workspace):
     (root / 'runtime').mkdir()
     runtime.mkdir()
     (root / 'runtime/current').symlink_to(runtime, target_is_directory=True)
-    assert launch(workspace, ['tracking', '--backend', 'ppo']).runtime_root == runtime
+    assert launch(workspace, ['predictor']).runtime_root == runtime
 
 
 def test_backend_arguments_need_separator_and_are_never_silently_consumed():
@@ -210,4 +208,4 @@ def test_project_newton_runtime_precedes_shared_packages(workspace):
     registry.write_text(json.dumps(data))
     plan = launch(workspace, ['contact'])
     assert plan.environment['PYTHONPATH'].split(os.pathsep)[0] == str(overlay)
-    assert str(overlay) not in launch(workspace, ['tracking', '--backend', 'ppo']).environment['PYTHONPATH']
+    assert str(overlay) not in launch(workspace, ['predictor']).environment['PYTHONPATH']

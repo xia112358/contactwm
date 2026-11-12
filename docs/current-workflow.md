@@ -9,11 +9,8 @@ flowchart LR
     I --> T[contact 训练：imagination 或 DMO]
     SM --> I
     SM --> T
-    P[原优化 PPO tracking：独立基线]
     N[下一接触 Predictor：保留独立训练入口]
 ```
-
-PPO 只保留原来的 tracking 代码及 recipe，接入 DAgger 的工作暂缓。PPO checkpoint 不能传入下面的 SuperMimic 采集、初始化或 contact 训练接口，也不包含可供这些接口使用的 SuperMimic world model。当前仓库没有 PPO→SuperMimic 权重转换器。
 
 ## 入口与运行环境
 
@@ -22,13 +19,12 @@ PPO 只保留原来的 tracking 代码及 recipe，接入 DAgger 的工作暂缓
 | Stage | 实现 | 运行环境 |
 |---|---|---|
 | `tracking`（默认）或 `tracking --backend supermimic` | `supermimic.train` | `supermimic` |
-| `tracking --backend ppo` | `scripts/train_php_wbt.py` | `ppo` |
 | `collect` | `supermimic.contact_collect` | `supermimic` |
 | `initialize` | `supermimic.contact_initialize`，包括原生 DAgger | `supermimic` |
 | `contact` | `supermimic.contact_train` | `supermimic` |
 | `predictor` | `generator.train_full1000_position` | `ppo` |
 
-`--backend` 只用于 `tracking`。Predictor 使用现有 SomaForge Python 环境，不表示它使用 PPO 训练算法。当前入口逐阶段启动程序，不自动串行启动整条训练链。
+`--backend` 只用于 `tracking`，只支持 SuperMimic。Predictor 保留现有 `ppo` 环境配置名，不使用旧 PPO WBT 算法。当前入口逐阶段启动程序，不自动串行启动整条训练链。
 
 运行环境和大文件继续分开管理。`configs/workflow_resources.json` 中分别配置 `supermimic.python`、`supermimic.runtime_root`、可选的 `supermimic.isaaclab_root`，以及 `ppo.python`、`ppo.runtime_root`、可选的 `ppo.isaaclab_root`。相对路径以仓库根目录为基准。runtime 必须解析到仓库外；缓存、临时目录和日志使用各自 runtime。
 
@@ -86,21 +82,13 @@ python scripts/run_workflow.py contact --dry-run -- \
 
 ## 独立保留的入口
 
-PPO tracking 仍直接调用原优化 recipe `g1_29dof_wbt_baseline_29`，使用原 PHP manifest 校验和原参数设置：
-
-```bash
-python scripts/run_workflow.py tracking --backend ppo --dry-run -- \
-  --manifest /external/php/motions-locomotion/manifest.json \
-  --output-dir /external/runs/ppo-tracking --headless
-```
-
 下一接触 Predictor 仍由现有训练程序负责，数据、模型和输出参数通过其原接口指定：
 
 ```bash
 python scripts/run_workflow.py predictor --dry-run -- --help
 ```
 
-这里的合并统一了代码位置与启动入口。两套 Python 依赖保持独立，现有数据、模型和验证记录继续保存在外部 runtime；PPO 的下游连接留待后续单独处理。
+这里的合并统一了代码位置与启动入口。两套 Python 依赖保持独立，现有数据、模型和验证记录继续保存在外部 runtime；旧 PPO WBT 入口已退役。
 
 ## 本机运行环境与启动验证
 

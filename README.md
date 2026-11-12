@@ -3,8 +3,7 @@
 ContactWM brings the current G1 tracking and contact workflow together: **SuperMimic tracking → native contact collection → DAgger
 initialization → contact training** using imagination or DMO updates.
 
-Original optimized PPO tracking, next-contact Predictor and read-only motion
-playback remain available as independent entrypoints. Shared assets, FK and
+The next-contact Predictor remains available as an independent entrypoint. Shared assets, FK and
 native contact processing live in `somaforge_core`.
 
 ## Quick start
@@ -39,18 +38,17 @@ checkpoints. See [the exact original12 recipe](docs/original12.md).
 Read [fresh installation and first run](docs/quickstart.md) for custom storage,
 data downloads and a one-step simulation check. Installation does not include
 trained policies or certify historical contact labels. The optional native
-PPO/Predictor environment has its own [installation recipe](docs/install.md).
+Predictor environment has its own [installation recipe](docs/install.md).
 
 Latest contact segmentation and supervision status: [2026-11-05 progress](docs/research/contact-20261105/README.md), including loss-aligned native witnesses, handoff-chain experiments, and the 82→83 entry diagnosis.
 
 ## Start here
 
 - [Current workflow and commands](docs/current-workflow.md): tracking, collect, initialize, contact and Predictor
-- [Native PPO/Predictor installation](docs/install.md), [Python environment setup](docs/python-environments.md) and [compatibility](docs/environments.md)
+- [Native Predictor installation](docs/install.md), [Python environment setup](docs/python-environments.md) and [compatibility](docs/environments.md)
 - [SuperMimic package and original runtime recipe](packages/supermimic/README.md)
 - [original12 complete original training setup: source, exact recipe, data and full checkpoints](docs/original12.md)
 - [Download training inputs, reference models and extracted demonstrations](docs/data-downloads.md)
-- [Read-only browser playback](packages/motion_edit/README.md)
 - [Predictor baseline and reproduction records](baselines/README.md)
 - [Current main-environment Predictor inputs](docs/environments.md#generator-inputs-for-main)
 - [Local data layout](docs/repository-data.md), [data policy](docs/data-policy.md),
@@ -64,7 +62,6 @@ python3 scripts/run_workflow.py tracking --dry-run -- --help
 python3 scripts/run_workflow.py collect --dry-run -- --help
 python3 scripts/run_workflow.py initialize --dry-run -- --help
 python3 scripts/run_workflow.py contact --dry-run -- --help
-python3 scripts/run_workflow.py tracking --backend ppo --dry-run -- --help
 python3 scripts/run_workflow.py predictor --dry-run -- --help
 ```
 
@@ -79,7 +76,7 @@ documents the separately published native SomaForge data.
 ```text
 src/holosoma/               WBT training, evaluation, and simulator integration
 packages/supermimic/        Current tracking, native collection, DAgger and contact control
-packages/motion_edit/       Read-only motion/research playback and data utilities
+packages/motion_edit/       Shared motion and contact-data utilities
 packages/generator/         Predictor, datasets and prediction training
 packages/contact_solver/    Contact objectives, collision gradients and projection
 packages/climb00_pipeline/  Optional historical import/CLI compatibility
@@ -128,13 +125,6 @@ terrain_dir = assets.resolve("terrain.climb.cache", "root")
 robot_urdf = assets.resolve("robot.g1.spherehand", "urdf")
 ```
 
-## Retained native WBT and reproduction recipes
-
-The original optimized PPO tracking recipe remains available through
-`scripts/run_workflow.py tracking --backend ppo`. Its DAgger integration is deferred.
-See [modular WBT](docs/wbt-modular-experiments.md) for expert/student recipes and
-[ACP reproduction](docs/acp-reproduction.md) for the retained experiments.
-
 ## Next-contact prediction and control
 
 Predictor in `packages/generator` maps robot state, actual contact observations
@@ -145,18 +135,3 @@ The [current Predictor baseline](baselines/current.json),
 [baseline records](baselines/README.md) and [support semantics](docs/support-semantics.md)
 contain the data contracts and validation scope. Historical experiments and
 retired trajectory generation/Infiller records live under [docs/history](docs/history/README.md).
-
-## Evaluation and visualization
-
-For native WBT evaluation, use the [evaluation guide](docs/wbt-modular-experiments.md#evaluate-or-replay-separately).
-CLI simulation defaults to headless; `--visualizer kit` enables Kit and
-explicit `--headless` takes precedence.
-
-Read-only playback accepts canonical motions, diagnostic reports and case collections:
-
-```bash
-packages/motion_edit/motion-edit review --input /path/to/canonical.npz
-```
-
-See the [playback guide](packages/motion_edit/README.md#read-only-playback)
-for terrain and comparison options.

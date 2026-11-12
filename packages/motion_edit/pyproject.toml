@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "motion-edit"
 version = "0.1.0"
-description = "Read-only motion review and shared contact-data utilities for SomaForge."
+description = "Shared motion and contact-data utilities."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -25,6 +25,3 @@ motion-edit-seg = "motion_edit.segmentation.cli:main"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["motion_edit*"]
-
-[tool.setuptools.package-data]
-motion_edit = ["web_dist/**/*"]

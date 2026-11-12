@@ -40,7 +40,6 @@ python3 scripts/manage_environment.py plan --profile main
 python3 scripts/manage_environment.py create --profile main
 python3 scripts/manage_environment.py check --profile main
 python3 scripts/manage_environment.py run --profile main -- motion-edit --help
-packages/motion_edit/motion-edit review --help
 ```
 
 `plan` is read-only. `create` installs the declared lock and local packages and
@@ -72,18 +71,9 @@ Isaac Sim can bootstrap Kit and request the NVIDIA Omniverse license even for a
 help command. The manager does not accept the license automatically. Environment
 setup does not restart existing processes or migrate an active training run.
 
-## Read-only motion playback and shared helpers
+## Shared helpers
 
-Use `packages/motion_edit/motion-edit review --input PATH` for canonical NPZ
-motion or a supported JSON diagnostic report. Add `--terrain PATH` when needed.
-The wrapper selects the same managed `main` environment. See the
-[playback guide](../packages/motion_edit/README.md#read-only-playback).
-
-There is no current `generate-ref`, editor generation or trajectory IK worker
-entrypoint, and no separate IK environment to install. Canonicalization and
-native contact-query tools remain available through shared `somaforge_core`
-helpers. Current Newton/MJWarp contact semantics and canonical robot provenance
-still apply; archived source masks do not establish current contact truth.
+Native contact-query tools remain available through shared `somaforge_core`.
 
 ## Lock and source provenance
 
