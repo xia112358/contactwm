@@ -482,3 +482,9 @@ it does not establish full-scale training stability or tracking success.
 ## Current contact slicing and review
 
 See [2026-11-05 progress](../../docs/research/contact-20261105/README.md) for loss-aligned native witnesses, the `climb_58` handoff-chain experiments, the 82→83 entry diagnosis, and the remaining optimization questions.
+
+## Reproducible ten-stage handoff recipe
+
+See [handoff training](../../docs/handoff-training.md) for the maintained
+bottleneck handoff implementation, artifact preparation and one-command launch.
+The companion task-data upload currently awaits publication approval.
