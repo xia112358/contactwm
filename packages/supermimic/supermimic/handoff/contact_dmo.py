@@ -121,13 +121,7 @@ def _replay_events(data, clock, event, stop, truncated, completion_mode, stage_p
         else:
             selected=data['goal_index'][:T]==event[None]+k
             enabled=stage_plan['enabled'][k];endpoint=stage_plan['ends'][k];cut=stage_plan['truncated'][k]
-        interrupted=torch.zeros_like(enabled)
         initial_guidance=torch.zeros_like(enabled)
-        if 'contact_interrupted' in data:
-            native_endpoint=data['done'].long().argmax(0)+1 if stage_plan is None else stage_plan['ends'][k]
-            interrupted=data['contact_interrupted'][native_endpoint-1,torch.arange(len(stop),device=device)]
-            # Failed contact guidance uses the actual collected stop pose.
-            # Interruption still excludes a successful body endpoint below.
         end=clock.event_ends[event+k]-1
         new=clock.target_masks[end]&~clock.keep_masks[end]
         required_terms+=new.long()*enabled[:,None]
@@ -156,10 +150,10 @@ def _replay_events(data, clock, event, stop, truncated, completion_mode, stage_p
         seen=choices.to(torch.int8).cummax(0).values.bool()
         before=torch.cat((torch.zeros_like(seen[:1]),seen[:-1]),0)
         final=(frames+1==endpoint[None])&enabled[None]&live&selected
-        # Failed attempts keep the contact goal at the safe prefix, but never
-        # acquire a successful body endpoint from a collision.
-        body_final=final&~interrupted[None]
-        terminal|=body_final if 'body_endpoint_valid' not in data else body_final&data['body_endpoint_valid'][:T]
+        # Every collected endpoint receives the same body objective, including
+        # collision/early stops. This is a loss sample, not a success witness;
+        # native termination and completion classification remain unchanged.
+        terminal|=final
         # A matched witness wins; otherwise the latest stable native row can
         # guide material alignment without becoming a success witness.
         evaluate|=(choices|final[...,None]&new[None])&~before
@@ -306,82 +300,13 @@ def replay_loss(actor,wm,clock,geometry,context,normalize,default_q,data,*,
                 pre_action=native_events.get('pre_action_guidance')
                 use_initial=torch.zeros(B,device=device,dtype=torch.bool) if pre_action is None else pre_action[t]
                 contact_state=tuple(torch.where(use_initial.reshape((-1,)+(1,)*(a.ndim-1)),a,b) for a,b in zip(S,S1))
-                observed=measured_mask[t]
-                region=None
-                if contact_surface is not None and hasattr(contact_surface,'region_loss'):
-                    # Sparse native event times need only their participating
-                    # worlds/parts, not B x six dense surface fields per frame.
-                    slots=scheduled['contact'];parts=scheduled['parts']
-                    selected_normals=None if goal_normals is None else torch.broadcast_to(goal_normals,target.shape)[slots]
-                    selected=contact_surface.region_loss(tuple(v[slots] for v in contact_state),target[slots],parts,normals=selected_normals,
-                        normal_weight=normal_weight,tangent_weight=tangent_weight)
-                    region={key:target.new_zeros(target.shape[:2]).index_copy(0,slots,value)
-                            for key,value in selected.items()}
-                elif contact_surface is not None:
-                    point=contact_surface.contact_points(contact_state,target,surface_parts)
-                else:
-                    p,R=geometry.poses(contact_state)
-                    measured=data['point'][t]
-                    local=(R.detach().transpose(-1,-2)@(measured-p.detach()).unsqueeze(-1)).squeeze(-1)
-                    measured_proxy=p+(R@local.unsqueeze(-1)).squeeze(-1)
-                    point=torch.where(observed[...,None],swap(measured_proxy,measured),geometry(contact_state,end-1))
-                if region is not None:
-                    if stable_contact_frames:
-                        # Stable native witness can precede the control endpoint.
-                        # Completion keeps its separate control-end observation;
-                        # the fixed body-local derivative still comes from FK/WM.
-                        p,R=geometry.poses(contact_state)
-                        measured=data['contact_loss_point' if clock.fixed_goal_mode else 'point'][t]
-                        local=(R.detach().transpose(-1,-2)@(measured-p.detach()).unsqueeze(-1)).squeeze(-1)
-                        point=swap(p+(R@local.unsqueeze(-1)).squeeze(-1),measured)
-                        delta=(point-target)/.05
-                        measured_cost=delta.square().sum(-1)
-                        if goal_normals is None:
-                            measured_normal=measured_cost;measured_tangent=torch.zeros_like(measured_cost)
-                        else:
-                            measured_normal=(delta*goal_normals).sum(-1).square()
-                            measured_tangent=(measured_cost-measured_normal).clamp_min(0.)
-                            measured_cost=normal_weight*measured_normal+tangent_weight*measured_tangent
-                        region={key:torch.where(stable_evaluations[t],value,region[key])
-                            for key,value in [('loss',measured_cost),('normal',measured_normal),('tangent',measured_tangent)]}
-                    if getattr(clock,'material_goal_mode',False):
-                        from .contact_material import world_points, point_error_sq
-                        p,R=geometry.poses(contact_state)
-                        predicted=world_points(p,R,clock.material_local[event])
-                        actual=world_points(data['contact_loss_position'][t],data['contact_loss_rotation'][t],clock.material_local[event])
-                        points=torch.where(stable_evaluations[t,:,:,None,None],swap(predicted,actual),predicted)
-                        cost=point_error_sq(points,clock.material_targets[event])/.05**2
-                        from navigation_objective import foot_navigation_cost
-                        use=stable_evaluations[t]
-                        nav_p=torch.where(use[...,None],swap(p,data['contact_loss_position'][t]),p)
-                        nav_R=torch.where(use[...,None,None],swap(R,data['contact_loss_rotation'][t]),R)
-                        cost=foot_navigation_cost(clock,contact_surface,context,points,nav_p,nav_R,event,new,cost)
-                        if hasattr(clock,'paired_material_local'):
-                            from .contact_paired_material import paired_material_error_sq
-                            use=stable_evaluations[t]
-                            position=torch.where(use[...,None],swap(p,data['contact_loss_position'][t]),p)
-                            rotation=torch.where(use[...,None,None],swap(R,data['contact_loss_rotation'][t]),R)
-                            paired,_=paired_material_error_sq(position,rotation,data['contact_loss_point'][t],use,clock.paired_material_local[event],clock.paired_material_targets[event],clock.paired_material_valid[event],data['contact_loss_candidate'][t])
-                            raw_use=guidance_evaluations[t]&data['contact_raw_stable'][t]&~use_initial[:,None]
-                            raw_position=swap(p,data['contact_raw_position'][t]);raw_rotation=swap(R,data['contact_raw_rotation'][t])
-                            from .contact_paired_material import paired_raw_guidance_error_sq
-                            raw_cost=paired_raw_guidance_error_sq(raw_position,raw_rotation,data['contact_raw_point'][t],clock.paired_material_local[event],clock.paired_material_targets[event],clock.paired_material_valid[event])
-                            paired=torch.where(raw_use,raw_cost,paired)
-                            cost=torch.cat((cost[:,:4],paired[:,4:]/.05**2),dim=-1)
-                        hand=torch.tensor([False,False,True,True,False,False],device=cost.device)
-                        region={key:torch.where(hand,region[key],value) for key,value in [('loss',cost),('normal',cost),('tangent',torch.zeros_like(cost))]}
-                    errors=region['loss']
-                    normal_total+=(region['normal']*evaluate).sum(-1)/new.sum(-1).clamp_min(1)
-                    tangent_total+=(region['tangent']*evaluate).sum(-1)/new.sum(-1).clamp_min(1)
-                else:
-                    delta=(point-target)/.05
-                    errors=delta.square().sum(-1)
-                if goal_normals is not None and region is None:
-                    normal_error=(delta*goal_normals).sum(-1).square()
-                    tangent_error=(errors-normal_error).clamp_min(0.)
-                    normal_total+=(normal_error*evaluate).sum(-1)/new.sum(-1).clamp_min(1)
-                    tangent_total+=(tangent_error*evaluate).sum(-1)/new.sum(-1).clamp_min(1)
-                    errors=normal_weight*normal_error+tangent_weight*tangent_error
+                if not (stable_contact_frames and getattr(clock,'material_goal_mode',False) and contact_surface is not None):
+                    raise ValueError('Unified handoff navigation requires material goals and native stable-contact sampling')
+                from navigation_objective import contact_navigation_cost
+                p,R=geometry.poses(contact_state)
+                errors=contact_navigation_cost(clock,contact_surface,context,p,R,event,evaluate,
+                    stable_evaluations[t],guidance_evaluations[t],data,t,swap)
+                normal_total+=(errors*evaluate).sum(-1)/new.sum(-1).clamp_min(1)
                 contact_total=contact_total+(errors*evaluate).sum(-1)/new.sum(-1).clamp_min(1)
                 if stable_contact_frames:
                     stable_total+=(errors*stable_evaluations[t]).sum(-1)/new.sum(-1).clamp_min(1)

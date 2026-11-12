@@ -123,12 +123,12 @@ def history_indices(clock, starts, length, *, include_current=False):
     return torch.maximum(starts[:,None]+offsets,floor[:,None])
 
 
-def case_world_counts(clock, task_count, total, segment_index=None):
-    """Reserve each case's own terrain world; distribute extras over cases equally."""
-    counts=[1]*task_count
+def case_world_counts(clock, task_count, total, segment_index=None, *, reserve_background=True):
+    """Cover every selected case; optionally reserve worlds for unused tasks."""
+    counts=[int(reserve_background)]*task_count
     if segment_index is not None:
         motion=int(clock.segment_motion[segment_index])
-        counts[motion]=total-task_count+1
+        counts[motion]=total-sum(counts)+counts[motion]
         if counts[motion]<1:raise ValueError('Insufficient worlds for selected segment')
         return counts
     motions=clock.segment_motion.cpu().tolist()

@@ -90,7 +90,7 @@ def snapshot(run, record):
         if phase in ('complete','task_success'):kind='done'
         elif phase in ('interrupted','failed'):kind='error'
         elif not alive:label,kind='进程已退出，未记录正常结束','error'
-        metrics=rows(run/'metrics.jsonl')[-100:]
+        metrics=rows(run/'metrics.jsonl')
         progress=state.get('evaluation_progress') if phase=='segment_evaluation' else None
         return dict(updated_at=time.time(),training_updated_at=state.get('updated_at'),mode='wm',continuous_random=config.get('continuous_random',False),sequence_length=config.get('sequence_length',1),policy_gradient=config.get('policy_gradient','imagination'),dmo_processed=state.get('dmo_processed'),dmo_total=state.get('dmo_total'),label=label,kind=kind,
             alive=alive,phase=phase,iteration=state.get('iteration',0),policy_updates=state.get('policy_updates',0),

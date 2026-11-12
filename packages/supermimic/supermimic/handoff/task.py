@@ -1,4 +1,4 @@
-"""Produce predecessor results independently; train successors from their pools."""
+"""Bootstrap reference entries; subsequent training successes refill the pools."""
 import torch
 from pure_task import PurePoolTask
 

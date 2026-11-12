@@ -1,14 +1,30 @@
 # Ten-stage bottleneck handoff training
 
+Handoff allocates every requested environment to selected motion tasks; it no
+longer reserves teacher-driven background worlds. A 4096-world run therefore
+uses 4096 student trajectories. Original motion IDs are preserved while physical
+terrain prototypes are compacted, with live collider validation after creation.
+When resuming a run that included background worlds, pass its fingerprinted
+`solver-collision.mjb` with `--collision_model` to preserve the checkpoint's
+surface-objective contract. A fresh export has a different whole-model hash
+after removing unused terrain prototypes; the contract guard remains enabled.
+
 This is the maintained form of the #82–#91 climb_58 experiment, including the
 Gaussian bottleneck actor, source/depth-balanced handoff pool, grouped batched
 backward, stable native contact sampling, native collision truncation and batched
 reset optimization. It does not require scripts under `tmp/`.
 
-The obstacle-aware whole-foot distance is used for the box-top foot transfers
-(#90 right foot, #91 left foot). Ground foot goals, hand/knee targets, body terms,
-regularization and completion criteria retain the existing recipe. Equal-norm
-balancing and gradient projection remain disabled.
+All required foot, hand and knee contacts use the same point-navigation distance
+to their original world targets. A cached box visibility roadmap approximates
+obstructed routes; unobstructed routes use the exact Euclidean distance. Targets
+are not raised to a box top, and material-point heights are not replaced by the
+lowest mesh height. This is point navigation, not a whole-limb clearance guarantee.
+Stable native witnesses and paired material/goal identities are retained; missing
+hand contacts use area-normalized soft minimum over surface samples. Penetrating
+endpoints use an exit-distance extension without changing stored targets.
+Interrupted trajectories retain endpoint body loss. Native completion and
+collision termination remain unchanged. Equal-norm balancing and gradient
+projection remain disabled.
 
 ## Install and run
 
@@ -45,6 +61,25 @@ Output includes ordinary resumable model/optimizer checkpoints, handoff pools,
 `metrics.jsonl`, `evaluation.jsonl` and `status.json`. Initial source/depth pool
 validation precedes training. Complete-chain evaluation occurs every ten
 iterations; metric rows are written after that evaluation finishes.
+
+After the initial reference bootstrap and pool validation, successful training
+terminals refill the successor pools directly, retaining their physical state,
+previous action, sensor context, history and source/depth. Training iterations
+do not run a separate reference-producer rollout. This changes the entry-source
+distribution from the historical reference-producer experiment; the run config
+records `pool_population`, and `producer_seconds` is zero for these iterations.
+
+The recipe enables `--compile_contact_fk` to fuse canonical contact FK forward
+and input-gradient operations with Torch Inductor. It retains FP32 and supports
+varying microbatch sizes; it does not alter physics or control-step counts.
+The first backward can spend tens of seconds compiling, with caches retained
+under the configured runtime. Checkpoint tensor formats are unchanged. For an
+eager comparison, omit this flag from the backend arguments.
+
+The recipe uses 1024-trajectory microbatches and one combined actor update per
+iteration. It leaves `--check_dmo` off: its diagnostic backward currently runs
+inside grouped-gradient hooks and would contaminate the first update. This
+workaround does not repair that optional diagnostic path.
 
 ## Verification
 

@@ -28,6 +28,7 @@ def main():
     parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--policy_gradient',choices=('imagination','dmo'),default='imagination')
     parser.add_argument('--dmo_microbatch',type=int,default=4096)
+    parser.add_argument('--compile_contact_fk',action='store_true',help='Fuse canonical contact FK forward/backward with Torch Inductor; keeps FP32 and dynamic batch sizes')
     parser.add_argument('--check_dmo',action='store_true')
     parser.add_argument('--duration_halfwidth',type=int,help='Per-batch per-segment success mode +/- frames; discard other attempts from actor update only')
     parser.add_argument('--duration_bootstrap_batches',type=int,default=5)
@@ -121,7 +122,7 @@ def main():
     from supermimic.env import TrackingSim,make_sim
     from supermimic.motion import MotionLib
     from supermimic.kinematics import G1Kinematics
-    from supermimic.mdp import MDP,OBS_DIM,normalize_xi
+    from supermimic.mdp import MDP,OBS_DIM,normalize_xi,unflatten_state
     from supermimic.networks import Policy,WorldModel
     import supermimic.networks as networks
     from supermimic.robot import default_joint_pos_list
@@ -191,6 +192,11 @@ def main():
         raise ValueError('Resume must retain its target grid')
     if resumed_grid:geometry.local_by_frame=geometry.local_by_frame.repeat(9,1,1)
     if not args.initialize_from_dagger:geometry.load_state_dict(resumed['geometry'])
+    if args.compile_contact_fk:
+        # Populate the immutable canonical ancestor plan before tracing it.
+        with torch.no_grad():geometry.poses(unflatten_state(demo['s'][:2]))
+        geometry.fk.link_poses=torch.compile(geometry.fk.link_poses,dynamic=True,fullgraph=True,
+            options={'triton.cudagraphs':False})
     if args.target_grid_span:
         from supermimic.contact_target_grid import expand_target_grid
         selected=args.target_grid_segment-1
@@ -225,17 +231,17 @@ def main():
     if hasattr(clock,'segment_motion'):
         if args.sequence_length!=1:raise ValueError('Multi-motion contact transfers must use independent episodes')
         counts=case_world_counts(clock,len(spec['tasks']),args.num_envs,
-            None if args.segment is None else args.segment-1)
+            None if args.segment is None else args.segment-1,reserve_background=False)
         selected_motions=clock.segment_motion.unique().tolist() if args.segment is None else [int(clock.segment_motion[args.segment-1])]
         task_policy_worlds=sum(counts[i] for i in selected_motions)
         if args.segment is None:
             for source_motion in selected_motions:
                 if counts[source_motion]<int((clock.segment_motion==source_motion).sum()):raise ValueError('Insufficient worlds per source motion')
     else:
-        counts=[1]*len(spec['tasks']);counts[recording['metadata']['motion']]=args.num_envs-len(counts)+1
+        counts=[0]*len(spec['tasks']);counts[recording['metadata']['motion']]=args.num_envs
         task_policy_worlds=counts[recording['metadata']['motion']]
     if args.segment is not None and not 1<=args.segment<=len(clock.event_ends):raise ValueError('Segment out of range')
-    if min(counts)<1 or (not hasattr(clock,'segment_motion') and task_policy_worlds<(1 if args.segment else len(clock.event_ends))):raise ValueError('Insufficient worlds for selected segments')
+    if min(counts)<0 or task_policy_worlds!=args.num_envs or (not hasattr(clock,'segment_motion') and task_policy_worlds<(1 if args.segment else len(clock.event_ends))):raise ValueError('Insufficient worlds for selected segments')
     config=dict(vars(args),independent_segments=True,separate_native_evaluation=False,initialization_transfer=initialization_transfer,
         start_iteration=int(resumed['iteration']),
         task_world_counts=counts,student_worlds=task_policy_worlds,background_worlds=args.num_envs-task_policy_worlds,contact_bounds=clock.bounds,arrival_time_input=False,
@@ -279,7 +285,7 @@ def main():
         config['training_loop']='WM one-step fit on previous native replay -> fresh full native attempts -> full-batch DMO backward -> one actor update'
         from supermimic.contact_case_gradient import ACTOR_GRADIENT_GROUP_SIZE, ACTOR_GRADIENT_OUTLIER_RATIO
         config['actor_gradient_outlier_cap']=dict(group_size=ACTOR_GRADIENT_GROUP_SIZE,median_ratio=ACTOR_GRADIENT_OUTLIER_RATIO)
-        config['collision_objective_version']='whole_foot_terminal_navigation_v1'
+        config['collision_objective_version']='all_contact_point_navigation_v2'
         config['wm_fit']='DMO deterministic one-step residual MSE on real replay; tracking normalization and existing force6 supervision retained'
         config['wm_fit_order']='before fresh actor rollout, following DMO Algorithm 1'
         config['lr_schedule_rule']='mean success over recent 3 native training batches; 3 non-improving observations (absolute improvement >0.01); halve LR to floor' if args.adaptive_lr else 'constant'
@@ -428,8 +434,9 @@ def main():
         config['actor_architecture']=actor.architecture
         config['new_contact_stop']=task.new_contact_stop
         config['pool_sampling']='capacity_capped_source_balance_without_replacement'
+        config['pool_population']='training_successful_terminals_after_initial_reference_bootstrap'
         config['stop_rule']='first outside-region new native contact truncates; original stable confirmation and fixed-material success scoring'
-        config['navigation_loss']=dict(version='whole-foot-box-navigation-v1',scope='box-top foot transfers; floor and other body parts retain original metrics',process_collision_weight=0,stable_witness_and_actual_stop=True)
+        config['navigation_loss']=dict(version='all-contact-point-navigation-v2',scope='all required parts; unchanged original goals; point visibility roadmap',process_collision_weight=0,stable_witness_and_actual_stop=True)
         config['target_faces_by_segment']=None if task.target_faces_by_segment is None else task.target_faces_by_segment.cpu().tolist()
         config.update(segment_norm_balance=False,source_projection=False,reference_rehearsal_fraction=0.0,pool_retention='uniform random from previous plus incoming',prior_weight=args.prior_weight)
         (args.output/'config.json').write_text(json.dumps(config,default=str,indent=2))
@@ -565,9 +572,10 @@ def main():
             if stopped:break
             round_begin=time.perf_counter()
             task.iteration=iteration
-            task.populate_reference()
-            torch.cuda.synchronize()
-            producer_seconds=time.perf_counter()-round_begin
+            # PoolTask.step already captures successful training terminals,
+            # including history and source/depth, before resetting the world.
+            task.producer_stats=dict(mode='training_successful_terminals',extra_rollout=False,iteration=iteration)
+            producer_seconds=0.
             t0=time.perf_counter()
             fit_fn=wm_one_step_loss if args.policy_gradient=='dmo' else wm_loss
             loss=None;wm_fit_before=[];wm_fit_after=[]
@@ -602,6 +610,7 @@ def main():
             t2=time.perf_counter()
             retention_audit=None
             objective=None;objective_parts=None;native_batch=None;update_diagnostics=None;lr_signal=None
+            balance_audit=dict(enabled=False)
             collected_policy_updates=updates
             duration_filter=None;duration_stops=None;plan=None;loss_aligned_batch=None
             selected=torch.arange(task.N,device=device)
@@ -684,7 +693,7 @@ def main():
                         from supermimic.contact_grouped_gradient import GroupedActorGradients
                         from supermimic.contact_case_gradient import ACTOR_GRADIENT_GROUP_SIZE
                         group_ids=torch.arange(len(batch['goal_index'][0]),device=device)//ACTOR_GRADIENT_GROUP_SIZE
-                        grouped=GroupedActorGradients(actor,group_ids,embedding=(actor.part_encoder,actor.part_embedding))
+                        grouped=GroupedActorGradients(actor,group_ids,embedding=(actor.part_encoder,actor.part_embedding),contiguous_group_size=ACTOR_GRADIENT_GROUP_SIZE)
                         grouped.__enter__()
                         part,details=replay_loss(actor,wm,clock,geometry,context,normalize_xi,default_q,batch,
                             pose_weight=args.pose_weight,prior_actor=prior,prior_weight=args.prior_weight,
@@ -701,7 +710,7 @@ def main():
                             if processed==len(batch['goal_index'][0]):native=task.report(iteration,updates)
                             status('training',iteration,dmo_processed=processed,dmo_total=total,duration_filter=duration_filter)
                             next_training_progress=time.perf_counter()+args.progress_interval_seconds
-                        torch.autograd.grad(part,tuple(actor.parameters()),allow_unused=True)
+                        grouped.backward(part)
                         matrix=grouped.matrix()
                         grouped.__exit__(None,None,None)
                         gradient_rows.append(matrix)

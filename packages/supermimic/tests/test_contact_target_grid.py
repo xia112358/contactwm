@@ -60,3 +60,15 @@ def test_single_segment_gets_all_student_worlds():
     assert len(ids)==4096 and len(background)==2
     assert bool((assigned==3).all())
     assert case_world_counts(clock,3,12)==[4,2,6]
+
+
+def test_handoff_worlds_keep_original_task_ids_without_background():
+    from supermimic.contact_library import case_world_counts,case_world_assignment
+    clock=types.SimpleNamespace(segment_motion=torch.tensor([2]*10))
+    counts=case_world_counts(clock,12,4096,reserve_background=False)
+    assert counts==[0,0,4096]+[0]*9
+    task_ids=torch.repeat_interleave(torch.arange(12),torch.tensor(counts))
+    ids,assigned,background=case_world_assignment(clock,task_ids)
+    assert len(ids)==4096 and len(background)==0
+    assert assigned.unique().tolist()==list(range(10))
+    assert case_world_counts(clock,12,8,segment_index=3,reserve_background=False)==[0,0,8]+[0]*9

@@ -385,7 +385,7 @@ def install(path, contact_model="binary2", reset_sampler="return_bins", probes_p
             self.collision_profile = profile
             self.execution_robot_asset = actual
             task_world_counts = kwargs.pop('task_world_counts', None)
-            if num_envs < context.count:
+            if task_world_counts is None and num_envs < context.count:
                 raise ValueError("Use at least one environment per task")
             eval_mode = kwargs.get("eval_mode", args[3] if len(args) > 3 else False)
             weights = np.array([1.0 if eval_mode else task.get("sampling_weight", 1.0)
@@ -393,10 +393,10 @@ def install(path, contact_model="binary2", reset_sampler="return_bins", probes_p
             if task_world_counts is not None:
                 counts = np.asarray(task_world_counts)
                 if (not eval_mode or counts.shape != (context.count,) or
-                        not np.issubdtype(counts.dtype, np.integer) or (counts < 1).any() or counts.sum() != num_envs):
-                    raise ValueError('Explicit evaluation world counts must be positive integers summing to num_envs')
+                        not np.issubdtype(counts.dtype, np.integer) or (counts < 0).any() or counts.sum() != num_envs or num_envs < 1):
+                    raise ValueError('Explicit evaluation world counts must be non-negative integers summing to positive num_envs')
                 weights = counts.astype(float)
-            if not np.isfinite(weights).all() or (weights <= 0).any():
+            if not np.isfinite(weights).all() or (weights < 0).any() or weights.sum() <= 0 or (task_world_counts is None and (weights == 0).any()):
                 raise ValueError("Task sampling weights must be finite and positive")
             training_env_count = num_envs
             use_retry = reset_sampler != "return_bins" and not eval_mode
@@ -412,12 +412,17 @@ def install(path, contact_model="binary2", reset_sampler="return_bins", probes_p
                 num_envs = int(weights.sum())
             # Constructed below by the base simulator; keep physical allocation
             # and the reference task IDs identical. Evaluation visits every clip.
-            env_module.TrackingSceneCfg = partial(scene_type, clone_cfg=CloneCfg(clone_combinations=[
+            active_tasks = np.flatnonzero(weights > 0)
+            # Omit unused terrain assets: a zero-weight prototype has no prim
+            # on which IsaacLab can spawn its asset. Preserve original motion
+            # IDs separately from the compact physical prototype indices.
+            unused_terrain = {f"terrain_{i:04d}": None for i in np.flatnonzero(weights == 0)}
+            env_module.TrackingSceneCfg = partial(scene_type, **unused_terrain, clone_cfg=CloneCfg(clone_combinations=[
                 InclusionSet(assets=[f"terrain_{i:04d}"], weight=float(weight))
-                for i, weight in enumerate(weights)
+                for i, weight in enumerate(weights) if weight > 0
             ]))
             assignments = sequential(weights, num_envs)
-            if len(np.unique(assignments)) != context.count:
+            if not np.array_equal(np.unique(assignments), np.flatnonzero(weights > 0)):
                 raise ValueError("Not enough environments to represent every weighted task")
             self.task_ids = torch.tensor(assignments, dtype=torch.long, device=sim_cfg.device)
             motion = args[0] if args else kwargs["motion"]
@@ -444,7 +449,7 @@ def install(path, contact_model="binary2", reset_sampler="return_bins", probes_p
             layout = self.scene.clone_plan.topology.world_prototype_layout
             if hasattr(layout, "numpy"):
                 layout = layout.numpy()
-            if not np.array_equal(np.asarray(layout), assignments):
+            if not np.array_equal(active_tasks[np.asarray(layout)], assignments):
                 raise ValueError("Physics terrain allocation differs from reference motion allocation")
             if spec["terrain_layout"].get("bounding_volume_schema") == "per_world_box_aabb_rbound_v1":
                 self._refresh_terrain_bounds()
@@ -470,7 +475,7 @@ def install(path, contact_model="binary2", reset_sampler="return_bins", probes_p
                 self.contact_parts = context.parts if force_mode else ("left_foot", "right_foot")
                 self.force_scale = context.force_scale if force_mode else 1.0
                 self._latest_contacts = self.xi[:, context.contact_slice].clone()
-            print(f"Low-step: {context.count} paired terrains, {num_envs} environments; "
+            print(f"Low-step: {len(active_tasks)} active terrains of {context.count} tasks, {num_envs} environments; "
                   f"local heightmap {context.height_dim} + {contact_model} {context.contact_dim}; policy force {policy_force_observation}; obs {original_obs_dim + policy_context_dim}", flush=True)
 
         def _refresh_terrain_bounds(self):

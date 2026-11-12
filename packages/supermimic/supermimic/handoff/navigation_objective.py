@@ -1,73 +1,137 @@
-"""Box-top foot navigation on immutable event goals; native contacts stay upstream."""
+"""Point navigation to unchanged contact goals; native contact semantics stay upstream."""
+import itertools
 import torch
-from supermimic.contact_navigation import WholeFootBoxNavigation, segment_visible
+from scipy.sparse.csgraph import floyd_warshall
+from supermimic.contact_navigation import segment_visible
+from supermimic.rotations import quat_to_mat
+from supermimic.contact_material import world_points
 
 
-class CachedFootNavigation(WholeFootBoxNavigation):
-    """Exact static-goal specialization: cache the goal half of the roadmap query."""
-    def __init__(self,*args,**kwargs):
-        super().__init__(*args,**kwargs)
-        nodes=self.road.nodes
-        target=(self.goals[:,None]-nodes).norm(dim=-1).masked_fill(
-            ~segment_visible(self.goals[:,None],nodes,self.nav_half[:,None]),float('inf'))
-        self.tail=(self.road.costs+target[:,None]).min(-1).values
+class PointNavigation:
+    """Cached visibility roadmap for box obstacles, with exact unobstructed distances.
 
-    def anchor_distance(self,points):
-        position=(points-self.center)@self.R
-        gap=position.abs()-self.nav_half[None]
-        inside=gap.amax(-1)<0
-        exit_gap=gap.clone()
-        exit_gap[...,2]=torch.where(position[...,2]<0,-self.nav_half[None,:,2]+position[...,2],gap[...,2])
-        axis=exit_gap.argmax(-1);face=torch.nn.functional.one_hot(axis,3).bool()
-        sign=torch.where(position>=0,1.,-1.)
-        sign=torch.where(face&(axis[...,None]==2),torch.ones_like(sign),sign)
-        free=torch.where(inside[...,None],torch.where(face,sign*self.nav_half[None],position)+face*sign*1e-5,position)
-        source=(free[:,:,None]-self.road.nodes[None]).norm(dim=-1).masked_fill(
-            ~segment_visible(free[:,:,None],self.road.nodes[None],self.nav_half[None,:,None]),float('inf'))
-        indirect=(source+self.tail[None]).min(-1).values
-        direct=(free-self.goals[None]).norm(dim=-1).masked_fill(
-            ~segment_visible(free,self.goals[None],self.nav_half[None]),float('inf'))
-        depth=torch.where(inside,-exit_gap.amax(-1),0.)
-        return torch.minimum(direct,indirect)+depth
+    Routes are graph approximations, not exact geodesics. Original goals are
+    immutable. For penetrating endpoints the metric includes distance to exit
+    the solid; that extension does not count as contact evidence.
+    """
+    def __init__(self, boxes, goals):
+        self.goals=goals.detach().clone()
+        box=torch.as_tensor(boxes,device=goals.device,dtype=goals.dtype).reshape(-1,10)
+        self.center=box[:,:3];self.rotation=quat_to_mat(box[:,3:7]);self.half=box[:,7:]/2
+        nodes=[]
+        for center,rotation,half in zip(self.center,self.rotation,self.half):
+            grid=goals.new_tensor([v for v in itertools.product((-1.,0.,1.),repeat=3) if any(abs(x)==1 for x in v)])
+            points=(grid*(half+1e-5))@rotation.T+center
+            nodes.append(points[points[:,2]>=0])
+        self.nodes=torch.cat(nodes) if nodes else goals.new_empty((0,3))
+        if len(self.nodes):
+            # Other boxes may cover some vertices; they are not route nodes.
+            _,depth=self._exit(self.nodes)
+            self.nodes=self.nodes[depth==0]
+        n=len(self.nodes)
+        if n:
+            edges=(self.nodes[:,None]-self.nodes[None]).norm(dim=-1).masked_fill(~self.visible(self.nodes[:,None],self.nodes[None]),float('inf'))
+            self.costs=torch.as_tensor(floyd_warshall(edges.cpu().double().numpy(),directed=False),device=goals.device,dtype=goals.dtype)
+        else:self.costs=goals.new_empty((0,0))
+        self.free_goal,self.goal_depth=self._exit(self.goals)
+        if n:
+            target=(self.free_goal[...,None,:]-self.nodes).norm(dim=-1).masked_fill(~self.visible(self.free_goal[...,None,:],self.nodes),float('inf'))
+            self.tail=(self.costs+target[...,None,:]).amin(-1)
+
+    def visible(self,start,end):
+        result=torch.ones(torch.broadcast_shapes(start.shape[:-1],end.shape[:-1]),device=start.device,dtype=torch.bool)
+        for c,R,h in zip(self.center,self.rotation,self.half):
+            result &= segment_visible((start-c)@R,(end-c)@R,h)
+        return result
+
+    def _exit(self,points):
+        free=points;depth=points.new_zeros(points.shape[:-1])
+        for c,R,h in zip(self.center,self.rotation,self.half):
+            local=(free-c)@R;gap=local.abs()-h;inside=gap.amax(-1)<0
+            # Only exits above the physical ground are admissible.
+            candidates=[];distances=[]
+            for axis in range(3):
+                for sign in (-1.,1.):
+                    candidate=local.clone();candidate[...,axis]=sign*(h[axis]+1e-5)
+                    world=candidate@R.T+c
+                    candidates.append(world)
+                    distances.append((world-free).norm(dim=-1).masked_fill(world[...,2]<0,float('inf')))
+            distances=torch.stack(distances,-1);index=distances.argmin(-1)
+            selected=torch.stack(candidates,-2).gather(-2,index[...,None,None].expand(*index.shape,1,3)).squeeze(-2)
+            depth=depth+torch.where(inside,distances.amin(-1),0.)
+            free=torch.where(inside[...,None],selected,free)
+        return free,depth
+
+    def distance(self,points,goals=None):
+        free,depth=self._exit(points)
+        free_goal,goal_depth=(self.free_goal,self.goal_depth) if goals is None else self._exit(goals)
+        direct=(free-free_goal).norm(dim=-1).masked_fill(~self.visible(free,free_goal),float('inf'))
+        if len(self.nodes):
+            source=(free[...,None,:]-self.nodes).norm(dim=-1).masked_fill(~self.visible(free[...,None,:],self.nodes),float('inf'))
+            tail=self.tail
+            if goals is not None:
+                target=(free_goal[...,None,:]-self.nodes).norm(dim=-1).masked_fill(~self.visible(free_goal[...,None,:],self.nodes),float('inf'))
+                tail=(self.costs+target[...,None,:]).amin(-1)
+            distance=torch.minimum(direct,(source+tail).amin(-1))
+        else:distance=direct
+        return distance+depth+goal_depth
 
 
-class FootNavigationObjective:
+class ContactNavigationObjective:
     def __init__(self,clock,surface,context):
         self.metrics={}
-        self.rows=[]
         for event in range(len(clock.event_ends)):
             end=clock.event_ends[event]-1
-            required=clock.target_masks[end]&~clock.keep_masks[end]
-            motion=int(clock.segment_motion[event]);boxes=context.tasks[motion]['boxes']
-            box=torch.as_tensor(boxes,device=clock.material_targets.device)
-            assert len(box)==1,'This 10-stage scene must have its original one-box terrain'
-            top=box[0,2]+box[0,9]/2
-            for part in range(2):
-                if not bool(required[part]):continue
-                target=clock.material_targets[event,part]
-                # Select the demonstrated box-top objective by its source target,
-                # not by student distance or contact state. Ground goals stay fixed.
-                box_top=bool((target[:,2].mean()-top).abs()<target[:,2].mean().abs())
-                if not box_top:continue
-                vertices=getattr(surface,f'triangles_{part}').reshape(-1,3).unique(dim=0)
-                metric=CachedFootNavigation(boxes,target,vertices,clock.material_local[event,part],target.device)
-                self.metrics[event,part]=metric
-                self.rows.append(dict(segment=event+1,case=int(clock.case_ids[event]),part=part,**metric.info))
-        print('NAVIGATION_OBJECTIVE',self.rows,flush=True)
+            boxes=context.tasks[int(clock.segment_motion[event])]['boxes']
+            for part in (clock.target_masks[end]&~clock.keep_masks[end]).nonzero().flatten().tolist():
+                target=(clock.data['point'][end,part:part+1] if part in (2,3) else
+                        clock.paired_material_targets[event,part] if part>=4 and hasattr(clock,'paired_material_targets') else
+                        clock.material_targets[event,part])
+                self.metrics[event,part]=PointNavigation(boxes,target)
+        self.clock=clock;self.surface=surface
 
-    def cost(self,points,position,rotation,event,required,original):
-        cost=original
+    def cost(self,p,R,event,evaluate,stable,guidance,data,t,swap):
+        clock=self.clock;cost=p.new_zeros(p.shape[:2])
         for (index,part),metric in self.metrics.items():
-            slots=((event==index)&required[:,part]).nonzero().flatten()
+            slots=((event==index)&evaluate[:,part]).nonzero().flatten()
             if not len(slots):continue
-            distance=metric.distance(points[slots,part],position[slots,part],rotation[slots,part])
-            values=distance.square().mean(-1)/.05**2
-            replacement=cost[:,part].index_copy(0,slots,values)
-            cost=torch.stack([replacement if p==part else cost[:,p] for p in range(cost.shape[1])],-1)
+            pos,rot=p[slots,part],R[slots,part];use=stable[slots,part]
+            if part in (2,3):
+                local=self.surface.atlas.points_local[part]
+                points=pos[:,None]+torch.einsum('bij,kj->bki',rot,local)
+                errors=metric.distance(points).square()/.05**2
+                area=self.surface.atlas.areas[part];prior=area/area.sum()
+                value=-self.surface.temperature*torch.logsumexp(prior.log()-errors/self.surface.temperature,-1)
+                measured=data['contact_loss_point'][t,slots,part]
+                anchor=(rot.detach().transpose(-1,-2)@(measured-pos.detach()).unsqueeze(-1)).squeeze(-1)
+                witness=swap(pos+(rot@anchor.unsqueeze(-1)).squeeze(-1),measured)
+                observed=metric.distance(witness[:,None]).square().squeeze(-1)/.05**2
+                value=torch.where(use,observed,value)
+            else:
+                raw=(guidance[slots,part]&data['contact_raw_stable'][t,slots,part]) if part>=4 and 'contact_raw_stable' in data else torch.zeros_like(use)
+                measured_p=data['contact_loss_position'][t,slots,part];measured_R=data['contact_loss_rotation'][t,slots,part]
+                pos=torch.where(use[:,None],swap(pos,measured_p),pos);rot=torch.where(use[:,None,None],swap(rot,measured_R),rot)
+                if part>=4 and hasattr(clock,'paired_material_local'):
+                    pos=torch.where(raw[:,None],swap(pos,data['contact_raw_position'][t,slots,part]),pos)
+                    rot=torch.where(raw[:,None,None],swap(rot,data['contact_raw_rotation'][t,slots,part]),rot)
+                    local=clock.paired_material_local[index,part];valid=clock.paired_material_valid[index,part]
+                    points=world_points(pos,rot,local)
+                    errors=(metric.distance(points).square()/.05**2).masked_fill(~valid,float('inf'))
+                    native=data['contact_loss_candidate'][t,slots,part].long()
+                    # Preserve the paired raw-witness guidance objective, replacing
+                    # both geometric distances with the same navigation metric.
+                    correspondence=metric.distance(points,data['contact_raw_point'][t,slots,part,None]).square()/.05**2
+                    guided=torch.where(raw[:,None],errors+correspondence,errors)
+                    chosen=torch.where(use,native,guided.detach().argmin(-1))
+                    value=guided.gather(-1,chosen[:,None]).squeeze(-1)
+                else:
+                    points=world_points(pos,rot,clock.material_local[index,part])
+                    value=metric.distance(points).square().mean(-1)/.05**2
+            cost[:,part]=cost[:,part].index_copy(0,slots,value)
         return cost
 
 
-def foot_navigation_cost(clock,surface,context,points,position,rotation,event,required,original):
-    if not hasattr(surface,'foot_navigation_objective'):
-        surface.foot_navigation_objective=FootNavigationObjective(clock,surface,context)
-    return surface.foot_navigation_objective.cost(points,position,rotation,event,required,original)
+def contact_navigation_cost(clock,surface,context,p,R,event,evaluate,stable,guidance,data,t,swap):
+    if not hasattr(surface,'contact_navigation_objective'):
+        surface.contact_navigation_objective=ContactNavigationObjective(clock,surface,context)
+    return surface.contact_navigation_objective.cost(p,R,event,evaluate,stable,guidance,data,t,swap)

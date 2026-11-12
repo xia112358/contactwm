@@ -9,7 +9,8 @@ from supermimic.contact_surface import SurfaceRegionObjective
 
 @pytest.mark.parametrize("parts", [[4], [5, 1], list(range(6))])
 @pytest.mark.parametrize("radius", [0., .015])
-def test_sparse_loss_and_pose_gradients_match_dense(parts, radius):
+@pytest.mark.parametrize("reuse_poses", [False, True])
+def test_sparse_loss_and_pose_gradients_match_dense(parts, radius, reuse_poses):
     generator = torch.Generator().manual_seed(17)
     nodes = torch.randn(6, 32, 3, generator=generator, dtype=torch.float64) * .03
     normals = torch.zeros_like(nodes); normals[..., 2] = 1
@@ -24,7 +25,10 @@ def test_sparse_loss_and_pose_gradients_match_dense(parts, radius):
     R = torch.eye(3, dtype=torch.float64).expand(3, 6, 3, 3).clone().requires_grad_()
     target = (torch.randn(3, 6, 3, generator=generator, dtype=torch.float64)*.01).requires_grad_()
     n = torch.zeros_like(target); n[..., 2] = 1
-    actual = obj.region_loss((p, R), target, parts, normals=n, normal_weight=2., tangent_weight=.7)
+    if reuse_poses:
+        obj.geometry.poses=lambda _:pytest.fail('Precomputed poses must not recompute FK')
+    fn=obj.region_loss_from_poses if reuse_poses else obj.region_loss
+    actual = fn((p, R), target, parts, normals=n, normal_weight=2., tangent_weight=.7)
     reference = smooth_region_loss(atlas.world(p, R)[:, parts], target[:, parts], n[:, parts],
         areas[parts], temperature=.02, halfwidth=radius, normal_weight=2., tangent_weight=.7)
     for key, value in actual.items():
