@@ -16,11 +16,11 @@ First install the configured SuperMimic/Newton workflow environment as described
 in [the current workflow](current-workflow.md). This requires CUDA and the
 project's canonical G1 assets; a Python-only installation is insufficient.
 
-The three starting models already exist in the
-[checkpoint release](checkpoints.md). **The companion 40 MB task-data release is
-pending explicit publication approval.** Until that release is published, a new
-machine must obtain `handoff-data.tar.gz` from its owner and place it in the asset
-directory; the installer verifies exactly the same SHA256 before extraction.
+The three starting models are published in the
+[checkpoint release](checkpoints.md). The companion
+[40 MB task-data release](https://github.com/xia112358/contactwm/releases/tag/handoff-ten-stage-20261112-v1)
+contains the exact recording, cuts, collision model and task assets.
+The preparation command downloads and SHA256-verifies all required inputs.
 
 From the repository root:
 

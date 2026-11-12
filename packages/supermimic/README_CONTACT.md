@@ -487,4 +487,5 @@ See [2026-11-05 progress](../../docs/research/contact-20261105/README.md) for lo
 
 See [handoff training](../../docs/handoff-training.md) for the maintained
 bottleneck handoff implementation, artifact preparation and one-command launch.
-The companion task-data upload currently awaits publication approval.
+The companion task data and three starting checkpoints are published and
+SHA256-verified by the preparation script.
