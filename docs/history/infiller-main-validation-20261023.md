@@ -13,20 +13,7 @@ The 7,271 records retain the original height split: 4,111 train, 1,501 validatio
 and 1,659 test. This is full corpus materialization; the completed short training
 check used the separately capped diagnostic corpus.
 
-Build the corpus once, then explicitly select training with a fresh output
-directory (skip the build command when restoring the registered corpus):
-
-```bash
-python3 scripts/manage_environment.py run --profile main -- \
-  python -m generator.train_frozen_predictor_infiller --mode build \
-  --report tmp/infiller_build_new --device cuda:0
-python3 scripts/manage_environment.py run --profile main -- \
-  python -m generator.train_frozen_predictor_infiller --mode train \
-  --output runtime/current/models/generator/infiller_new_run \
-  --report tmp/infiller_train_new --device cuda:0
-```
-
-The default `--mode all` builds before training and refuses an existing corpus.
-A corpus from a different scene fingerprint must be rebuilt; changing its
+The retired build and training commands are preserved in the [original record](https://github.com/xia112358/contactwm/blob/d54b71f7708d4d82eb5f477b223464872c239f60/docs/history/infiller-main-validation-20261023.md).
+They are not current entrypoints. A corpus from a different scene fingerprint must be rebuilt; changing its
 metadata alone is not a migration. Sample-limited `--smoke` builds are diagnostic
 artifacts, not evidence of complete dataset coverage.
