@@ -6,19 +6,24 @@ from supermimic.contact_gpu_stability import _filter_initial_support
 pytestmark=pytest.mark.skipif(not torch.cuda.is_available(),reason='GPU substep sampling requires CUDA')
 
 class Timeline:
-    def __init__(self):
+    def __init__(self,initial_contact=True):
         z=lambda n,t:wp.zeros(n,dtype=t,device='cuda:0')
         self.heads=z(6,wp.int32);self.observed=wp.array([True],dtype=wp.bool,device='cuda:0')
         self.episode=z(1,wp.int64);self.sub=z(1,wp.int32);self.initial=z(6,wp.bool);self.stable=z(6,wp.bool);self.point=z(6,wp.vec3)
         self.target=z(6,wp.vec3);self.origins=z(1,wp.vec3);self.tolerance=wp.full(6,.05,dtype=wp.float32,device='cuda:0')
         self.pending=z(6,wp.bool);self.absence=z(6,wp.int32);self.qualified=z(6,wp.bool);self.witness=z(6,wp.vec3)
+        self.initial.fill_(initial_contact)
+        self.rest=[wp.array(range(6),dtype=wp.int64,device='cuda:0'),z((1,6),wp.vec3),z((1,6),wp.mat33),
+            z(6,wp.vec3),z(6,wp.mat33),z(6,wp.int32),z(6,wp.bool),z(6,wp.vec3),z(6,wp.vec3),z(6,wp.mat33),
+            z(6,wp.bool),z(6,wp.vec3),z(6,wp.vec3),wp.ones(6,dtype=wp.bool,device='cuda:0'),1,.01,
+            wp.full(1,-1,dtype=wp.int32,device='cuda:0'),z(1,wp.vec3),z(1,wp.float32),z(1,wp.vec3),z(6,wp.bool),z(6,wp.int32),z(6,wp.bool)]
         self.i=0
     def step(self,active,stable=False,point=1.,known=True):
         wp.to_torch(self.heads).fill_(-1);wp.to_torch(self.heads)[0]=0 if active else -1
         wp.to_torch(self.observed)[0]=known;wp.to_torch(self.episode)[0]=self.i//10;wp.to_torch(self.sub)[0]=self.i%10
         wp.to_torch(self.stable).fill_(False);wp.to_torch(self.stable)[0]=stable;wp.to_torch(self.point).zero_();wp.to_torch(self.point)[0,0]=point
         wp.get_stream('cuda:0').wait_stream(wp.stream_from_torch(torch.cuda.current_stream()))
-        wp.launch(_filter_initial_support,6,inputs=[self.heads,self.observed,self.episode,self.sub,20,self.initial,self.stable,self.point,self.target,self.origins,self.tolerance,self.pending,self.absence,self.qualified,self.witness],device='cuda:0')
+        wp.launch(_filter_initial_support,6,inputs=[self.heads,self.observed,self.episode,self.sub,20,self.initial,self.stable,self.point,self.target,self.origins,self.tolerance,self.pending,self.absence,self.qualified,self.witness]+self.rest,device='cuda:0')
         wp.stream_from_torch(torch.cuda.current_stream()).wait_stream(wp.get_stream('cuda:0'));self.i+=1
         return bool(wp.to_torch(self.qualified)[0])
 
@@ -33,9 +38,9 @@ def test_initial_support_and_short_dropout_do_not_become_new_target():
     assert t.step(True,True)
 
 
-def test_already_at_target_needs_no_release_and_initial_air_can_land():
-    t=Timeline();assert t.step(True,True,point=.01)
-    t=Timeline();assert not t.step(False);assert t.step(True,True,point=.2)
+def test_already_at_target_is_still_old_support_but_initial_air_can_land():
+    t=Timeline();assert not t.step(True,True,point=.01)
+    t=Timeline(initial_contact=False);assert not t.step(False);assert t.step(True,True,point=.2)
 
 
 def test_unknown_is_not_release_and_reset_clears_history():
@@ -51,3 +56,9 @@ def test_reference_contact_with_first_substep_dropout_remains_initial_support():
     assert not t.step(True,True,point=1.)
     for _ in range(20):t.step(False)
     assert t.step(True,True,point=.2)
+
+
+def test_existing_absence_count_is_carried_not_restarted():
+    t=Timeline();wp.to_torch(t.rest[-1])[0]=19
+    assert not t.step(False)
+    assert t.step(True,True)

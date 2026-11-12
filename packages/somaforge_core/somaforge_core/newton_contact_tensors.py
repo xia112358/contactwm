@@ -64,6 +64,17 @@ class NewtonContactTensorReader:
                 raise ValueError('Ambiguous body/part mapping')
             if parts:
                 self.body_part[body] = parts[0]
+        self.primitive_boxes = all(face.get('geometry_kind') == 'box'
+                                   for faces in shape_surface.values() for face in faces)
+        self.shape_types = wp.to_torch(model.shape_type)
+        self.terrain_shapes = torch.zeros(model.shape_count, dtype=torch.bool, device=self.device)
+        self.terrain_shapes[list(shape_surface)] = True
+        if self.primitive_boxes:
+            from .live_contact_device import DeviceSupportContactSelector
+            self.selector = DeviceSupportContactSelector(dict(body_env=body_env, shape_surface=shape_surface,
+                surface_catalog=list({face['surface']: face for faces in shape_surface.values() for face in faces}.values())),
+                                                         model.body_label, self.device)
+            return
         if len(shape_surface) != 1:
             raise ValueError('Device normal-fan reader currently requires one actual shared terrain mesh')
         self.terrain_shape, faces = next(iter(shape_surface.items()))
@@ -120,7 +131,7 @@ class NewtonContactTensorReader:
         shapes = shapes.clamp(0, model.shape_count-1)
         bodies = wp.to_torch(model.shape_body)[shapes].long()
         robot = (bodies >= 0) & (self.body_env[bodies.clamp_min(0)] >= 0)
-        terrain_pair = valid & robot[:, 1] & ~robot[:, 0] & (shapes[:, 0] == self.terrain_shape)
+        terrain_pair = valid & robot[:, 1] & ~robot[:, 0] & self.terrain_shapes[shapes[:, 0]]
         parts = self.body_part[bodies[:, 1].clamp_min(0)]
         same_world = self.body_env[bodies[:, 1].clamp_min(0)] == world
         task = terrain_pair & (parts >= 0) & same_world & ((kind & 1) != 0)
@@ -177,34 +188,57 @@ class NewtonContactTensorReader:
                 output = torch.zeros((len(dist)+1, 3), device=self.device)
                 output.index_add_(0, destination, torch.where(emitted[:, None], point, 0))
                 geometry_points.append(output[:-1])
-        tri = (source & 0x7fffff) >> 4
-        triangle_valid = (tri >= 0) & (tri < len(self.triangles)) & ((source & 8) != 0)
-        ti = tri.clamp(0, len(self.triangles)-1)
-        normal = get('frame')[:, 0].to(torch.float64)
-        triangle = self.triangles[ti]
-        score = ((triangle-triangle[:, :1])*normal[:, None]).sum(-1)
-        support = score == score.amax(-1, keepdim=True)
-        candidates = (self.incident[ti] & support[:, :, None]).any(1) | self.source_face[ti]
-        if not geometry_points:
-            raise ValueError('Actual terrain geometry witness required for source-feature face attribution')
-        projected, feature_valid = project_source_triangles_tensor(geometry_points[0].double(), triangle)
-        candidates &= incident_witness_faces_tensor(projected,self.normals,self.face_offsets,self.face_extents)
-        alignment = normal @ self.normals.T
-        face = alignment.masked_fill(~candidates, -torch.inf).argmax(-1)
-        surface = self.surface_ids[face]
-        eligible = task & active & allocated & triangle_valid & self.present[ti] & self.upward[face]
+        if self.primitive_boxes:
+            from .live_contact_device import _primary_by_shape
+            selector = self.selector
+            normal = get('frame')[:, 0].double().contiguous()
+            point = geometry_points[0].double().contiguous()
+            face = torch.full_like(world, -1)
+            external = shapes[:, 0].clamp_max(len(selector.first)-1).contiguous()
+            query = (task & torch.isfinite(point).all(-1) & torch.isfinite(normal).all(-1)).contiguous()
+            with wp.ScopedStream(wp.stream_from_torch(torch.cuda.current_stream(point.device))):
+                wp.launch(_primary_by_shape, len(dist), inputs=[wp.from_torch(point, dtype=wp.vec3d),
+                    wp.from_torch(normal, dtype=wp.vec3d), wp.from_torch(query), wp.from_torch(external),
+                    wp.from_torch(selector.first), wp.from_torch(selector.stop), selector.vertices,
+                    selector.owners, selector.face_normals, wp.from_torch(selector.surfaces),
+                    wp.from_torch(face)], device=self.device)
+            surface = selector.surfaces[face.clamp_min(0)]
+            upward = selector.upward[face.clamp_min(0)] & (face >= 0)
+            eligible = task & active & allocated & upward
+            face_error = (task & (face < 0)).any()
+            feature_error = (task & ~torch.isfinite(point).all(-1)).any()
+        else:
+            tri = (source & 0x7fffff) >> 4
+            triangle_valid = (tri >= 0) & (tri < len(self.triangles)) & ((source & 8) != 0)
+            ti = tri.clamp(0, len(self.triangles)-1)
+            normal = get('frame')[:, 0].to(torch.float64)
+            triangle = self.triangles[ti]
+            score = ((triangle-triangle[:, :1])*normal[:, None]).sum(-1)
+            support = score == score.amax(-1, keepdim=True)
+            candidates = (self.incident[ti] & support[:, :, None]).any(1) | self.source_face[ti]
+            if not geometry_points:
+                raise ValueError('Actual terrain geometry witness required for source-feature face attribution')
+            projected, feature_valid = project_source_triangles_tensor(geometry_points[0].double(), triangle)
+            candidates &= incident_witness_faces_tensor(projected,self.normals,self.face_offsets,self.face_extents)
+            alignment = normal @ self.normals.T
+            face = alignment.masked_fill(~candidates, -torch.inf).argmax(-1)
+            surface = self.surface_ids[face]
+            eligible = task & active & allocated & triangle_valid & self.present[ti] & self.upward[face]
+            upward = self.upward[face]
+            face_error = (task & (~triangle_valid | ~self.present[ti] | ~torch.isfinite(normal).all(-1) | (normal.norm(dim=-1) == 0))).any()
+            feature_error = (task & (~feature_valid | ~candidates.any(-1))).any()
         errors = dict(
             capacity=(count < 0) | (count > len(dist)) | (raw_count > len(raw_keys)),
             fields=(valid & (~torch.isfinite(dist) | ~torch.isfinite(margin) | (required_rows < 1) | (required_rows > address.shape[1]))).any(),
             mapping=(valid & (~mapped_valid | ~shape_valid)).any(),
             unallocated=(active & ~allocated).any(),
-            source=source_error.any() | (emitted & ~cid_valid).any() | (valid & (coverage[:-1] != 1)).any(),
+            source=(source_error.any() & (not self.primitive_boxes)) | (emitted & ~cid_valid).any() | (valid & (coverage[:-1] != 1)).any(),
             raw_mapping=(emitted & (raw_shapes != shapes[cid.clamp(0, len(dist)-1)]).any(-1)).any(),
-            triangle=(task & (~triangle_valid | ~self.present[ti] | ~torch.isfinite(normal).all(-1) | (normal.norm(dim=-1) == 0))).any(),
-            source_feature=(task & (~feature_valid | ~candidates.any(-1))).any(),
+            triangle=face_error,
+            source_feature=feature_error,
             cross_world=(terrain_pair & ~same_world).any(),
             unknown_external=(valid & ((kind & 1) != 0) & (robot.sum(-1) == 1) &
-                ~((shapes[:, 0] == self.terrain_shape) & robot[:, 1])).any())
+                ~(self.terrain_shapes[shapes[:, 0]] & robot[:, 1])).any())
         group = (world*self.body_part.new_tensor(6)+parts).clamp(0, self.worlds*6-1)
         minimum = torch.full((self.worlds*6,), torch.inf, device=self.device)
         minimum.scatter_reduce_(0, group, torch.where(eligible, dist-margin, torch.inf), reduce='amin')
@@ -219,8 +253,8 @@ class NewtonContactTensorReader:
         result = dict(count=count, dist=dist, includemargin=margin, type=kind, worldid=world,
             active=active, constraint_allocated=allocated, efc_address=address, constraint_rows=required_rows,
             shape0=shapes[:, 0], shape1=shapes[:, 1], body0=bodies[:, 0], body1=bodies[:, 1],
-            source_key=source, primary_surface=surface, task_pair=task, eligible=eligible,
-            part=parts, upward=self.upward[face], full_kind=full_kind,
+            source_key=torch.full_like(source, -1) if self.primitive_boxes else source, primary_surface=surface, task_pair=task, eligible=eligible,
+            part=parts, upward=upward, full_kind=full_kind,
             body_link0=link[:, 0], body_link1=link[:, 1], normal_w=get('frame')[:, 0],
             contact_part_mask=contact_mask.reshape(self.worlds, 6),
             contact_surface=part_surface.reshape(self.worlds, 6), errors=errors)

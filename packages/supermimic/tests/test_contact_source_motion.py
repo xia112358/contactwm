@@ -118,3 +118,18 @@ def test_initial_support_confirmation_latency_is_not_a_truncated_action():
     assert a['start']==0
     assert any((25,0) in c['arrivals'] for c in cuts)
     assert not any(e['reason']=='incomplete_initial_action' for e in a['exclusions'])
+
+
+def test_initial_partial_contact_cannot_erase_other_limbs_complete_step():
+    d=trace(60);d['s1'][:,0]=torch.linspace(0,.6,60)
+    d['active'][:1,1]=False;d['contact_load'][:1,1]=0
+    d['native_part_position'][:2,1,0]=torch.tensor([-.04,0.])
+    d['active'][12:28,0]=False;d['contact_load'][12:28,0]=0
+    d['native_part_position'][12:29,0,0]=torch.linspace(0,.2,17)
+    d['native_part_position'][29:,0,0]=.2
+    t,a=analyze(d);cuts,hits=load_transfer_slices(d,t,a)
+    assert a['start']==0
+    assert any((28,0) in c['arrivals'] for c in cuts)
+    assert all((1,1) not in c['arrivals'] for c in cuts)
+    assert not hits[1,1]
+    assert all(x['stop']==y['start'] for x,y in zip(cuts,cuts[1:]))

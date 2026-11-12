@@ -54,6 +54,8 @@ def test_runtime_bridge_native_target_names(monkeypatch):
 def test_release_bridge_translates_sensor_names_without_changing_selection(monkeypatch):
     import newton.sensors
     from somaforge_core import newton_runtime_compat as runtime
+    # Exercise the native API adapter independently of the installed Newton build.
+    monkeypatch.setattr(runtime, 'SCHEMA', runtime.NATIVE_SCHEMA)
 
     class Sensor:
         def __init__(self, model, *, sensing_bodies=None, sensing_shapes=None, **kwargs):
@@ -79,12 +81,13 @@ def test_release_bridge_translates_sensor_names_without_changing_selection(monke
         Sensor(marker, sensing_obj_shapes='old', sensing_shapes='new')
 
 
-def test_runtime_guard_rejects_mixed_dependency_stack(monkeypatch):
+def test_runtime_identity_records_actual_dependency_stack(monkeypatch):
     from somaforge_core import newton_runtime_compat as runtime
     original = runtime.version
-    monkeypatch.setattr(runtime, 'version', lambda name: '1.17.0' if name == 'warp-lang' else original(name))
-    with pytest.raises(RuntimeError, match='warp-lang'):
-        runtime.runtime_provenance()
+    monkeypatch.setattr(runtime, 'version', lambda name: original(name)+'+changed' if name == 'warp-lang' else original(name))
+    observed = runtime.runtime_provenance()
+    assert observed['warp-lang'] == original('warp-lang')+'+changed'
+    assert observed['runtime_id'] != runtime.NEWTON_RUNTIME_ID
 
 
 def test_mesh_query_tuning_applies_after_initialization_and_scene_rebuild(monkeypatch):

@@ -17,8 +17,10 @@ def main():
     p.add_argument('--source_library',type=Path,required=True)
     p.add_argument('--task_manifest',required=True)
     p.add_argument('--checkpoint',required=True)
+    p.add_argument('--reference_manifest',type=Path,help='Replacement motion references in task order; robot and terrain remain those of task_manifest')
     p.add_argument('--output',type=Path,required=True)
     p.add_argument('--seed',type=int,default=0)
+    p.add_argument('--motions',type=int,nargs='+',help='Capture only these zero-based task IDs')
     p.add_argument('--headless',action='store_true')
     add_launcher_args(p);a=p.parse_args()
     if a.headless:a.visualizer=None
@@ -41,8 +43,12 @@ def main():
     torch.manual_seed(a.seed);torch.backends.cuda.matmul.allow_tf32=True
     device='cuda:0';ck=torch.load(a.checkpoint,map_location=device,weights_only=False)
     validate_checkpoint(ck,checkpoint_metadata(spec));validate_checkpoint(source['metadata'],checkpoint_metadata(spec))
-    if sha(a.checkpoint)!=source['metadata']['source_checkpoint_sha256']:raise ValueError('Use the original demonstration tracking checkpoint')
+    if a.mode=='validate' and sha(a.checkpoint)!=source['metadata']['source_checkpoint_sha256']:raise ValueError('Use the original demonstration tracking checkpoint')
     networks.AMP_DTYPE=torch.bfloat16 if ck['args'].get('amp')=='bf16' else None
+    reference_provenance=None
+    if a.reference_manifest is not None:
+        from supermimic.task_reference import replace_motion_references
+        reference_provenance=replace_motion_references(spec,a.reference_manifest)
     hist,lookahead=ck['args']['hist'],ck['args']['goal_frames'];policy=networks.Policy(OBS_DIM,73*lookahead,hist=hist).to(device).eval().requires_grad_(False);policy.load_state_dict(ck['pi'])
     kin=G1Kinematics(device);motion=MotionLib.from_dir(spec['motion_dir'],kin,device);default=torch.tensor(default_joint_pos_list(),device=device);mdp=MDP(kin,motion,default)
     a.num_envs=len(spec['tasks']) if a.mode=='capture' else None
@@ -57,7 +63,7 @@ def main():
         if a.mode=='capture':
             dest=a.output/f'capture-seed{a.seed}';dest.mkdir(parents=True,exist_ok=False);reader.export_collision_model(dest/'solver-collision.mjb')
             (dest/'config.json').write_text(json.dumps({k:str(v) if isinstance(v,Path) else v for k,v in vars(a).items()},indent=2))
-            support=NativeContactStability(CONTROL_DT);history=None;pending=set(range(len(spec['tasks'])));rows={i:[] for i in pending};raw=[];final={}
+            support=NativeContactStability(CONTROL_DT);history=None;pending=set(range(len(spec['tasks'])) if a.motions is None else a.motions);rows={i:[] for i in pending};raw=[];final={}
             worlds={i:int((env.task_ids==i).nonzero().flatten()[0]) for i in pending}
             from supermimic.contact_substep_capture import SubstepCapture
             with SubstepCapture(env,dest/'substeps') as substeps:
@@ -76,7 +82,7 @@ def main():
                 data={k:torch.stack([x[k] for x in trace]) for k in trace[0]};data['next_xi']=torch.cat((data['xi'][1:],final[i][None]),0)
                 report=dict(motion=i,name=spec['tasks'][i]['name'],frames=len(trace),successful_rollout=len(trace)==int(motion.clip_len[i])-1 and not bool(data['term'].any()))
                 torch.save(dict(data=data,report=report),dest/f'motion-{i:03d}.pt');reports.append(report)
-            torch.save(raw,dest/'native-rows.pt');(dest/'report.json').write_text(json.dumps(dict(motions=reports,substep_support_contract=substeps.monitor.contract,stable_support_contract=CONTRACT,phase_version=VERSION,checkpoint=a.checkpoint,checkpoint_sha256=sha(a.checkpoint),task_manifest_sha256=sha(a.task_manifest),policy_updated=False),indent=2));return
+            torch.save(raw,dest/'native-rows.pt');(dest/'report.json').write_text(json.dumps(dict(motions=reports,substep_support_contract=substeps.monitor.contract,stable_support_contract=CONTRACT,phase_version=VERSION,checkpoint=a.checkpoint,checkpoint_sha256=sha(a.checkpoint),task_manifest_sha256=sha(a.task_manifest),policy_updated=False,reference_provenance=reference_provenance),indent=2));return
         validate(a,env,reader,policy,motion,mdp,recording,slices,hist,lookahead,NativeContactStability,CONTROL_DT,reference_release_starts,LandingPhaseTracker,unflatten_state,flatten_state,mat_to_quat,rot_angle_sq)
 
 

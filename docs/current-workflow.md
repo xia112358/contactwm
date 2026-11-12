@@ -15,6 +15,10 @@ flowchart LR
 
 PPO 只保留原来的 tracking 代码及 recipe，接入 DAgger 的工作暂缓。PPO checkpoint 不能传入下面的 SuperMimic 采集、初始化或 contact 训练接口，也不包含可供这些接口使用的 SuperMimic world model。当前仓库没有 PPO→SuperMimic 权重转换器。
 
+## 已发布的起始模型
+
+[核心 checkpoint 下载与用途](checkpoints.md)提供当前 5k tracking、完整续训状态、contact init/prior 和导航诊断起点。`--checkpoint` 使用 tracking teacher，`--resume` 使用对应 contact 状态，`--prior_checkpoint` 使用固定 prior；完整文件及 SHA256 已发布到 GitHub Release。
+
 ## 入口与运行环境
 
 在仓库根目录运行 `python scripts/run_workflow.py STAGE [入口参数] -- [原生参数]`。`--` 后面的参数原样传给原生程序；入口不修改训练算法、学习率、采样器或 checkpoint。

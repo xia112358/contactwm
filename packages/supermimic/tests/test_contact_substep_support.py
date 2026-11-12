@@ -98,13 +98,15 @@ def test_monitor_retains_intra_control_events_and_restores_hook(monkeypatch):
     original=lambda:calls.append('solve')
     manager=SimpleNamespace(_step_solver=original,_cfg=SimpleNamespace(use_cuda_graph=True),
         _invalidate_graph=lambda:None,get_solver_dt=lambda:.002,_num_substeps=10)
-    env=SimpleNamespace(sim=SimpleNamespace(backend_manager=manager),ep_step=torch.zeros(1,dtype=torch.long))
+    env=SimpleNamespace(sim=SimpleNamespace(backend_manager=manager),ep_step=torch.zeros(1,dtype=torch.long),scene=SimpleNamespace(env_origins=torch.zeros(1,3)))
     class Reader:
         direct=True;primary_faces=True;i=-1;last_view=None
         last_part_poses=(torch.zeros(1,6,3),torch.eye(3).expand(1,6,3,3))
         def read_device(self,*,substep,same_solve):
             self.i+=1
             assert substep==self.i%10 and same_solve
+            self.evidence_binding=object()
+            self.last_evidence=SimpleNamespace(terrain_view=lambda binding:SimpleNamespace(reduce=lambda:{'contact_count':torch.full((1,6),int(self.i<5))}))
             return dict(active=torch.full((1,6),self.i<5),known=torch.ones(1,6,dtype=torch.bool),surface_local=torch.zeros(1,6,dtype=torch.long))
     reader=Reader()
     with SubstepContactMonitor(env,reader) as monitor:
@@ -117,6 +119,8 @@ def test_monitor_retains_intra_control_events_and_restores_hook(monkeypatch):
         assert not summary['substep_support_event_ready'].any()
         assert summary['support_state'].all()
         assert summary['contact_active_any'].all()
+        assert torch.equal(summary['substep_raw_contact_active'],summary['substep_contact_active'])
+        assert summary['substep_part_position'].shape==(1,10,6,3)
     assert manager._step_solver is original
     assert manager._cfg.use_cuda_graph
     assert len(calls)==10

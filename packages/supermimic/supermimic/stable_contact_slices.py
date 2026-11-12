@@ -51,7 +51,7 @@ def _boundary_decision(data,temporal,events,posture,form_cuts,arrivals_at,start,
     return decision
 
 
-def load_transfer_slices(data,temporal=None,source_motion=None):
+def load_transfer_slices(data,temporal=None,source_motion=None,*,initial_bearing=None):
     """Partition once from shared transfer arrivals and main-form boundaries."""
     from .contact_temporal import segmentation_contact_state,TEMPORAL_CONTRACT
     if temporal is None:temporal=segmentation_contact_state(data)
@@ -125,6 +125,42 @@ def load_transfer_slices(data,temporal=None,source_motion=None):
             settling_removed.append(a);merge_reasons[a]=reason
     boundaries=[b for b in boundaries if b not in settling_removed]
     removed+=settling_removed
+    # Crop incomplete edge activity without crossing a complete observed action.
+    # Initial contact history is not a new target for the retained motion.
+    if source_motion is not None and len(boundaries)>1:
+        if initial_bearing is None:
+            initial_bearing=data['active']&(data['contact_load']>TEMPORAL_CONTRACT['enter_load_n'])
+        initial=[e for e in events if e['initial'] and e['boundary_eligible'] and e['start']<=first
+                 and first<=e['arrival']<boundaries[1] and not bool(initial_bearing[first,e['part']])
+                 and first+1<len(hits) and bool(temporal['moving'][first+1,e['part']])]
+        complete=[e for e in events if e['boundary_eligible'] and first<=e['arrival']<last
+                  and ((e['source_support_start'] is not None and e['source_support_start']>=first)
+                       or e['start']>first)]
+        if initial:
+            stop=min([boundaries[1]]+[e['source_support_start'] if e['source_support_start'] is not None else e['start']
+                     for e in complete if e['arrival']<boundaries[1]])
+            if stop>first:
+                source_motion['exclusions'].append(dict(start=first,stop=stop,reason='incomplete_initial_action',
+                    evidence=dict(arrivals=[e['arrival'] for e in initial])))
+                first=stop;source_motion['start']=first
+            initial_ids={e['id'] for e in initial}
+            events=[e for e in events if e['id'] not in initial_ids]
+            for e in initial:hits[e['arrival'],e['part']]=False
+        terminal=any(e['arrival'] is None and not e['completed'] and e['start']<last<=e['stop']
+                     and e['motion_m']>TEMPORAL_CONTRACT['motion_excursion_m'] for e in temporal['transfers'])
+        if terminal:
+            start=max([boundaries[-2]]+[e['arrival']+1 for e in complete])
+            if start<last:
+                source_motion['exclusions'].append(dict(start=start,stop=last,reason='incomplete_terminal_action'))
+                last=start;source_motion['stop']=last
+                # Retain the whole completed action, not a one-frame landing
+                # split from its approach by the removed terminal posture.
+                tail_start=boundaries[-2]
+                for e in complete:
+                    if e['arrival']+1==last and e['arrival']>=tail_start:
+                        boundaries=[b for b in boundaries if not max(tail_start,e['start'])<=b<last]
+        boundaries=sorted({first,last,*[b for b in boundaries if first<b<last]})
+        source_motion['exclusions'].sort(key=lambda x:x['start'])
     cuts=[]
     for begin,end in zip(boundaries,boundaries[1:]):
         arrivals=[e for e in events if begin<=e['arrival']<end];new=torch.zeros(6,dtype=torch.bool,device=hits.device);releases=[]
@@ -151,21 +187,26 @@ def load_transfer_slices(data,temporal=None,source_motion=None):
             contact_goal_complete=bool(arrivals) and all(t>=0 for t in releases) and all(bool(temporal['support'][e['arrival']:end,e['part']].all()) for e in arrivals),
             merged_arrival_boundaries=[dict(arrival_boundary=b,reason=merge_reasons[b]) for b in removed if begin<b<end],
             kind='load_contact_transfer' if arrivals else 'root_motion_tail'))
-    if source_motion is not None and cuts:
-        # Identify only activity already in progress at the original source
-        # start. Never recursively chase later overlapping movements.
-        initial=[e for e in events if e['initial'] and e['boundary_eligible'] and e['start']<=first and first<=e['arrival']<cuts[0]['stop']
-                 and not bool(data['active'][first,e['part']] and data['contact_load'][first,e['part']]>TEMPORAL_CONTRACT['enter_load_n'])
-                 and first+1<len(hits) and bool(temporal['moving'][first+1,e['part']])]
-        if initial:
-            stop=cuts[0]['stop']
-            source_motion['exclusions'].append(dict(start=first,stop=stop,reason='incomplete_initial_action',
-                evidence=dict(arrivals=[e['arrival'] for e in initial])))
-            source_motion['start']=stop;cuts=cuts[1:]
-        if cuts and any(e['arrival'] is None and not e['completed'] and e['start']<last<=e['stop']
-                        and e['motion_m']>TEMPORAL_CONTRACT['motion_excursion_m'] for e in temporal['transfers']):
-            tail=cuts.pop()
-            source_motion['exclusions'].append(dict(start=tail['start'],stop=tail['stop'],reason='incomplete_terminal_action'))
-            source_motion['stop']=tail['start']
-        source_motion['exclusions'].sort(key=lambda x:x['start'])
     return cuts,hits
+
+
+def move_partition_before_native_onsets(partition, latest_starts):
+    """Move shared boundaries once; never expand overlapping independent clips.
+
+    ``latest_starts`` maps admitted case IDs to the latest reset frame before
+    their aligned native target-phase onset. Target witnesses must subsequently
+    be validated in each resulting interval by the evidence builder.
+    """
+    result={k:(v.clone() if isinstance(v,torch.Tensor) else v) for k,v in partition.items()}
+    changes=[]
+    for i,case in enumerate(partition['case_ids'].tolist()):
+        if case not in latest_starts:continue  # posture-only intervals have no contact target
+        old=int(partition['starts'][i]);new=min(old,latest_starts[case])
+        if new==old:continue
+        previous=((partition['stops']==old)&(partition['trace_ids']==partition['trace_ids'][i])).nonzero().flatten()
+        if len(previous)!=1:raise ValueError(f'Case {case}: native onset crosses the retained source edge')
+        j=int(previous[0])
+        if new<=int(result['starts'][j]):raise ValueError(f'Case {case}: onset move would erase the preceding event')
+        result['stops'][j]=new;result['goals'][j]=min(int(result['goals'][j]),new-1);result['starts'][i]=new
+        changes.append(dict(case=case,previous_case=int(partition['case_ids'][j]),old=old,new=new,shift_frames=old-new))
+    return result,changes

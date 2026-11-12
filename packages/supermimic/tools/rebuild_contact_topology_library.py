@@ -57,9 +57,9 @@ def main():
             span=next(s for s in old['metadata']['recording_spans'] if s['motion']==c['motion'])
             old_lookup[(str(Path(span['source']).resolve()),c['source_goal'],c['kind'])]=(c['case'],bool(v['passed']))
     else:
-        from supermimic.contact_source_pool import successful_source_pool,aggregate_successful_sources
+        from supermimic.contact_source_pool import successful_source_pool,aggregate_successful_event_evidence
         if a.source_pool is None:
-            pool=aggregate_successful_sources(successful_source_pool(capture_root),a.output/'consensus')
+            pool=aggregate_successful_event_evidence(successful_source_pool(capture_root),a.output/'consensus')
         else:
             pool=json.loads(a.source_pool.read_text())
             if pool['version']!='successful_substep_population_consensus_v1':raise ValueError('Boundary rebuild requires a population consensus receipt')
@@ -91,10 +91,6 @@ def main():
             placement_audit=[]
             if placement_evidence is not None:
                 placement_data,placement_audit=associate_support_placements(data,placement_evidence,motion);data.update(placement_data)
-            if a.capture_root is not None:
-                accepted=selected_evidence[str(path.resolve())]['consensus_allowed_placements']
-                data['consensus_support_allowed']=torch.zeros_like(data['active'])
-                for ep in accepted:data['consensus_support_allowed'][ep['start']:ep['stop'],ep['part']]=True
             intervals,valid,finite,physical=physical_intervals(data)
             trace_name=f'{capture.name}/motion-{motion:03d}';trace_info=dict(trace=trace_name,motion=motion,name=item['name'],source=str(path),source_sha256=sha(path),raw_rows=str(capture/'native-rows.pt'),collector_success=bool(item['successful_rollout']),collector_terminal=bool(data['term'][-1]),total_frames=T,valid_frames=int(valid.sum()),physical_invalid_frames=int((~physical).sum()),nonfinite_frames=int((~finite).sum()),valid_intervals=intervals,qualification_cache_mismatches=cache_mismatch,model_fingerprint=rawmeta['provenance']['model_fingerprint']);traces.append(trace_info)
             trace_info['placement_associations']=placement_audit
@@ -164,7 +160,9 @@ def main():
     retired={'native_restart_report','native_restart_validation','source_library','source_slices_sha256','native_rows','raw_rows','boundary_policy','slice_contract','recording_spans'}
     metadata={k:v for k,v in old['metadata'].items() if k not in retired}
     metadata.update(reviewed_edge_exclusions=reviewed_edges,support_placement_contract=PLACEMENT_CONTRACT,source_motion_contract=SOURCE_MOTION_CONTRACT,recording_spans=spans,source_evidence_admission=ADMISSION,transition_topology=TOPOLOGY_CONTRACT,segmentation_temporal_contract=TEMPORAL_CONTRACT,part_role_contract=ROLE_CONTRACT,stable_support_contract=CONTRACT,contact_phase_version=VERSION,source_capture_policy='same selected source traces, each must remain a successful whole trajectory' if a.capture_root is None else 'shared multi-execution native contact consensus; whole trajectory carrier with all successful source votes',native_rows=[str(p/'native-rows.pt') for p in sorted(capture_root.glob('capture-seed*')) if p.is_dir()],boundary_policy='support_completion_partition_v11',slice_contract='native source-evidence admission; per-trace history; no tracking policy gate',previous_dataset=dict(path=str(a.previous),summary_sha256=sha(a.previous/'summary.json'),retired_filters=['student_tracking_restart_success']))
-    if a.capture_root is not None:metadata['contact_consensus']=pool['aggregation']
+    if a.capture_root is not None:
+        metadata['contact_consensus']=pool['aggregation']
+        metadata['reference_provenance']=pool['contract'].get('reference_provenance')
     data={k:torch.cat([x[k] for x in chunks]) for k in chunks[0]}
     data['point_loss_valid']=data['known']&data['active']&data['contact_stable']
     if not cases:raise ValueError('No trainable source intervals remain after explicit edge trimming')

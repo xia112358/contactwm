@@ -61,7 +61,7 @@ class NativeContacts:
                     normal = np.cross(triangles[0,1]-triangles[0,0], triangles[0,2]-triangles[0,0])
                     normal /= np.linalg.norm(normal)
                     surface = len(catalog)
-                    item = dict(surface=surface, normal_w=normal.tolist(),
+                    item = dict(surface=surface, geometry_kind="box", normal_w=normal.tolist(),
                                 plane_offset=float(normal @ triangles[0,0]), triangles_w=triangles.tolist())
                     catalog.append({k:v for k,v in item.items() if k != 'triangles_w'})
                     actual.append(item)

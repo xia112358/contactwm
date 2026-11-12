@@ -129,6 +129,15 @@ def segmentation_contact_state(data):
                         episode=dict(part=p,start=begin,confirmed=t,surface=face)
             if episode is not None:
                 episode['stop']=T;episodes.append(episode)
+    result=describe_support_episodes(data,episodes,active,known,bridge,moving)
+    return dict(result,bearing=bearing,material_motion_known=material_known,bridged_gaps=audit)
+
+
+def describe_support_episodes(data,episodes,active,known,bridge,moving):
+    """Describe participation from already qualified events; never infer loads."""
+    T=len(active);width=TEMPORAL_CONTRACT['enter_frames']
+    effective=active|bridge;position=data['native_part_position']
+    support=torch.zeros_like(active)
     episodes.sort(key=lambda x:(x['start'],x['part']))
     for ep in episodes:support[ep['start']:ep['stop'],ep['part']]=True
     for foot,knee in LIMB_PARTS[:2]:
@@ -138,12 +147,6 @@ def segmentation_contact_state(data):
     if 'support_placement_resume' in data:
         from .contact_placement import placement_episodes
         placements,resumptions=placement_episodes(data,episodes)
-    if 'consensus_support_allowed' in data:
-        allowed=data['consensus_support_allowed']
-        placements=[ep for ep in placements if bool(allowed[ep['start']:ep['stop'],ep['part']].all())]
-        episodes=[ep for ep in episodes if bool(allowed[ep['start']:ep['stop'],ep['part']].all())]
-        resumptions=[r for r in resumptions if bool(allowed[r['resume'],r['part']])]
-        support &= allowed
     placement_support=torch.zeros_like(support);placement_forms=torch.full((T,4),-1,dtype=torch.long,device=active.device)
     for ep in placements:
         placement_support[ep['start']:ep['stop'],ep['part']]=True
@@ -219,5 +222,5 @@ def segmentation_contact_state(data):
                     participation_kind='disengage',completed=bool(quiet),activity_ranges=[[begin,end]]))
     transfers.sort(key=lambda x:(x['start'],x['part']))
     for i,event in enumerate(transfers):event['id']=i
-    return dict(active=effective,support=support,bearing=bearing,material_motion_known=material_known,moving=moving,bridged=bridge,bridged_gaps=audit,
+    return dict(active=effective,support=support,moving=moving,bridged=bridge,
         episodes=episodes,placements=placements,placement_support=placement_support,placement_forms=placement_forms,resumptions=resumptions,transfers=transfers,forms=forms,form_changes=form_changes)

@@ -115,12 +115,16 @@ class SubstepContactMonitor:
         step=self.env.ep_step*self.substeps+substep
         features=self.point_quality.update(self.reader.last_view,self.reader.last_part_poses,step)
         support=self.support.update(observation,features,self.reader.last_part_poses,step)
-        self.samples.append(dict(active=observation['active'].clone(),known=observation['known'].clone(),support=support))
+        raw=self.reader.last_evidence.terrain_view(self.reader.evidence_binding).reduce()['contact_count']>0
+        position=self.reader.last_part_poses[0]-self.env.scene.env_origins[:,None,:]
+        self.samples.append(dict(active=observation['active'].clone(),raw=raw.clone(),position=position.clone(),known=observation['known'].clone(),support=support))
         if self.on_sample is not None:self.on_sample(self.tick,substep,observation,features,support)
         if substep==self.substeps-1:
             stack=lambda key:torch.stack([x['support'][key] for x in self.samples],dim=1)
             contact=torch.stack([x['active'] for x in self.samples],dim=1)
             self.control_summary=dict(substep_contact_active=contact,
+                substep_raw_contact_active=torch.stack([x['raw'] for x in self.samples],dim=1),
+                substep_part_position=torch.stack([x['position'] for x in self.samples],dim=1),
                 substep_contact_known=torch.stack([x['known'] for x in self.samples],dim=1),
                 substep_support_state=stack('state'),substep_support_event_ready=stack('event_ready'),substep_support_established=stack('established'),
                 substep_support_exited=stack('exited'),substep_support_onset_step=stack('onset_step'),

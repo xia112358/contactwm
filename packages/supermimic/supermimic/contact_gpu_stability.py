@@ -108,10 +108,11 @@ def _qualify(heads:wp.array[int],next_row:wp.array[int],local:wp.array[wp.vec3],
     best_point=int(-1);best_score=float(wp.inf)
     i=heads[g]
     while i>=0:
-        score=_score(pos[i]-targets[g])
-        if score<best_score or (score==best_score and (best_point<0 or i<best_point)):
-            best_score=score;best_point=i
-        if load[i]>0.0:count+=1;mass+=load[i]
+        if load[i]>0.0:
+            score=_score(pos[i]-targets[g])
+            if score<best_score or (score==best_score and (best_point<0 or i<best_point)):
+                best_score=score;best_point=i
+            count+=1;mass+=load[i]
         i=next_row[i]
     j=old_heads[g]
     while j>=0:
@@ -152,28 +153,83 @@ def _filter_initial_support(heads:wp.array[int],observed:wp.array[wp.bool],ep_st
         substep:wp.array[int],exit_steps:int,initial_reference:wp.array[wp.bool],raw_stable:wp.array[wp.bool],raw_point:wp.array[wp.vec3],
         targets:wp.array[wp.vec3],origins:wp.array[wp.vec3],tolerance:wp.array[float],
         initial_support:wp.array[wp.bool],absence:wp.array[int],
-        qualified:wp.array[wp.bool],witness:wp.array[wp.vec3]):
+        qualified:wp.array[wp.bool],witness:wp.array[wp.vec3],
+        part_body:wp.array[wp.int64],xpos:wp.array2d[wp.vec3],xmat:wp.array2d[wp.mat33],
+        witness_position:wp.array[wp.vec3],witness_rotation:wp.array[wp.mat33],witness_candidate:wp.array[wp.int32],
+        guidance_qualified:wp.array[wp.bool],guidance_point:wp.array[wp.vec3],guidance_position:wp.array[wp.vec3],guidance_rotation:wp.array[wp.mat33],
+        material_enabled:wp.array[wp.bool],material_target:wp.array[wp.vec3],material_goal:wp.array[wp.vec3],material_valid:wp.array[wp.bool],material_candidates:int,material_radius:float,
+        next_row:wp.array[int],row_local:wp.array[wp.vec3],row_load:wp.array[float],row_pos:wp.array[wp.vec3],finished:wp.array[wp.bool],initial_absence:wp.array[wp.int32],motion_release:wp.array[wp.bool]):
     g=wp.tid();world=g//6
     if substep[0]==0:
         qualified[g]=False;witness[g]=wp.vec3(0.0)
+        witness_position[g]=wp.vec3(0.0);witness_rotation[g]=wp.mat33(0.0);witness_candidate[g]=0
+        guidance_qualified[g]=False;guidance_point[g]=wp.vec3(0.0);guidance_position[g]=wp.vec3(0.0);guidance_rotation[g]=wp.mat33(0.0)
         if ep_step[world]==0:
-            initial_support[g]=initial_reference[g] or (heads[g]>=0 and observed[world])
-            absence[g]=0
+            initial_support[g]=initial_reference[g]
+            absence[g]=initial_absence[g]
+    if motion_release[g]:initial_support[g]=False
     if initial_support[g] and observed[world]:
         if heads[g]<0:
             absence[g]+=1
             if absence[g]>=exit_steps:initial_support[g]=False
         else:
             absence[g]=0
+    if raw_stable[g] and not initial_support[g]:
+        body=int(part_body[g%6]);guidance_qualified[g]=True;guidance_point[g]=raw_point[g]
+        guidance_position[g]=xpos[world,body]-origins[world];guidance_rotation[g]=xmat[world,body]
     if raw_stable[g]:
-        in_goal=wp.length(raw_point[g]+origins[world]-targets[g])<=tolerance[g]
-        if not initial_support[g] or in_goal:
-            qualified[g]=True;witness[g]=raw_point[g]
+        material_match=not material_enabled[g]
+        chosen=int(-1);chosen_candidate=int(-1);distance=float(wp.inf);i=heads[g]
+        while i>=0:
+            if row_load[i]>0.0:
+                for candidate in range(material_candidates):
+                    ci=g*material_candidates+candidate
+                    if material_valid[ci]:
+                        d=wp.length(row_local[i]-material_target[ci])
+                        if d<distance:distance=d;chosen=i;chosen_candidate=ci
+            i=next_row[i]
+        if material_enabled[g]:material_match=chosen>=0 and distance<=material_radius
+        selected_point=raw_point[g];selected_goal=targets[g]
+        if material_enabled[g] and material_match:
+            selected_point=row_pos[chosen]-origins[world];selected_goal=material_goal[chosen_candidate]
+        in_goal=wp.length(selected_point+origins[world]-selected_goal)<=tolerance[g]
+        if material_match and not initial_support[g]:
+            qualified[g]=True;witness[g]=selected_point
+            body=int(part_body[g%6])
+            witness_position[g]=xpos[world,body]-origins[world]
+            witness_rotation[g]=xmat[world,body]
+            if material_enabled[g]:witness_candidate[g]=chosen_candidate%material_candidates
 
 
 @wp.kernel
 def _advance(substep:wp.array[int],substeps:int):
     substep[0]=(substep[0]+1)%substeps
+
+
+@wp.kernel
+def _onset_snapshot(stop:wp.array[int],substep:wp.array[int],blocked:wp.array[wp.bool],
+        counts:wp.array[int],heads:wp.array[int],next_row:wp.array[int],points:wp.array[wp.vec3],
+        part_body:wp.array[wp.int64],xpos:wp.array2d[wp.vec3],xmat:wp.array2d[wp.mat33],
+        origins:wp.array[wp.vec3],targets:wp.array[wp.vec3],qualified:wp.array[wp.bool],guidance:wp.array[wp.bool],
+        event_position:wp.array[wp.vec3],event_rotation:wp.array[wp.mat33],event_active:wp.array[wp.bool],
+        event_primary:wp.array[wp.bool],event_point:wp.array[wp.vec3]):
+    g=wp.tid();world=g//6;body=int(part_body[g%6])
+    # Raw side/edge contact keeps an entry support blocked as well.
+    if blocked[g]:
+        qualified[g]=False;guidance[g]=False
+    if stop[g]!=substep[0]:return
+    event_position[g]=xpos[world,body]-origins[world]
+    event_rotation[g]=xmat[world,body]
+    event_active[g]=counts[g]>0
+    event_primary[g]=heads[g]>=0
+    i=heads[g];best=float(wp.inf);chosen=int(-1)
+    while i>=0:
+        distance=_score(points[i]-targets[g])
+        if distance<best or (distance==best and (chosen<0 or i<chosen)):
+            best=distance;chosen=i
+        i=next_row[i]
+    event_point[g]=wp.vec3(0.0)
+    if chosen>=0:event_point[g]=points[chosen]-origins[world]
 
 
 class GPUContactLossMonitor:
@@ -182,12 +238,12 @@ class GPUContactLossMonitor:
     Validation reports malformed solver evidence once at the control boundary;
     it never turns invalid evidence into a missing-contact guidance term.
     """
-    def __init__(self,env,reader):
+    def __init__(self,env,reader,material_candidates=1):
         self.env=env;self.reader=reader;self.manager=env.sim.backend_manager
         self.dt=float(self.manager.get_solver_dt());self.substeps=int(self.manager._num_substeps)
         self.solver=reader.solver;self.device=str(reader.model.device)
         self.selector=DeviceSupportContactSelector(reader.binding,reader.model.body_label,env.device,body_names_by_part=reader.body_names)
-        self.capacity=len(self.solver.mjw_data.contact.dist);self.groups=env.N*6
+        self.capacity=len(self.solver.mjw_data.contact.dist);self.groups=env.N*6;self.material_candidates=material_candidates
         self.arrays={};self.previous={}
         for name,dtype in [('heads',wp.int32),('next',wp.int32),('local',wp.vec3),('pos',wp.vec3),('load',wp.float32),('robot',wp.int32),('terrain',wp.int32)]:
             size=self.groups if name=='heads' else self.capacity
@@ -207,12 +263,26 @@ class GPUContactLossMonitor:
         self.observed=wp.from_torch(reader._known_mask(solved=True)[:,0].contiguous())
         self.features={k:alloc(self.groups,dtype) for k,dtype in [('contact_stable',wp.bool),('contact_row_stable',wp.bool),('contact_load_stable',wp.bool),('contact_material_speed',wp.float32),('contact_load',wp.float32)]}
         self.qualified=alloc(self.groups,wp.bool);self.witness=alloc(self.groups,wp.vec3)
+        self.guidance_qualified=alloc(self.groups,wp.bool);self.guidance_point=alloc(self.groups,wp.vec3)
+        self.guidance_position=alloc(self.groups,wp.vec3);self.guidance_rotation=alloc(self.groups,wp.mat33)
         from .contact_temporal import TEMPORAL_CONTRACT
         import math
         self.exit_steps=math.ceil(TEMPORAL_CONTRACT['exit_frames']*TEMPORAL_CONTRACT['dt']/self.dt)
-        self.initial_support=alloc(self.groups,wp.bool);self.absence=alloc(self.groups,wp.int32)
+        from .contact_onset import NativeContactOnset
+        self.onset=NativeContactOnset(env.N,self.device,self.exit_steps)
+        from .contact_collision_gpu import CollisionMonitor
+        self.collision=CollisionMonitor(env.N,self.capacity,material_candidates,self.device,self.dt)
+        self.event_position=alloc(self.groups,wp.vec3)
+        self.event_rotation=alloc(self.groups,wp.mat33)
+        self.event_active=alloc(self.groups,wp.bool)
+        self.event_primary=alloc(self.groups,wp.bool)
+        self.event_point=alloc(self.groups,wp.vec3)
+        self.initial_support=alloc(self.groups,wp.bool);self.absence=alloc(self.groups,wp.int32);self.initial_absence=alloc(self.groups,wp.int32)
         self.filtered_qualified=alloc(self.groups,wp.bool);self.filtered_witness=alloc(self.groups,wp.vec3)
+        self.witness_position=alloc(self.groups,wp.vec3);self.witness_rotation=alloc(self.groups,wp.mat33);self.witness_candidate=alloc(self.groups,wp.int32)
         self.tolerance=alloc(self.groups,wp.float32);self.initial_reference=alloc(self.groups,wp.bool)
+        self.material_enabled=alloc(self.groups,wp.bool);self.material_target=alloc(self.groups*material_candidates,wp.vec3)
+        self.material_goal=alloc(self.groups*material_candidates,wp.vec3);self.material_valid=alloc(self.groups*material_candidates,wp.bool)
         self.cone=int(self.solver.mjw_model.opt.cone)
         if self.cone not in (0,1):raise ValueError('Unknown native contact cone')
 
@@ -221,11 +291,42 @@ class GPUContactLossMonitor:
         self.manager._step_solver=self._step;self.manager._invalidate_graph()
         return self
 
-    def begin_control(self,ids,tolerance,initial_reference):
+    def reset(self,ids):
+        """Clear per-episode substep evidence after a new reset/stage handoff."""
+        ids=torch.as_tensor(ids,dtype=torch.long,device=self.env.device)
+        wp.to_torch(self.old_step).reshape(self.env.N,6)[ids]=-2
+        wp.to_torch(self.initial_support).reshape(self.env.N,6)[ids]=False
+        wp.to_torch(self.absence).reshape(self.env.N,6)[ids]=0
+        wp.to_torch(self.filtered_qualified).reshape(self.env.N,6)[ids]=False
+        wp.to_torch(self.filtered_witness).reshape(self.env.N,6,3)[ids]=0
+        self.substep.zero_();self.errors.zero_()
+
+    def begin_stage(self,ids,initial_active,required,initial_absence=None):
+        self.reset(ids)
+        self.onset.begin_stage(ids,initial_active,required,initial_absence)
+        wp.to_torch(self.initial_absence).reshape(self.env.N,6)[ids]=0 if initial_absence is None else initial_absence
+        wp.to_torch(self.absence).reshape(self.env.N,6)[ids]=0 if initial_absence is None else initial_absence
+        self.collision.reset(ids)
+        wp.to_torch(self.initial_support).reshape(self.env.N,6)[ids]=initial_active
+        wp.to_torch(self.initial_reference).reshape(self.env.N,6)[ids]=initial_active
+
+    def begin_control(self,ids,tolerance,initial_reference,material_local=None,material_goal=None,material_valid=None):
+        self.onset.begin_control()
         wp.to_torch(self.ep_step).copy_(self.env.ep_step)
         wp.to_torch(self.targets).copy_(self.reader.targets.reshape(-1,3))
         wp.to_torch(self.tolerance).reshape(self.env.N,6)[ids]=tolerance.expand(-1,6)
         wp.to_torch(self.initial_reference).reshape(self.env.N,6)[ids]=initial_reference
+        enabled=wp.to_torch(self.material_enabled).reshape(self.env.N,6)
+        enabled[ids]=False
+        if material_local is not None:
+            enabled[ids,4:]=True
+            if material_local.ndim==3:
+                material_local=material_local.unsqueeze(2)
+                material_goal=self.reader.targets[ids].unsqueeze(2)
+                material_valid=torch.ones(material_local.shape[:-1],device=material_local.device,dtype=torch.bool)
+            wp.to_torch(self.material_target).reshape(self.env.N,6,self.material_candidates,3)[ids]=material_local
+            wp.to_torch(self.material_goal).reshape(self.env.N,6,self.material_candidates,3)[ids]=material_goal
+            wp.to_torch(self.material_valid).reshape(self.env.N,6,self.material_candidates)[ids]=material_valid
         wp.get_stream(self.device).wait_stream(wp.stream_from_torch(torch.cuda.current_stream(self.device)))
         self.errors.zero_()
 
@@ -242,6 +343,9 @@ class GPUContactLossMonitor:
             self.solver.mjc_geom_to_newton_shape,self.reader.model.shape_body,wp.from_torch(s.body_world),wp.from_torch(s.body_part),c.pos,c.frame,
             wp.from_torch(s.first),self.cone,self.observed,self.query,self.external,self.points,self.normals,self.row_groups,self.side,a['robot'],a['terrain'],self.errors],device=self.device)
         wp.launch(_primary_by_shape,self.capacity,inputs=[self.points,self.normals,self.query,self.external,wp.from_torch(s.first),wp.from_torch(s.stop),s.vertices,s.owners,s.face_normals,wp.from_torch(s.surfaces),self.face],device=self.device)
+        self.collision.classify(self.row_groups,self.query,c.pos,self.face,wp.from_torch(s.upward))
+        self.onset.set_positions(self.part_body,d.xpos)
+        self.onset.sample(self.row_groups,self.query,self.observed,self.substep,self.collision.counts)
         mjw.contact_force(self.solver.mjw_model,d,self.contact_ids,True,self.force)
         wp.launch(_link,self.capacity,inputs=[d.nacon,self.row_groups,self.query,self.face,wp.from_torch(s.upward),self.side,self.force,c.pos,self.part_body,d.xpos,d.xmat,a['heads'],a['next'],a['local'],a['load'],self.errors],device=self.device)
         wp.copy(a['pos'],c.pos)
@@ -249,7 +353,15 @@ class GPUContactLossMonitor:
         wp.launch(_qualify,self.groups,inputs=[a['heads'],a['next'],a['local'],a['pos'],a['load'],a['robot'],a['terrain'],o['heads'],o['next'],o['local'],o['pos'],o['load'],o['robot'],o['terrain'],self.used,self.old_used,self.part_body,d.xpos,d.xmat,self.targets,self.origins,self.ep_step,self.old_step,self.substep,self.substeps,self.dt,CONTRACT['min_load_n'],CONTRACT['max_relative_load_change'],CONTRACT['max_material_speed_m_s'],CONTRACT['row_match_distance_m'],f['contact_stable'],f['contact_row_stable'],f['contact_load_stable'],f['contact_material_speed'],f['contact_load'],self.qualified,self.witness],device=self.device)
         wp.launch(_filter_initial_support,self.groups,inputs=[a['heads'],self.observed,self.ep_step,self.substep,self.exit_steps,self.initial_reference,
             f['contact_stable'],self.witness,self.targets,self.origins,self.tolerance,self.initial_support,self.absence,
-            self.filtered_qualified,self.filtered_witness],device=self.device)
+            self.filtered_qualified,self.filtered_witness,self.part_body,d.xpos,d.xmat,
+            self.witness_position,self.witness_rotation,self.witness_candidate,self.guidance_qualified,self.guidance_point,self.guidance_position,self.guidance_rotation,self.material_enabled,self.material_target,self.material_goal,self.material_valid,self.material_candidates,CONTRACT['row_match_distance_m'],
+            a['next'],a['local'],a['load'],a['pos'],self.onset.done,self.initial_absence,self.onset.motion_release],device=self.device)
+        wp.launch(_onset_snapshot,self.groups,inputs=[self.onset.stop_substep,self.substep,
+            self.onset.blocked,self.onset.counts,a['heads'],a['next'],c.pos,self.part_body,
+            d.xpos,d.xmat,self.origins,self.targets,self.filtered_qualified,self.guidance_qualified,
+            self.event_position,self.event_rotation,self.event_active,self.event_primary,self.event_point],device=self.device)
+        self.collision.sample(self.row_groups,self.query,c.pos,self.normals,c.dist,self.onset.required,self.onset.blocked,self.part_body,d.xpos,d.xmat,self.force)
+        self.onset.confirm(self.filtered_qualified,self.observed)
         for key in a:wp.copy(o[key],a[key])
         wp.launch(_advance,1,inputs=[self.substep,self.substeps],device=self.device)
 
@@ -259,6 +371,24 @@ class GPUContactLossMonitor:
         if error:raise ValueError(f'Invalid native substep contact evidence (GPU flags {error})')
         result={k:wp.to_torch(v).reshape(self.env.N,6) for k,v in self.features.items()}
         result.update(contact_stable=wp.to_torch(self.filtered_qualified).reshape(self.env.N,6),contact_loss_point=wp.to_torch(self.filtered_witness).reshape(self.env.N,6,3))
+        result.update(contact_raw_stable=wp.to_torch(self.guidance_qualified).reshape(self.env.N,6),contact_raw_point=wp.to_torch(self.guidance_point).reshape(self.env.N,6,3),contact_raw_position=wp.to_torch(self.guidance_position).reshape(self.env.N,6,3),contact_raw_rotation=wp.to_torch(self.guidance_rotation).reshape(self.env.N,6,3,3))
+        result.update(contact_loss_position=wp.to_torch(self.witness_position).reshape(self.env.N,6,3),
+                      contact_loss_rotation=wp.to_torch(self.witness_rotation).reshape(self.env.N,6,3,3),contact_loss_candidate=wp.to_torch(self.witness_candidate).reshape(self.env.N,6))
+        result.update(contact_new_event=wp.to_torch(self.onset.event).reshape(self.env.N,6).clone(),
+            contact_event_parts=wp.to_torch(self.onset.event_parts).reshape(self.env.N,6).clone(),
+            contact_confirming=(wp.to_torch(self.onset.pending)&~wp.to_torch(self.onset.done)).reshape(self.env.N,6).clone(),
+            contact_confirmation_lost=wp.to_torch(self.onset.lost).reshape(self.env.N,6).clone(),
+            contact_confirmation_done=wp.to_torch(self.onset.done).reshape(self.env.N,6).clone(),
+            contact_confirmation_steps=wp.to_torch(self.onset.confirmation_steps).reshape(self.env.N,6).clone(),
+            contact_stop_substep=wp.to_torch(self.onset.stop_substep).reshape(self.env.N,6).clone(),
+            contact_entry_blocked=wp.to_torch(self.onset.blocked).reshape(self.env.N,6).clone(),
+            contact_native_active=(wp.to_torch(self.onset.counts).reshape(self.env.N,6)>0),
+            contact_event_position=wp.to_torch(self.event_position).reshape(self.env.N,6,3).clone(),
+            contact_event_rotation=wp.to_torch(self.event_rotation).reshape(self.env.N,6,3,3).clone(),
+            contact_event_active=wp.to_torch(self.event_active).reshape(self.env.N,6).clone(),
+            contact_event_primary=wp.to_torch(self.event_primary).reshape(self.env.N,6).clone(),
+            contact_event_point=wp.to_torch(self.event_point).reshape(self.env.N,6,3).clone())
+        result.update(self.collision.summary())
         return result
 
     def __exit__(self,*args):

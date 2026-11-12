@@ -13,7 +13,7 @@ SOURCE_MOTION_CONTRACT=dict(version='source_motion_edges_v3',dt=.02,quiet_frames
     middle='flag interior anomalies; never join frames across an excluded interval')
 
 
-def source_motion_analysis(data,temporal):
+def source_motion_analysis(data,temporal,*,initial_bearing=None):
     T=len(data['s1']);root=data['s1'][:,:3];q=data['s1'][:,13:42]
     R=quat_to_mat(data['s1'][:,3:7]);p=data['native_part_position'];dt=SOURCE_MOTION_CONTRACT['dt']
     vz=torch.zeros(T,device=root.device);vz[1:]=(root[1:,2]-root[:-1,2])/dt
@@ -38,7 +38,9 @@ def source_motion_analysis(data,temporal):
     # Initialization drop needs rigid, almost vertical falling evidence, not
     # merely an airborne limb or an unfinished first step.
     n=min(lo+3,hi)
-    raw_lower=(data['active'][:,[0,1,4,5]]&(data['contact_load'][:,[0,1,4,5]]>30)).any(-1)
+    if initial_bearing is None:
+        initial_bearing=data['active']&(data['contact_load']>30)
+    raw_lower=initial_bearing[:,[0,1,4,5]].any(-1)
     if n-lo>=3 and not bool(raw_lower[lo:n].any()) and bool((vz[lo+1:n]<-SOURCE_MOTION_CONTRACT['initial_drop_speed_m_s']).all()) and float((q[lo:n]-q[lo]).abs().max())<.08 and float((root[lo:n,:2]-root[lo,:2]).norm(dim=-1).max())<.02:
         for t in range(n,min(hi-4,lo+SOURCE_MOTION_CONTRACT['initial_settle_search_frames'])):
             if bool(lower[t:t+5].all() and (vz[t:t+5].abs()<=.25).all() and (R[t:t+5,2,2]>.7).all()):

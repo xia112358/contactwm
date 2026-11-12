@@ -65,8 +65,16 @@ def sequence_attempt_metrics(data,clock,length,continuous=False):
     observed=data['active']&data['known']&live[...,None]
     distance=(data['point']-clock.data['point'][ends-1][None]).norm(dim=-1)
     best=distance.masked_fill(~observed,float('inf')).amin(0)
+    if getattr(clock,'material_goal_mode',False):
+        from .contact_loss_sampling import completed_stable_samples, material_witness_errors
+        errors=material_witness_errors(data,clock)
+        chosen=completed_stable_samples(data['contact_stable'],live,errors,
+            clock.material_contact_tolerances[data['goal_index']][...,None])
+        index=chosen.long().argmax(0);parts=torch.arange(6,device=device)[None]
+        best=errors[index,batch[:,None],parts].sqrt().masked_fill(~chosen.any(0),float('inf'))
     covered=((~new)|torch.isfinite(best)).all(-1)
     error=best.masked_fill(~new,0).max(-1).values
+    if getattr(clock,'material_goal_mode',False):error=best.masked_fill(~new,0).sum(-1)/new.sum(-1).clamp_min(1)
     final=unflatten_state(data['s1'][stop,batch]);ref=unflatten_state(clock.data['s1'][ends-1])
     root=(final[0]-ref[0]).norm(dim=-1);angle=rot_angle_sq(final[1],ref[1]).sqrt()
     first_pass=(data['stage_success']&(data['goal_index']==first[None])).any(0)
@@ -125,6 +133,9 @@ def stage_batches(buffer,rows,plan,actor,context,default_q,batch_size,*,sort_by_
         # DMO uses only these fields; do not copy reward, force, contact-face,
         # and collection bookkeeping through every padded stage batch.
         needed=('s','s1','xi','next_xi','a','a_prev','ep_step','contact_goal','active','known','point')
+        for extra in ('contact_first','contact_stable','contact_loss_point','contact_loss_position','contact_loss_rotation','contact_loss_candidate','contact_raw_stable','contact_raw_point','contact_raw_position','contact_raw_rotation','action_held','body_endpoint_valid','contact_interrupted','contact_entry_blocked','collision_mask','collision_local','collision_point','collision_normal','collision_gap','collision_speed','collision_in_region'):
+            if extra in buffer.data:
+                needed += (extra,)
         batch={k:buffer.data[k][replay_rows,ws[None]] for k in needed}
         batch['done']=times==duration[None]-1
         batch['goal_index']=buffer.data['goal_index'][rows[starts],ws][None].expand_as(batch['done'])

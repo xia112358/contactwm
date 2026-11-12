@@ -201,10 +201,10 @@ def test_retained_candidates_have_matching_multi_execution_provenance_and_bounde
     assert not retained_consensus_candidates(saved, [4, 5, 6])
 
 
-def test_verified_consensus_excludes_failed_contact_and_continuity_candidates():
+def test_verified_consensus_requires_contacts_not_zero_continuity_diagnostics():
     from somaforge_core.native_rollout_consensus import has_verified_consensus
-    assert not has_verified_consensus([((1, False), 'contact_failure', None, None),
-                                       ((0, True), 'jump', None, None)])
+    assert not has_verified_consensus([((1, 0.), 'contact_failure', None, None)])
+    assert has_verified_consensus([((0, 12., True), 'measured_variation', None, None)])
     assert has_verified_consensus([((0, False), 'denoised_multi_source', None, None)])
 
 

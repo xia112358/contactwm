@@ -4,12 +4,24 @@ from pathlib import Path
 import torch
 
 
+def carrier_aligned_frames(source_frames, source_clock, carrier_clock):
+    """Map source physical times through consensus onto the carrier's frames."""
+    import numpy as np
+    # Clocks end at the start of the last control frame, while valid solver
+    # samples extend through its substeps. Extend one physical frame so those
+    # samples are not silently collapsed to the previous frame boundary.
+    source=np.r_[source_clock,source_clock[-1]+1.]
+    carrier=np.r_[carrier_clock,carrier_clock[-1]+1.]
+    return np.interp(source_frames,source,carrier)
+
+
 def successful_source_pool(root):
     expected=None;contract=None;chosen={};attempts=[];seen=set()
     for capture in sorted(p for p in Path(root).glob('capture-seed*') if p.is_dir()):
         report=json.loads((capture/'report.json').read_text())
         identities={x['motion']:x['name'] for x in report['motions']}
         current={k:report[k] for k in ('checkpoint_sha256','task_manifest_sha256','stable_support_contract','substep_support_contract')}
+        current['reference_provenance']=report.get('reference_provenance')
         if expected is None:expected=identities;contract=current
         if identities!=expected or current!=contract:raise ValueError('Mixed capture task/physics/support contracts')
         for item in report['motions']:
@@ -31,7 +43,7 @@ def successful_source_pool(root):
         policy='all verified successful whole trajectories contribute; never splice states across trials')
 
 
-def aggregate_successful_sources(pool, output):
+def aggregate_successful_event_evidence(pool, output):
     """Format adapter to existing somaforge_core event/point-cloud aggregation.
 
     Dynamics stay on an observed whole trajectory. All successful executions
@@ -91,7 +103,6 @@ def aggregate_successful_sources(pool, output):
         _,distances=motion_medoid(np.stack([r['q'] for r in records]))
         missing=[sum(str(i) not in event['observations'] for event in consensus['events']) for i in range(len(entries))]
         representative=min(range(len(entries)),key=lambda i:(missing[i],float(distances[i].sum()),entries[i]['source_sha256']))
-        if missing[representative]:raise ValueError(f"No whole trajectory carries all consensus events for {entries[0]['name']}; preserve alternative strategies explicitly")
         # Preserve the existing event-clock alignment, with each actual source
         # interval as an anchor. Clocks transport evidence timestamps only;
         # poses/contact coordinates are never interpolated or relabelled.
@@ -101,15 +112,17 @@ def aggregate_successful_sources(pool, output):
             for i in range(len(entries))]
         clocks,alignment=align_observed_events(clock_reports,len(records[0]['q']),reference_index=representative)
         all_clouds[f'{motion}:alignment']=dict(source_frame_maps=clocks,report=alignment,sources=entries)
-        targets=[];allowed=[]
+        targets=[]
         for event in consensus['events']:
-            part=event['part'];obs=event['observations'][str(representative)];start,stop=obs['interval'];allowed.append(dict(part=part,start=start,stop=stop,event_id=event['id']))
+            if str(representative) not in event['observations']:
+                continue  # No measured placement on this execution to bind a target to.
+            part=event['part'];obs=event['observations'][str(representative)];start,stop=obs['interval']
             contributors=[];clouds=[]
             for key,observed in event['observations'].items():
                 i=int(key);a,b=observed['interval'];cloud=records[i]['clouds'][part,a,b]
                 if not len(cloud['points']):continue
                 contributors.append(dict(source=entries[i]['source'],source_sha256=entries[i]['source_sha256'],source_index=i,start=a,stop=b,ticks=cloud['ticks'].tolist(),rows=cloud['rows'],
-                    aligned_frames=np.interp(cloud['ticks']/records[i]['substeps'],clocks[i],np.arange(len(clocks[i]))).tolist(),
+                    aligned_frames=carrier_aligned_frames(cloud['ticks']/records[i]['substeps'],clocks[i],clocks[representative]).tolist(),
                     samples=len(cloud['points'])))
                 clouds.append(cloud['points'])
             item=dict(part=part,start=start,stop=stop,event_id=event['id'],votes=event['votes'],source_count=len(entries),contributors=contributors)
@@ -123,7 +136,7 @@ def aggregate_successful_sources(pool, output):
                 representative_cloud_index=chosen,center_dispersion_m=aggregate['center_dispersion_m'])
             all_clouds[f'{motion}:{event["id"]}']=dict(clouds=clouds,point_weights=aggregate['point_weights'],contributors=contributors)
             targets.append(item)
-        chosen=dict(entries[representative],consensus_allowed_placements=allowed,placement_target_evidence=targets)
+        chosen=dict(entries[representative],placement_target_evidence=targets)
         selected.append(chosen)
         reports.append(dict(motion=motion,name=chosen['name'],sources=entries,representative_index=representative,consensus=consensus,alignment=alignment,
             targets=targets,target_count=len(targets),unresolved_targets=sum(not t['samples'] for t in targets)))
@@ -132,7 +145,7 @@ def aggregate_successful_sources(pool, output):
     result=dict(pool,version='successful_substep_population_consensus_v1',selected=selected,
         aggregation=dict(events='somaforge_core.observed_event_consensus.consensus_from_sequences',
             points='somaforge_core.contact_aggregation.equal_demo_patch_cloud',
-            alignment='somaforge_core.consensus_event_alignment.align_observed_events; population event clock maps native evidence timestamps, never interpolates contact points or poses',
+            alignment='somaforge_core.consensus_event_alignment.align_observed_events; source physical time is mapped through the consensus clock onto carrier physical time, never interpolating contact points or poses',
             event_report=str(output/'event-consensus.json'),point_clouds=str(output/'target-clouds.pt')),
         policy='all successful executions vote equally; representative whole trajectory carries consensus-selected events; raw native contacts unchanged')
     return result

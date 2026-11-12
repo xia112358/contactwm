@@ -662,25 +662,25 @@ def test_stationary_initial_confirmation_does_not_become_new_engagement():
     assert [c['stop'] for c in cuts]==[30]
 
 
-def test_incomplete_terminal_posture_is_dropped_even_with_an_arrival():
+def test_terminal_crop_preserves_complete_arrival_and_its_approach():
     d=data(50);bearing(d,4,0,20);land(d,0,20);bearing(d,1,0,35)
     d['native_part_position'][35:,1,0]=torch.arange(15)*.03
     motion=dict(exclusions=[],start=0,stop=50,posture_phases=[dict(start=20,stop=50,kind='rise')])
     cuts,_=load_transfer_slices(d,source_motion=motion)
-    assert [(c['start'],c['stop']) for c in cuts]==[(0,20)]
-    assert motion['exclusions']==[dict(start=20,stop=50,reason='incomplete_terminal_action')]
+    assert [(c['start'],c['stop']) for c in cuts]==[(0,21)]
+    assert cuts[0]['arrivals']==[(20,0)]
+    assert motion['exclusions']==[dict(start=21,stop=50,reason='incomplete_terminal_action')]
 
 
-def test_population_selection_removes_event_without_rewriting_native_contact():
+def test_population_votes_cannot_hide_a_real_support_episode():
     d=data(30);land(d,0,2);land(d,1,15)
     raw=d['active'].clone();original=segmentation_contact_state(d)
     assert {ep['part'] for ep in original['placements']}=={0,1}
     d['consensus_support_allowed']=torch.zeros_like(raw)
     d['consensus_support_allowed'][:,0]=True
     selected=segmentation_contact_state(d)
-    assert {ep['part'] for ep in selected['placements']}=={0}
-    assert all(event['part']!=1 for event in selected['transfers'])
-    assert not selected['support'][:,1].any()
+    assert {ep['part'] for ep in selected['placements']}=={0,1}
+    assert torch.equal(selected['support'],original['support'])
     assert torch.equal(d['active'],raw)
     cuts,_=load_transfer_slices(d,selected)
     assert all(a['stop']==b['start'] for a,b in zip(cuts,cuts[1:]))

@@ -1,4 +1,4 @@
-"""GPU per-segment duration bands, with a fixed initial-collection prior."""
+"""GPU per-segment success duration bands; failed attempts retain their full trajectory."""
 import torch
 import torch.nn.functional as F
 
@@ -80,9 +80,10 @@ def select_duration_batch(data, prior_centers, halfwidth=2, min_success=8, min_m
     centers = torch.where(reliable,candidate,prior)
     lower=(centers[segment]-halfwidth).clamp_min(1)
     upper=centers[segment]+halfwidth
-    keep=frames>=lower
-    cut=keep & (frames>upper)
-    stop_steps=torch.minimum(frames,upper)
+    # Early failures must still teach recovery, rather than disappear from training.
+    keep=(~success)|(frames>=lower)
+    cut=success & keep & (frames>upper)
+    stop_steps=torch.where(success,torch.minimum(frames,upper),frames)
     truncated=torch.bincount(segment[cut],minlength=G)
     totals = torch.bincount(segment,minlength=G)
     retained = torch.bincount(segment[keep],minlength=G)
@@ -97,14 +98,14 @@ def select_duration_batch(data, prior_centers, halfwidth=2, min_success=8, min_m
             fallback=not bool(ok),source='batch' if ok else 'initial_prior',
             candidate_mass=m))
     n_kept=sum(r['retained'] for r in reports)
-    return keep.nonzero().flatten(), stop_steps, dict(mode='dynamic_band_truncate_long_discard_short',
+    return keep.nonzero().flatten(), stop_steps, dict(mode='dynamic_success_band_keep_all_failures',
         truncated=sum(r['truncated'] for r in reports),unchanged=sum(r['unchanged'] for r in reports),
         halfwidth=halfwidth,min_success=min_success,min_mass=min_mass,total=len(frames),
         retained=n_kept,discarded=len(frames)-n_kept,retention_rate=n_kept/len(frames),segments=reports)
 
 
 class FixedDurationBand:
-    """Frozen stage-one bands: early samples excluded, late capped; never recenter."""
+    """Frozen bands for successful attempts; failed attempts remain complete."""
     def __init__(self, centers):
         self.centers=list(centers)
 
@@ -117,7 +118,7 @@ class FixedDurationBand:
         """Apply identical frozen bands directly to already-known stage lengths."""
         centers=torch.as_tensor(self.centers,device=frames.device)[segment]
         lower=(centers-halfwidth).clamp_min(1);upper=centers+halfwidth
-        keep=frames>=lower;truncated=keep&(frames>upper);stops=torch.minimum(frames,upper)
+        keep=(~success)|(frames>=lower);truncated=success&keep&(frames>upper);stops=torch.where(success,torch.minimum(frames,upper),frames)
         values=torch.stack((torch.ones_like(keep),success,keep,keep&~success,truncated),-1).long()
         totals=torch.zeros(len(self.centers),5,device=frames.device,dtype=torch.long)
         totals.scatter_add_(0,segment[:,None].expand_as(values),values)
@@ -127,7 +128,7 @@ class FixedDurationBand:
             c=self.centers[g]
             rows.append(dict(segment=g+1,attempts=n,successes=passed,center=c,lower=max(1,c-halfwidth),upper=c+halfwidth,prior_center=c,retained=retained,discarded=n-retained,retained_failures=failed,truncated=cut,fallback=True,source='fixed_inherited'))
         count=sum(r['retained'] for r in rows);total=len(frames)
-        return keep.nonzero().flatten(),stops,dict(mode='fixed_inherited_band',halfwidth=halfwidth,total=total,retained=count,discarded=total-count,truncated=sum(r['truncated'] for r in rows),retention_rate=count/total,segments=rows,scope='frozen first-stage centers; shorter samples excluded; actual native deadline is upper bound')
+        return keep.nonzero().flatten(),stops,dict(mode='fixed_inherited_band',halfwidth=halfwidth,total=total,retained=count,discarded=total-count,truncated=sum(r['truncated'] for r in rows),retention_rate=count/total,segments=rows,scope='frozen success bands; all failed attempts retained at their actual terminal frame')
 
     def state_dict(self):
         return dict(fixed_centers=self.centers)

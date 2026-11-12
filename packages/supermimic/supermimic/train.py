@@ -55,6 +55,7 @@ parser.add_argument("--reset_sampler", choices=("return_bins", "completion_recen
 parser.add_argument("--probes_per_motion", type=int, default=3)
 parser.add_argument("--probe_mode", choices=("all_long", "long_short"), default="all_long")
 parser.add_argument("--resume", type=str, default=None)
+parser.add_argument("--reference_manifest", type=str, help="Replacement motion references in the same physical task slots")
 parser.add_argument("--check_numerics", action="store_true", help="stop and save the first invalid or extreme physical transition")
 parser.add_argument("--capture_physics_failure", action="store_true", help="record first failing physics substep, phase and solver warm starts")
 parser.add_argument("--no_reset_noise", action="store_true", help="initialize exactly from reference poses without perturbing the robot into nearby terrain")
@@ -67,6 +68,8 @@ if args.headless:
     args.visualizer = None
 
 task_metadata = {}
+reference_provenance = None
+reference_changed = False
 if args.task_manifest:
     args.check_numerics = True
     from supermimic.lowstep import checkpoint_metadata, install
@@ -78,6 +81,10 @@ if args.task_manifest:
                         collision_profile=args.collision_profile, contact_response=args.contact_response,wm_contact_architecture=args.wm_contact_architecture)
     args.motion_dir = task_spec["motion_dir"]
     task_metadata = checkpoint_metadata(task_spec)
+    if args.reference_manifest:
+        from supermimic.task_reference import replace_motion_references
+        reference_provenance = replace_motion_references(task_spec, args.reference_manifest)
+        args.motion_dir = task_spec["motion_dir"]
 
 import torch
 import torch.nn as nn
@@ -145,6 +152,10 @@ if args.resume:
     wm.load_state_dict(ck["wm"]), pi.load_state_dict(ck["pi"]), critic.load_state_dict(ck["critic"])
     opt_wm.load_state_dict(ck["opt_wm"]), opt_pi.load_state_dict(ck["opt_pi"]), opt_v.load_state_dict(ck["opt_v"])
     start_it, wall_offset, sim_steps = ck["iteration"], ck["wall_time"], ck["sim_steps"]
+    reference_changed = ck.get("reference_provenance_json") != (json.dumps(reference_provenance, sort_keys=True) if reference_provenance is not None else None)
+
+if reference_provenance is not None:
+    task_metadata["reference_provenance_json"] = json.dumps(reference_provenance, sort_keys=True)
 
 
 # per-component floors on the error normalization (pos, rot, lin vel, ang vel, q, qd increments)
@@ -356,7 +367,7 @@ with launch_simulation(sim_cfg, args):
         print(json.dumps(report), flush=True)
         raise SystemExit(0)
     sampler = getattr(env, "reset_sampler_controller", None)
-    if args.resume and sampler is not None:
+    if args.resume and sampler is not None and not reference_changed:
         sampler.load_state_dict(ck["reset_sampler_state"])
     failure_recorder = None
     if args.capture_physics_failure:

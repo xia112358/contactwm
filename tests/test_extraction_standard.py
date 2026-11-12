@@ -39,10 +39,15 @@ def test_legacy_pass_flags_and_single_source_fallback_do_not_mean_formal_pass():
     assert standard.classification(result) == 'source_baseline'
 
 
-@pytest.mark.parametrize('gate', ['task_acceptance', 'continuity', 'joint_limits'])
-def test_all_three_hard_gates_are_required(gate):
+@pytest.mark.parametrize('gate', ['task_acceptance', 'joint_limits'])
+def test_contact_and_joint_limit_checks_are_required(gate):
     result = accepted(); result[gate]['passed'] = False
     assert standard.classification(result) == 'needs_refinement'
+
+
+def test_continuity_is_diagnostic_not_an_admission_gate():
+    result = accepted(); result['continuity']['passed'] = False
+    assert standard.classification(result) == 'accepted'
 
 
 def test_legacy_clock_does_not_acquire_a_continuous_certificate_from_pose_checks():

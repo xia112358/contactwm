@@ -15,10 +15,7 @@ from scipy.spatial import ConvexHull
 from somaforge_core.robot_assets import canonical_g1_urdf_path
 
 
-def box_sdf(points, center, basis, half):
-    """Exact Euclidean OBB SDF (positive outside), differentiable almost everywhere."""
-    distance = ((points - center) @ basis).abs() - half
-    return distance.clamp_min(0).norm(dim=-1) + distance.amax(-1).clamp_max(0)
+from somaforge_core.box_distance import box_sdf
 
 
 def pose_increment(seed, x, scale):

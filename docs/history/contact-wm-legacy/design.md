@@ -1,3 +1,6 @@
+> Historical implementation, archived 2026-11-08. These commands are retired.
+> Current training: `supermimic.contact_train`; see [current workflow](../../current-workflow.md).
+
 # Contact-conditioned control through WM-BPTT
 
 ## Repository findings and minimal design
