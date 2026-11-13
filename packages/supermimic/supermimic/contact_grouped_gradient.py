@@ -42,6 +42,7 @@ class GroupedActorGradients:
     def matrix(self):
         # The combined objective is a batch mean; recover each group's mean.
         scale=self.batch/self.counts.to(next(iter(self.gradients.values())).dtype)
-        return torch.cat([v.flatten(1) for v in self.gradients.values()],1)*scale[:,None]
+        matrix=torch.cat([v.flatten(1) for v in self.gradients.values()],1)
+        return matrix.mul_(scale[:,None])
     def __exit__(self,*exc):
         for handle in self.handles:handle.remove()

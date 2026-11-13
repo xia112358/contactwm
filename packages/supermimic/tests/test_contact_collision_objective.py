@@ -26,12 +26,11 @@ def test_in_region_and_inactive_have_zero_cost_and_gradient():
     assert cost[2]>0 and p.grad[2,2]<0
 
 
-def test_only_outside_transfer_collision_interrupts():
+def test_only_native_harmful_collision_interrupts():
     from supermimic.contact_collision_objective import collision_interruption
-    # Entry supports are removed by the native collector, not reclassified here.
-    active=torch.tensor([[False,False],[True,False],[True,True],[False,True]])
-    inside=torch.tensor([[False,False],[True,False],[True,False],[False,False]])
-    assert collision_interruption(active,inside).tolist()==[False,False,True,True]
+    # Native monitoring owns region, support, duration and impulse classification.
+    harmful=torch.tensor([[False,False],[False,False],[True,False],[False,True]])
+    assert collision_interruption(harmful).tolist()==[False,False,True,True]
 
 
 def test_native_impact_is_not_erased_by_substep_to_frame_rebound():

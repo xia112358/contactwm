@@ -262,6 +262,11 @@ def install(path, contact_model="binary2", reset_sampler="return_bins", probes_p
             contacts = context.world_forces(state, prediction)
             return next_state, torch.cat((xi[..., :34], contacts, xi[..., 52:]), -1)
 
+        def training_predictions(self, window, normalized_inputs):
+            """Paired one-step state output and the unchanged contact objective."""
+            return (networks.run_mlp(self.net, normalized_inputs),
+                    self.contact_loss_from_inputs(window, normalized_inputs[:, None]))
+
         def contact_loss_from_inputs(self, window, normalized_inputs):
             """Reuse the state head's encoding for paired one-step supervision."""
             return self.contact_loss(window, normalized_inputs=normalized_inputs)

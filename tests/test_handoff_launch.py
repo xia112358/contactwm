@@ -15,6 +15,8 @@ def test_handoff_dry_run_uses_explicit_assets(tmp_path):
     assert argv[argv.index('--iterations')+1]=='100'
     assert plan['environment']['CUDA_VISIBLE_DEVICES']=='2'
     assert plan['environment']['SOMAFORGE_PUBLISHED_DATA_PATHS']==str(assets/'paths.json')
+    assert '--compile_contact_fk' in argv
+    assert argv[argv.index('--wm_contact_architecture')+1]=='shared'
     assert not output.exists()
 
 def test_handoff_recipe_has_no_author_tmp_paths():

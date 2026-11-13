@@ -76,7 +76,10 @@ class CollisionSurface(nn.Module):
             self.catalog.append(dict(part=PARTS[part],triangles=sum(len(x) for x in triangles),spheres=len(spheres)))
 
     def contact_points(self,S,target,parts):
-        positions,rotations=self.geometry.poses(S);answer=positions.new_zeros(target.shape)
+        return self.contact_points_from_poses(self.geometry.poses(S),target,parts)
+
+    def contact_points_from_poses(self,poses,target,parts):
+        positions,rotations=poses;answer=positions.new_zeros(target.shape)
         for part in parts:
             p=positions[:,part];R=rotations[:,part];local=(R.transpose(-1,-2)@(target[:,part]-p).unsqueeze(-1)).squeeze(-1)
             options=[];triangles=getattr(self,f'triangles_{part}');spheres=getattr(self,f'spheres_{part}')
@@ -124,8 +127,12 @@ class SurfaceRegionObjective(CollisionSurface):
                     reduction='area_normalized_scalar_logsumexp',scoring='native_event_or_terminal')
 
     def region_loss(self,S,target,parts,*,normals=None,normal_weight=1.,tangent_weight=1.):
+        return self.region_loss_from_poses(self.geometry.poses(S),target,parts,normals=normals,
+            normal_weight=normal_weight,tangent_weight=tangent_weight)
+
+    def region_loss_from_poses(self,poses,target,parts,*,normals=None,normal_weight=1.,tangent_weight=1.):
         from somaforge_core.contact_system.objectives import smooth_region_loss
-        p,R=self.geometry.poses(S)
+        p,R=poses
         candidates=self.atlas.world(p,R,parts=parts)
         if normals is None:
             # For a zero-radius isotropic point target the normal cancels.

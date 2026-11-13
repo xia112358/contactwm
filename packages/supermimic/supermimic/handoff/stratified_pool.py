@@ -36,6 +36,8 @@ class StratifiedPool:
  def composition(self):
   return [dict(case=d+82,origin=o+82,depth=h,count=len(v['s'])) for (d,o,h),v in sorted(self.entries.items())]
  def state_dict(self):return dict(entries=self.entries,generator=self.generator.get_state(),capacity=self.capacity)
+ def load_state_dict(self,state):
+  self.entries=state['entries'];self.capacity=state['capacity'];self.generator.set_state(state['generator'].cpu())
 
 
 def capacity_balanced_counts(sizes,count,generator):

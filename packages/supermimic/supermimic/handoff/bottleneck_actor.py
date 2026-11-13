@@ -62,7 +62,7 @@ class BottleneckContactActor(nn.Module):
         self.last_kl = kl_per_sample.mean()
         action = self.decoder(torch.cat((state, z), dim=-1)).clamp(-20, 20)
         if return_aux:
-            return action, dict(epsilon=epsilon, mu=mu, log_std=log_std, z=z,
+            return action, dict(state=state, epsilon=epsilon, mu=mu, log_std=log_std, z=z,
                                 kl_per_sample=kl_per_sample, kl=self.last_kl)
         return action
 

@@ -409,7 +409,7 @@ class ContactTask:
             # Target arrivals retain stable confirmation. A new outside-region
             # transfer contact ends the attempt before the next policy action.
             from .contact_collision_objective import collision_interruption
-            contact_end=collision_interruption(evidence['collision_mask'],evidence['collision_in_region'])
+            contact_end=collision_interruption(evidence['collision_harmful'])
             completed &= all_confirmed & ~contact_end
             started=held_joints(evidence['contact_new_event'],self.contact_joint_mask)
             self.contact_hold_action=torch.where(started,actions[ids],self.contact_hold_action)

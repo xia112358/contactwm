@@ -341,21 +341,19 @@ def sample_window(data,batch,window):
 def wm_one_step_loss(wm,w,normalize):
     """DMO deterministic branch: real (s,a,s1), one-step residual MSE.
 
-    Preserve tracking coordinates/normalization and its existing force6 head.
+    Preserve tracking coordinates/normalization and the existing force6 objective.
     No autoregressive model states enter these supervised inputs or targets.
     """
-    from .networks import run_mlp
     assert w['s'].shape[1]==1
     S=unflatten_state(w['s'][:,0]);S1=unflatten_state(w['s1'][:,0])
     inputs=wm.in_norm(wm.inputs(S,w['a'][:,0],normalize(w['xi'][:,0])))
-    predicted=run_mlp(wm.net,inputs)*wm.out_norm.std()+wm.out_norm.mean
+    window=dict(w,contact_next=w['next_xi'][...,34:52])
+    state_prediction,contact=wm.training_predictions(window,inputs)
+    predicted=state_prediction*wm.out_norm.std()+wm.out_norm.mean
     target=wm.targets(S,S1)
     floor=predicted.new_tensor([.003]*3+[.005]*3+[.02]*3+[.05]*3+[.003]*29+[.05]*29)
     scale=torch.maximum(wm.out_norm.std(),floor)
     residual=((predicted-target)/scale).square().mean()
-    window=dict(w,contact_next=w['next_xi'][...,34:52])
-    contact=(wm.contact_loss_from_inputs(window,inputs[:,None])
-             if callable(getattr(wm,'contact_loss_from_inputs',None)) else wm.contact_loss(window))
     return residual+.1*contact
 
 

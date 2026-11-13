@@ -1,73 +1,96 @@
-"""Box-top foot navigation on immutable event goals; native contacts stay upstream."""
+"""Uniform obstacle-aware material-pair objective for every required body part."""
 import torch
-from supermimic.contact_navigation import WholeFootBoxNavigation, segment_visible
+from supermimic.contact_terrain_distance import TerrainNavigationDistance
 
 
-class CachedFootNavigation(WholeFootBoxNavigation):
-    """Exact static-goal specialization: cache the goal half of the roadmap query."""
-    def __init__(self,*args,**kwargs):
-        super().__init__(*args,**kwargs)
-        nodes=self.road.nodes
-        target=(self.goals[:,None]-nodes).norm(dim=-1).masked_fill(
-            ~segment_visible(self.goals[:,None],nodes,self.nav_half[:,None]),float('inf'))
-        self.tail=(self.road.costs+target[:,None]).min(-1).values
-
-    def anchor_distance(self,points):
-        position=(points-self.center)@self.R
-        gap=position.abs()-self.nav_half[None]
-        inside=gap.amax(-1)<0
-        exit_gap=gap.clone()
-        exit_gap[...,2]=torch.where(position[...,2]<0,-self.nav_half[None,:,2]+position[...,2],gap[...,2])
-        axis=exit_gap.argmax(-1);face=torch.nn.functional.one_hot(axis,3).bool()
-        sign=torch.where(position>=0,1.,-1.)
-        sign=torch.where(face&(axis[...,None]==2),torch.ones_like(sign),sign)
-        free=torch.where(inside[...,None],torch.where(face,sign*self.nav_half[None],position)+face*sign*1e-5,position)
-        source=(free[:,:,None]-self.road.nodes[None]).norm(dim=-1).masked_fill(
-            ~segment_visible(free[:,:,None],self.road.nodes[None],self.nav_half[None,:,None]),float('inf'))
-        indirect=(source+self.tail[None]).min(-1).values
-        direct=(free-self.goals[None]).norm(dim=-1).masked_fill(
-            ~segment_visible(free,self.goals[None],self.nav_half[None]),float('inf'))
-        depth=torch.where(inside,-exit_gap.amax(-1),0.)
-        return torch.minimum(direct,indirect)+depth
-
-
-class FootNavigationObjective:
-    def __init__(self,clock,surface,context):
-        self.metrics={}
-        self.rows=[]
+class MaterialNavigationObjective:
+    def __init__(self,clock,context,surface,*,compile_queries=True):
+        self.occupancy={};self.combined_prepared={};self.metrics={};self.prepared={};self.local={};self.rows=[];self.motion=clock.segment_motion.tolist()
         for event in range(len(clock.event_ends)):
-            end=clock.event_ends[event]-1
+            motion=int(clock.segment_motion[event])
+            if motion not in self.metrics:
+                self.metrics[motion]=TerrainNavigationDistance(context.tasks[motion]['boxes'],clock.material_targets.device)
+            metric=self.metrics[motion];end=clock.event_ends[event]-1
             required=clock.target_masks[end]&~clock.keep_masks[end]
-            motion=int(clock.segment_motion[event]);boxes=context.tasks[motion]['boxes']
-            box=torch.as_tensor(boxes,device=clock.material_targets.device)
-            assert len(box)==1,'This 10-stage scene must have its original one-box terrain'
-            top=box[0,2]+box[0,9]/2
-            for part in range(2):
-                if not bool(required[part]):continue
-                target=clock.material_targets[event,part]
-                # Select the demonstrated box-top objective by its source target,
-                # not by student distance or contact state. Ground goals stay fixed.
-                box_top=bool((target[:,2].mean()-top).abs()<target[:,2].mean().abs())
-                if not box_top:continue
-                vertices=getattr(surface,f'triangles_{part}').reshape(-1,3).unique(dim=0)
-                metric=CachedFootNavigation(boxes,target,vertices,clock.material_local[event,part],target.device)
-                self.metrics[event,part]=metric
-                self.rows.append(dict(segment=event+1,case=int(clock.case_ids[event]),part=part,**metric.info))
-        print('NAVIGATION_OBJECTIVE',self.rows,flush=True)
+            for part in required.nonzero().flatten().tolist():
+                if part in (2,3):
+                    local=clock.material_local[event,part,:1]
+                    target=clock.data['point'][end,part,None]
+                    candidates=None
+                elif part>=4 and hasattr(clock,'paired_material_local'):
+                    valid=clock.paired_material_valid[event,part]
+                    local=clock.paired_material_local[event,part,valid]
+                    target=clock.paired_material_targets[event,part,valid]
+                    candidates=valid.nonzero().flatten()
+                else:
+                    local=clock.material_local[event,part];target=clock.material_targets[event,part]
+                    candidates=None
+                if part<2:
+                    from supermimic.contact_foot_occupancy import FootOccupancy
+                    vertices=getattr(surface,f'triangles_{part}').reshape(-1,3).unique(dim=0)
+                    self.occupancy[event,part]=FootOccupancy(vertices,local,target,metric)
+                self.local[event,part]=(local,candidates)
+                self.prepared[event,part]=metric.prepare(target)
+                if part<2:
+                    self.combined_prepared[event,part]=metric.prepare(torch.cat((target,self.occupancy[event,part].goals)))
+                self.rows.append(dict(case=int(clock.case_ids[event]),part=part,materials=len(local),motion=motion))
+        if compile_queries and clock.material_targets.is_cuda:
+            self.compile_queries()
+        print('UNIFIED_MATERIAL_NAVIGATION',self.rows,flush=True)
 
-    def cost(self,points,position,rotation,event,required,original):
-        cost=original
-        for (index,part),metric in self.metrics.items():
+    def compile_queries(self):
+        # Fuse the unchanged spatial objective, including its input gradients.
+        # Static terrain/goal preparation stays outside the repeated query.
+        for metric in self.metrics.values():
+            # Keep route selection and tie reduction in eager PyTorch: compiling
+            # the complete query produced nonfinite gradients on real replay.
+            compiled=torch.compile(metric.segment_cost,dynamic=True,fullgraph=True,
+                options={'triton.cudagraphs':False})
+            def segment_cost(start,end,kernel=compiled):
+                # Prefix and route queries have different broadcast ranks.
+                # Own the input storage as well: Dynamo guards on view base shapes.
+                # Compile one line batch, then restore the query shape.
+                start,end=torch.broadcast_tensors(start,end)
+                shape=start.shape[:-1]
+                return kernel(start.reshape(-1,3).clone(memory_format=torch.contiguous_format),
+                              end.reshape(-1,3).clone(memory_format=torch.contiguous_format)).reshape(shape)
+            metric.segment_cost=segment_cost
+
+    def cost(self,position,rotation,event,required,stable,candidate,hand_points):
+        answer=position.new_zeros(required.shape)
+        for (index,part),(local,candidates) in self.local.items():
             slots=((event==index)&required[:,part]).nonzero().flatten()
             if not len(slots):continue
-            distance=metric.distance(points[slots,part],position[slots,part],rotation[slots,part])
-            values=distance.square().mean(-1)/.05**2
-            replacement=cost[:,part].index_copy(0,slots,values)
-            cost=torch.stack([replacement if p==part else cost[:,p] for p in range(cost.shape[1])],-1)
-        return cost
+            if part in (2,3):
+                points=hand_points[slots,part,None]
+            else:
+                points=position[slots,part,None]+torch.einsum('bij,kj->bki',rotation[slots,part],local)
+            metric=self.metrics[self.motion[index]]
+            if part<2:
+                foot=self.occupancy[index,part]
+                corners=position[slots,part,None]+torch.einsum('bij,kj->bki',rotation[slots,part],foot.corners)
+                routed=metric.distance(torch.cat((points,corners),1),self.combined_prepared[index,part])
+                distances=routed[:,:len(local)]
+                occupancy=foot.cost_from_distances(position[slots,part],rotation[slots,part],corners,routed[:,len(local):])
+            else:
+                distances=metric.distance(points,self.prepared[index,part])
+            costs=distances.square()/.05**2
+            if candidates is None:
+                values=costs.mean(-1)
+            else:
+                # Stable rows keep their own native material index. Unconfirmed
+                # guidance chooses a complete local-point/world-target pair.
+                matched=candidate[slots,part,None]==candidates[None]
+                qualified=costs.masked_fill(~matched,float('inf')).amin(-1)
+                values=torch.where(stable[slots,part],qualified,costs.amin(-1))
+            if part<2:
+                values=values+occupancy
+            column=answer[:,part].index_copy(0,slots,values)
+            answer=torch.stack([column if k==part else answer[:,k] for k in range(answer.shape[1])],-1)
+        return answer
 
 
-def foot_navigation_cost(clock,surface,context,points,position,rotation,event,required,original):
-    if not hasattr(surface,'foot_navigation_objective'):
-        surface.foot_navigation_objective=FootNavigationObjective(clock,surface,context)
-    return surface.foot_navigation_objective.cost(points,position,rotation,event,required,original)
+def material_navigation_cost(clock,surface,context,position,rotation,event,required,stable,candidate,hand_points):
+    if not hasattr(surface,'material_navigation_objective'):
+        surface.material_navigation_objective=MaterialNavigationObjective(clock,context,surface)
+    return surface.material_navigation_objective.cost(position,rotation,event,required,stable,candidate,hand_points)

@@ -406,10 +406,10 @@ class ContactTask:
             from .contact_onset import contact_decision
             failed_parts,all_confirmed=contact_decision(new,evidence['contact_confirmation_done'],
                 self.valid_contacts,evidence['contact_confirmation_lost'])
-            # In-region arrivals confirm normally; outside transfer contacts
-            # terminate before another policy action or a post-collision tail.
+            # Native monitoring already distinguishes sustained harmful impacts
+            # from light contact and top-surface support.
             from .contact_collision_objective import collision_interruption
-            contact_end=collision_interruption(evidence['collision_mask'],evidence['collision_in_region'])
+            contact_end=collision_interruption(evidence['collision_harmful'])
             completed &= all_confirmed & ~contact_end
             started=held_joints(evidence['contact_new_event'],self.contact_joint_mask)
             self.contact_hold_action=torch.where(started,actions[ids],self.contact_hold_action)

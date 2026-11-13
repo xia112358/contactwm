@@ -45,6 +45,8 @@
     "32",
     "--wm_batch",
     "1024",
+    "--wm_contact_architecture",
+    "shared",
     "--wm_learning_rate",
     "2e-05",
     "--learning_rate",
@@ -97,7 +99,8 @@
     "--collision_model",
     "{assets}/solver-collision.mjb",
     "--single_stage_anchor",
-    "{assets}/contact-init.pt"
+    "{assets}/contact-init.pt",
+    "--compile_contact_fk"
   ],
   "bundle": {
     "url": "https://github.com/xia112358/contactwm/releases/download/handoff-ten-stage-20261112-v1/handoff-data.tar.gz",

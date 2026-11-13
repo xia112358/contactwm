@@ -37,6 +37,13 @@ def shared_force_world_model(base, context):
             hidden=networks.run_mlp(self.net.features,normalized_inputs)
             return super().contact_loss(window,normalized_inputs=hidden)
 
+        def training_predictions(self,window,normalized_inputs):
+            """Compute the common trunk once for state and force supervision."""
+            hidden=networks.run_mlp(self.net.features,normalized_inputs)
+            state=networks.run_mlp(self.net[-1],hidden)
+            contact=super().contact_loss(window,normalized_inputs=hidden[:,None])
+            return state,contact
+
         def joint_step(self,state,action,xi,xi_n):
             inputs=self.in_norm(self.inputs(state,action,xi_n))
             hidden=networks.run_mlp(self.net.features,inputs)
@@ -47,3 +54,21 @@ def shared_force_world_model(base, context):
             return next_state,torch.cat((xi[...,:34],contacts,xi[...,34+context.contact_dim:]),-1)
 
     return SharedForceWorldModel
+
+
+def load_force_wm_state(model,state,*,source_architecture,target_architecture):
+    """Load a checkpoint into a fresh model; return whether its force head changed.
+
+    Legacy independent force heads cannot be mapped to the shared linear head.
+    Preserve every trunk/normalization tensor and use the new head initialization.
+    Callers must create a new WM optimizer after this explicit architecture change.
+    """
+    if source_architecture==target_architecture:
+        model.load_state_dict(state,strict=True)
+        return False
+    if (source_architecture,target_architecture)!=('independent','shared'):
+        raise ValueError(f'Unsupported WM architecture transfer: {source_architecture} -> {target_architecture}')
+    transferred={key:value for key,value in state.items() if not key.startswith('contact_head.')}
+    transferred.update({key:value for key,value in model.state_dict().items() if key.startswith('contact_head.')})
+    model.load_state_dict(transferred,strict=True)
+    return True

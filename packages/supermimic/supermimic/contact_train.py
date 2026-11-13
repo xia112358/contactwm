@@ -42,6 +42,7 @@ def main():
     parser.add_argument('--wm_batch',type=int,default=512)
     parser.add_argument('--wm_diagnostic_every',type=int,default=8,help='Measure paired pre/post WM fit every N updates; optimizer budget is unchanged')
     parser.add_argument('--wm_learning_rate',type=float,default=2e-5)
+    parser.add_argument('--wm_contact_architecture',choices=('independent','shared'),default='shared',help='Share the dynamics trunk with the force output; independent is retained for baseline evaluation')
     parser.add_argument('--learning_rate',type=float,default=1e-5)
     parser.add_argument('--adaptive_lr',action='store_true')
     parser.add_argument('--min_learning_rate',type=float,default=3e-7)
@@ -116,7 +117,7 @@ def main():
     if args.duration_halfwidth is not None and (not 0<args.duration_min_mass<=1):raise ValueError('Invalid duration mass threshold')
     import torch
     from supermimic.lowstep import install,checkpoint_metadata,validate_checkpoint
-    spec=install(args.task_manifest,contact_model='force6',collision_profile=args.collision_profile,contact_response=args.contact_response)
+    spec=install(args.task_manifest,contact_model='force6',collision_profile=args.collision_profile,contact_response=args.contact_response,wm_contact_architecture=args.wm_contact_architecture)
     from supermimic.buffer import ReplayBuffer
     from supermimic.env import TrackingSim,make_sim
     from supermimic.motion import MotionLib
@@ -176,8 +177,11 @@ def main():
     original_resume=not args.initialize_from_dagger and resumed['config'].get('wm_implementation')=='original_tracking'
     if not original_resume and int(resumed['wm_updates'])!=0:
         raise ValueError('Restart from DAgger initialization; legacy native-head optimization is retired')
-    wm.load_state_dict(resumed['wm'] if original_resume else source['wm'],strict=True)
-    if not original_resume:
+    from supermimic.shared_force_wm import load_force_wm_state
+    wm_source_architecture=(resumed['config'] if original_resume else source['args']).get('wm_contact_architecture','independent')
+    wm_architecture_changed=load_force_wm_state(wm,resumed['wm'] if original_resume else source['wm'],
+        source_architecture=wm_source_architecture,target_architecture=args.wm_contact_architecture)
+    if not original_resume and not wm_architecture_changed:
         assert all(torch.equal(v.cpu(),source['wm'][k]) for k,v in wm.state_dict().items())
     frozen_wm_state=None
     if args.freeze_wm:
@@ -218,7 +222,7 @@ def main():
             lr_schedule.load_state_dict(resumed['lr_schedule'])
             for group in actor_opt.param_groups:group['lr']=resumed['actor_optimizer']['param_groups'][0]['lr']
     wm_opt=torch.optim.Adam(wm.parameters(),lr=args.wm_learning_rate)
-    if original_resume:wm_opt.load_state_dict(resumed['wm_optimizer'])
+    if original_resume and not wm_architecture_changed:wm_opt.load_state_dict(resumed['wm_optimizer'])
     if args.segment is not None and not 1<=args.segment<=len(clock.event_ends):raise ValueError('Segment out of range')
     if hasattr(clock,'segment_motion'):
         if args.sequence_length!=1 and clock.segment_motion.unique().numel()!=1:raise ValueError('Continuous windows require a single motion and terrain')
@@ -256,7 +260,9 @@ def main():
         config['case_source_frame_bounds']=clock.segment_local_bounds
     config['contact_force_source']='existing force6 sensors; diagnostic only, unused in contact/root success'
     config['wm_implementation']='original_tracking'
-    config['wm_source']=str(Path(args.checkpoint).resolve())
+    config['wm_source']=str((args.resume if original_resume else Path(args.checkpoint)).resolve())
+    config['wm_architecture_transfer']=dict(source=wm_source_architecture,target=args.wm_contact_architecture,
+        force_head_reinitialized=wm_architecture_changed,optimizer_reinitialized=wm_architecture_changed)
     config['policy_objective']='DMO from exact reset; contact error at first native onset with endpoint fallback if missing; root error at endpoint; process action/DAgger regularization'
     config['horizon']=int((case_stops-case_starts)[args.segment-1] if args.segment else (case_stops-case_starts).max())+args.segment_grace_steps
     if args.slices:config.update(slices_sha256=slices_sha,case_ids=clock.case_ids.tolist(),case_starts=case_starts.tolist(),case_stops=case_stops.tolist(),case_goal_indices=(clock.event_ends-1).tolist())

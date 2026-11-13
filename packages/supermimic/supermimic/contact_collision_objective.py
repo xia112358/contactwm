@@ -50,9 +50,9 @@ def collision_loss(point, normal, signed_gap, measured_point,
     return torch.where(enabled, bounded_clearance_cost(clearance_error), 0.)
 
 
-def collision_interruption(active_transfer, in_target_region):
-    """Collector has already excluded entry support and non-transfer parts."""
-    return (active_transfer & ~in_target_region).any(-1)
+def collision_interruption(harmful):
+    """Use the native sustained-impulse decision, including its existing exclusions."""
+    return harmful.any(-1)
 
 
 def bounded_clearance_cost(error):

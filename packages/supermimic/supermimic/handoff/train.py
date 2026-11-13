@@ -24,10 +24,12 @@ def main():
     parser.add_argument('--initialize_from_dagger',action='store_true',help='Initialize weights on new slices; rebuild frame geometry and reset training state')
     parser.add_argument('--single_stage_anchor',type=Path,required=True,help='Unmodified single-stage actor checkpoint used as frozen anchor')
     parser.add_argument('--resume',type=Path,required=True,help='Accepted DAgger or contact WM checkpoint')
+    parser.add_argument('--resume_pool',type=Path,help='Saved handoff pool from the resumed checkpoint iteration')
     parser.add_argument('--prior_checkpoint',type=Path,required=True,help='Accepted frozen DAgger initialization')
     parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--policy_gradient',choices=('imagination','dmo'),default='imagination')
     parser.add_argument('--dmo_microbatch',type=int,default=4096)
+    parser.add_argument('--compile_contact_fk',action='store_true',help='Compile canonical contact FK and its input gradients in FP32')
     parser.add_argument('--check_dmo',action='store_true')
     parser.add_argument('--duration_halfwidth',type=int,help='Per-batch per-segment success mode +/- frames; discard other attempts from actor update only')
     parser.add_argument('--duration_bootstrap_batches',type=int,default=5)
@@ -44,11 +46,13 @@ def main():
     parser.add_argument('--wm_batch',type=int,default=512)
     parser.add_argument('--wm_diagnostic_every',type=int,default=8,help='Measure paired pre/post WM fit every N updates; optimizer budget is unchanged')
     parser.add_argument('--wm_learning_rate',type=float,default=2e-5)
+    parser.add_argument('--wm_contact_architecture',choices=('independent','shared'),default='shared',help='Share the dynamics trunk with the force output; independent is retained for baseline evaluation')
     parser.add_argument('--learning_rate',type=float,default=1e-5)
     parser.add_argument('--adaptive_lr',action='store_true')
     parser.add_argument('--min_learning_rate',type=float,default=3e-7)
     parser.add_argument('--adam_beta1',type=float,default=.9)
     parser.add_argument('--update_diagnostics',action='store_true')
+    parser.add_argument('--project_entry_updates',action='store_true',help='Project the actual Adam step against every sampled entrance gradient')
     parser.add_argument('--contact_position_loss',choices=('measured_material','collision_surface','surface_region'),default='surface_region')
     parser.add_argument('--stable_contact_frames',type=int,default=2,help='Consecutive native active observations plus stable support pair before loss/completion; zero restores onset behavior')
     parser.add_argument('--surface_samples_per_part',type=int,default=128)
@@ -116,12 +120,12 @@ def main():
     if args.duration_halfwidth is not None and (not 0<args.duration_min_mass<=1):raise ValueError('Invalid duration mass threshold')
     import torch
     from supermimic.lowstep import install,checkpoint_metadata,validate_checkpoint
-    spec=install(args.task_manifest,contact_model='force6',collision_profile=args.collision_profile,contact_response=args.contact_response)
+    spec=install(args.task_manifest,contact_model='force6',collision_profile=args.collision_profile,contact_response=args.contact_response,wm_contact_architecture=args.wm_contact_architecture)
     from supermimic.buffer import ReplayBuffer
     from supermimic.env import TrackingSim,make_sim
     from supermimic.motion import MotionLib
     from supermimic.kinematics import G1Kinematics
-    from supermimic.mdp import MDP,OBS_DIM,normalize_xi
+    from supermimic.mdp import MDP,OBS_DIM,normalize_xi,unflatten_state
     from supermimic.networks import Policy,WorldModel
     import supermimic.networks as networks
     from supermimic.robot import default_joint_pos_list
@@ -178,8 +182,11 @@ def main():
     original_resume=not args.initialize_from_dagger and resumed['config'].get('wm_implementation')=='original_tracking'
     if not original_resume and int(resumed['wm_updates'])!=0:
         raise ValueError('Restart from DAgger initialization; legacy native-head optimization is retired')
-    wm.load_state_dict(resumed['wm'] if original_resume else source['wm'],strict=True)
-    if not original_resume:
+    from supermimic.shared_force_wm import load_force_wm_state
+    wm_source_architecture=(resumed['config'] if original_resume else source['args']).get('wm_contact_architecture','independent')
+    wm_architecture_changed=load_force_wm_state(wm,resumed['wm'] if original_resume else source['wm'],
+        source_architecture=wm_source_architecture,target_architecture=args.wm_contact_architecture)
+    if not original_resume and not wm_architecture_changed:
         assert all(torch.equal(v.cpu(),source['wm'][k]) for k,v in wm.state_dict().items())
     frozen_wm_state=None
     if args.freeze_wm:
@@ -191,6 +198,10 @@ def main():
         raise ValueError('Resume must retain its target grid')
     if resumed_grid:geometry.local_by_frame=geometry.local_by_frame.repeat(9,1,1)
     if not args.initialize_from_dagger:geometry.load_state_dict(resumed['geometry'])
+    if args.compile_contact_fk:
+        with torch.no_grad():geometry.poses(unflatten_state(demo['s'][:2]))
+        geometry.fk.link_poses=torch.compile(geometry.fk.link_poses,dynamic=True,fullgraph=True,
+            options={'triton.cudagraphs':False})
     if args.target_grid_span:
         from supermimic.contact_target_grid import expand_target_grid
         selected=args.target_grid_segment-1
@@ -220,7 +231,7 @@ def main():
             lr_schedule.load_state_dict(resumed['lr_schedule'])
             for group in actor_opt.param_groups:group['lr']=resumed['actor_optimizer']['param_groups'][0]['lr']
     wm_opt=torch.optim.Adam(wm.parameters(),lr=args.wm_learning_rate)
-    if original_resume:wm_opt.load_state_dict(resumed['wm_optimizer'])
+    if original_resume and not wm_architecture_changed:wm_opt.load_state_dict(resumed['wm_optimizer'])
     if args.segment is not None and not 1<=args.segment<=len(clock.event_ends):raise ValueError('Segment out of range')
     if hasattr(clock,'segment_motion'):
         if args.sequence_length!=1:raise ValueError('Multi-motion contact transfers must use independent episodes')
@@ -255,7 +266,9 @@ def main():
         config['case_source_frame_bounds']=clock.segment_local_bounds
     config['contact_force_source']='existing force6 sensors; diagnostic only, unused in contact/root success'
     config['wm_implementation']='original_tracking'
-    config['wm_source']=str(Path(args.checkpoint).resolve())
+    config['wm_source']=str((args.resume if original_resume else Path(args.checkpoint)).resolve())
+    config['wm_architecture_transfer']=dict(source=wm_source_architecture,target=args.wm_contact_architecture,
+        force_head_reinitialized=wm_architecture_changed,optimizer_reinitialized=wm_architecture_changed)
     config['policy_objective']='DMO from exact reset; contact error at first native onset with endpoint fallback if missing; root error at endpoint; process action/DAgger regularization'
     config['horizon']=int((case_stops-case_starts)[args.segment-1] if args.segment else (case_stops-case_starts).max())+args.segment_grace_steps
     if args.slices:config.update(slices_sha256=slices_sha,case_ids=clock.case_ids.tolist(),case_starts=case_starts.tolist(),case_stops=case_stops.tolist(),case_goal_indices=(clock.event_ends-1).tolist())
@@ -279,7 +292,7 @@ def main():
         config['training_loop']='WM one-step fit on previous native replay -> fresh full native attempts -> full-batch DMO backward -> one actor update'
         from supermimic.contact_case_gradient import ACTOR_GRADIENT_GROUP_SIZE, ACTOR_GRADIENT_OUTLIER_RATIO
         config['actor_gradient_outlier_cap']=dict(group_size=ACTOR_GRADIENT_GROUP_SIZE,median_ratio=ACTOR_GRADIENT_OUTLIER_RATIO)
-        config['collision_objective_version']='whole_foot_terminal_navigation_v1'
+        config['collision_objective_version']='mixed_contact_surface_smooth_navigation_v4'
         config['wm_fit']='DMO deterministic one-step residual MSE on real replay; tracking normalization and existing force6 supervision retained'
         config['wm_fit_order']='before fresh actor rollout, following DMO Algorithm 1'
         config['lr_schedule_rule']='mean success over recent 3 native training batches; 3 non-improving observations (absolute improvement >0.01); halve LR to floor' if args.adaptive_lr else 'constant'
@@ -352,8 +365,10 @@ def main():
         stopped=True
     signal.signal(signal.SIGINT,stop);signal.signal(signal.SIGTERM,stop)
     updates=0 if args.initialize_from_dagger else int(resumed['policy_updates']);wm_updates=0 if args.initialize_from_dagger else int(resumed['wm_updates']);start=0 if args.initialize_from_dagger else int(resumed['iteration'])
+    resume_rng=(resumed['rng_cpu'],resumed['rng_cuda']) if args.resume_pool is not None else None
+    resume_sim_steps=int(resumed['sim_steps']) if args.resume_pool is not None else 0
     resumed={'config':resumed['config']}
-    begin=time.perf_counter();sim_steps=0;task=None;native=None
+    begin=time.perf_counter();sim_steps=resume_sim_steps;task=None;native=None
     def status(phase,iteration,**extra):
         payload=dict(phase=phase,iteration=iteration,policy_updates=updates,wm_updates=wm_updates,
             updated_at=time.time(),elapsed_s=time.perf_counter()-begin,sim_steps=sim_steps,native=native,**extra)
@@ -429,14 +444,14 @@ def main():
         config['new_contact_stop']=task.new_contact_stop
         config['pool_sampling']='capacity_capped_source_balance_without_replacement'
         config['stop_rule']='first outside-region new native contact truncates; original stable confirmation and fixed-material success scoring'
-        config['navigation_loss']=dict(version='whole-foot-box-navigation-v1',scope='box-top foot transfers; floor and other body parts retain original metrics',process_collision_weight=0,stable_witness_and_actual_stop=True)
+        config['navigation_loss']=dict(version='mixed-contact-surface-smooth-navigation-v4',scope='feet/knees: own material pairs; hands: native stable contact points with collision-surface guidance; arbitrary oriented box union',process_collision_weight=0,stable_witness_and_actual_stop=True,solid_travel_cost=10.,surface_cost_scale=.05,solid_density='1 + 9 * (depth / (depth + 0.05))**2',foot_occupancy='canonical mesh oriented bounds; target overlap retained')
         config['target_faces_by_segment']=None if task.target_faces_by_segment is None else task.target_faces_by_segment.cpu().tolist()
         config.update(segment_norm_balance=False,source_projection=False,reference_rehearsal_fraction=0.0,pool_retention='uniform random from previous plus incoming',prior_weight=args.prior_weight)
         (args.output/'config.json').write_text(json.dumps(config,default=str,indent=2))
         if getattr(clock,'material_goal_mode',False) and (args.policy_gradient!='dmo' or not args.stable_contact_frames):
             raise ValueError('Fixed material targets require DMO with native stable-substep sampling')
         if getattr(clock,'material_goal_mode',False):
-            config['contact_objective']=clock.material_goal_contract
+            config['contact_objective']=dict(clock.material_goal_contract,loss='mean squared terrain navigation distance / 0.05**2; native hand points and own foot/knee materials',navigation_version='mixed_contact_surface_smooth_navigation_v4')
             config['stable_loss_sampling']['pose_witness']='same qualifying native substep; position and rotation retained together'
             config.update(segment_norm_balance=False,source_projection=False,reference_rehearsal_fraction=0.0,pool_retention='uniform random from previous plus incoming',prior_weight=args.prior_weight)
             (args.output/'config.json').write_text(json.dumps(config,default=str,indent=2))
@@ -513,10 +528,19 @@ def main():
                 if until_first_done and bool(completed_first.all()):break
             return collected
         task.iteration=start
+        if args.resume_pool is not None:
+            pool_state=torch.load(args.resume_pool,map_location=device,weights_only=False)
+            task.pool.load_state_dict(pool_state)
+            receipt=dict(checkpoint=str(args.resume),pool=str(args.resume_pool),iteration=start,composition=task.pool.composition(),generator_restored=True)
+            (args.output/'pool-resume.json').write_text(json.dumps(receipt,indent=2))
+            torch.save(task.pool.state_dict(),args.output/'initial-pool.pt')
+            print('POOL_RESUMED',json.dumps(receipt),flush=True)
         task.evaluate(args.output,start)
-
-        task.populate_reference()
-        task.validate_pool(args.output)
+        if args.resume_pool is None:
+            task.populate_reference()
+            task.validate_pool(args.output)
+        else:
+            torch.set_rng_state(resume_rng[0].cpu());torch.cuda.set_rng_state(resume_rng[1].cpu())
         task.reset(torch.arange(task.N,device=device))
         warmup_count=collect(max(args.warmup_steps,args.wm_window+actor.hist,config['horizon'] if args.duration_halfwidth is not None else 0),start,until_first_done=args.continuous_random)
         if args.duration_halfwidth is not None and duration_prior is None and not stopped:
@@ -659,7 +683,7 @@ def main():
                     from supermimic.contact_dmo import replay_loss,native_attempt_metrics
                     if lr_schedule:lr_signal=lr_schedule.observe(native_batch['macro_success_rate'])
                     objective_value=0.;objective_parts={}
-                    gradient_rows=[];gradient_weights=[]
+                    gradient_rows=[];gradient_weights=[];entry_gradient_rows=[]
                     def ordinary_batches():
                         groups=[selected]
                         chunks=[g[offset:offset+args.dmo_microbatch] for g in groups for offset in range(0,len(g),args.dmo_microbatch)]
@@ -683,7 +707,8 @@ def main():
                         attempt_losses={}
                         from supermimic.contact_grouped_gradient import GroupedActorGradients
                         from supermimic.contact_case_gradient import ACTOR_GRADIENT_GROUP_SIZE
-                        group_ids=torch.arange(len(batch['goal_index'][0]),device=device)//ACTOR_GRADIENT_GROUP_SIZE
+                        group_ids=torch.arange(len(batch['goal_index'][0]),device=device)
+                        if not args.project_entry_updates:group_ids=group_ids//ACTOR_GRADIENT_GROUP_SIZE
                         grouped=GroupedActorGradients(actor,group_ids,embedding=(actor.part_encoder,actor.part_embedding))
                         grouped.__enter__()
                         part,details=replay_loss(actor,wm,clock,geometry,context,normalize_xi,default_q,batch,
@@ -704,8 +729,16 @@ def main():
                         torch.autograd.grad(part,tuple(actor.parameters()),allow_unused=True)
                         matrix=grouped.matrix()
                         grouped.__exit__(None,None,None)
-                        gradient_rows.append(matrix)
-                        gradient_weights.append(grouped.counts.to(matrix.dtype)*(weight/grouped.batch))
+                        if args.project_entry_updates:
+                            entry_gradient_rows.append(matrix)
+                            chunks=matrix.split(ACTOR_GRADIENT_GROUP_SIZE)
+                            gradient_rows.append(torch.stack([row.mean(0) for row in chunks]))
+                            gradient_weights.append(matrix.new_tensor([len(row)*weight/grouped.batch for row in chunks]))
+                        else:
+                            gradient_rows.append(matrix)
+                            gradient_weights.append(grouped.counts.to(matrix.dtype)*(weight/grouped.batch))
+                        if args.project_entry_updates:del chunks
+                        del grouped,matrix
                         objective_value+=float(part.detach())*weight
                         for key,value in details.items():
                             if value is None:continue
@@ -714,6 +747,7 @@ def main():
                             elif key in ('trajectories','missing_contact_proxy_terms','geometric_unobserved_terms','truncated_trajectories','required_contact_terms','stable_contact_terms','terminal_guidance_terms'):
                                 objective_parts[key]=objective_parts.get(key,0)+value
                             else:objective_parts[key]=max(objective_parts.get(key,0),value)
+                        del part,attempt_losses
                     objective_parts['stage_losses']=[dict(segment=g+1,case_id=int(clock.case_ids[g]),samples=int(n),continuation_samples=int(continued),contact=contact/n,root=root/n,collision=collision/n)
                         for g,(n,continued,contact,root,collision) in enumerate(stage_loss_sums.cpu().tolist()) if n]
                     objective=torch.tensor(objective_value,device=device)
@@ -734,11 +768,15 @@ def main():
                     objective_parts['gradient_outlier_cap']=gradient_cap
                 balance_audit=dict(enabled=False)
                 raw_grad_norm=torch.nn.utils.clip_grad_norm_(actor.parameters(),1.,error_if_nonfinite=True)
-                if args.update_diagnostics:
+                if args.update_diagnostics or args.project_entry_updates:
                     params=[p for p in actor.parameters() if p.grad is not None]
                     before=torch.cat([p.detach().flatten() for p in params])
                     gradient=torch.cat([p.grad.detach().flatten() for p in params])
                 actor_opt.step()
+                if args.project_entry_updates:
+                    from supermimic.contact_entry_projection import project_entry_step
+                    objective_parts['entry_projection']=project_entry_step(params,before,entry_gradient_rows[0] if len(entry_gradient_rows)==1 else torch.cat(entry_gradient_rows))
+                    del entry_gradient_rows
                 retention_audit=dict(enabled=False)
                 updates+=1
                 if args.update_diagnostics:
